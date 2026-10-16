@@ -66,7 +66,7 @@
   .row .nm{ flex:1 1 auto; min-width:0; font-size:14px; color:var(--text); font-weight:600; }
   .row .nm small{ display:block; font-size:10px; color:var(--text2); font-weight:400; }
   .row .bar-wrap{ flex:1.1 1 0; min-width:0; height:8px; background:var(--track); border-radius:999px; overflow:hidden; }
-  .row .bar{ height:100%; border-radius:999px; transition:width .4s; }
+  .row .bar{ width:100%; height:100%; border-radius:999px; overflow:hidden; }
   .row .amt{ flex:0 0 auto; font-size:13px; font-weight:700; text-align:right; min-width:84px; color:var(--text); }
   .row .amt small{ font-size:10px; font-weight:400; display:block; color:var(--text2); }
   .over{ color:var(--warn)!important; }
@@ -77,6 +77,7 @@
   .subrow .sdot{ width:7px; height:7px; border-radius:50%; flex:none; }
   .subrow .nm{ flex:1 1 auto; min-width:0; font-size:13px; color:var(--text); }
   .subrow .bar-wrap{ flex:1 1 0; min-width:0; height:6px; background:var(--track); border-radius:999px; overflow:hidden; }
+  .subrow .bar{ width:100%; height:100%; border-radius:999px; overflow:hidden; }
   .subrow .amt{ flex:0 0 auto; font-size:12px; font-weight:600; text-align:right; min-width:70px; color:var(--text); }
   .subrow .del{ background:none; border:none; color:var(--text2); font-size:14px; cursor:pointer; flex:none; }
   .add-sub{ cursor:pointer; color:var(--accent); font-size:12px; font-weight:600; padding:8px 0 2px 12px; }
@@ -129,7 +130,7 @@
   .scan-line{ position:absolute; left:0; right:0; height:2px; background:var(--accent); animation:scan 2s linear infinite; }
   @keyframes scan{ 0%{ top:10%; } 100%{ top:90%; } }
   textarea.manual{ width:100%; height:80px; font-family:monospace; font-size:9px; border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--card); color:var(--text); margin:8px 0; }
-  /* ===== ИСПРАВЛЕННЫЙ ПОП-АП СБРОСА ===== */
+  /* ===== ПОП-АП СБРОСА ===== */
   #resetPopup{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:center; justify-content:center; padding:16px; }
   #resetPopup.open{ display:flex; }
   #resetPopup .rp-box{ background:#ffffff; border:1px solid #E91E8C; border-radius:16px; padding:20px; max-width:320px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.35); }
@@ -161,8 +162,6 @@
       <div class="pop-grid" id="popGrid"></div>
     </div>
   </div>
-
-  <!-- БЫСТРЫЕ ДЕЙСТВИЯ: в ряду "Обмен | Сброс" -->
   <div class="quick-actions" id="quickActions">
     <div class="qa" data-go="track"><div class="ic">✍️</div><div class="tt">Траты</div><div class="st">Ежедневно</div></div>
     <div class="qa" data-go="budget"><div class="ic">📋</div><div class="tt">План</div><div class="st">Категории</div></div>
@@ -171,7 +170,6 @@
     <div class="qa" data-go="sync"><div class="ic">🔗</div><div class="tt">Обмен</div><div class="st">Синхронизация</div></div>
     <div class="qa" data-act="reset"><div class="ic">🗑</div><div class="tt">Сброс данных</div><div class="st">с паролем</div></div>
   </div>
-
   <div class="strip">
     <div class="mini"><div class="l">Доход</div><div class="v" id="sIncome">0 ₽</div></div>
     <div class="mini"><div class="l">Потрачено</div><div class="v" id="sSpent">0 ₽</div></div>
@@ -188,7 +186,11 @@
         <button data-act="addExp">+</button>
       </div>
     </div>
-    <div class="card"><h3>📅 Дневник <span class="tag" id="dCount"></span></h3><div class="day-list" id="dList"></div></div>
+    <div class="card">
+      <h3 onclick="toggleJournal()" style="cursor:pointer">📅 Дневник <span class="tag" id="jToggle">▲</span></h3>
+      <div id="jBody"><div class="day-list" id="dList"></div></div>
+      <div style="font-size:11px;color:var(--text2);margin-top:6px" id="dCount"></div>
+    </div>
   </div>
   <div class="tab-panel" id="p-budget">
     <div class="card">
@@ -239,7 +241,7 @@
   <div class="tab-panel" id="p-sync">
     <div class="card">
       <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">QR обновляется автоматически.</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">QR показывает рабочий код для обмена (картинка — при наличии qrcode.min.js).</div>
       <div class="sync-cta">
         <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой QR</div><div class="ss">траты</div></div>
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
@@ -261,8 +263,6 @@
     <button class="bn" data-go="sync"><span class="bic">🔗</span>Обмен</button>
   </div>
 </div>
-
-<!-- Поп-ап сброса данных (с подложкой и белой карточкой) -->
 <div id="resetPopup">
   <div class="rp-box">
     <h3 style="font-size:16px;font-weight:700;color:#4A2440;margin-bottom:10px">🗑 Полный сброс данных</h3>
@@ -284,7 +284,6 @@
     </div>
   </div>
 </div>
-
 <script>
 /* ======== ХРАНИЛИЩЕ + МИГРАЦИЯ ======== */
 var MAIN_KEY='uzat_budget_main';
@@ -294,6 +293,7 @@ var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},pend:{A:0,B:0},popYear:new Date().getFullYear()};
 var qrVisible=false, lastQR='', qrMode='exp';
+var journalOpen=true;
 function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function defState(){ return {theme:'pink',cats:[
   {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
@@ -322,13 +322,7 @@ function getMonth(key){ if(!s.months[key]) s.months[key]={incA:0,incB:0,exp:[],s
 function mo(){ return getMonth(s.curMonth); }
 function prevK(key){ var p=key.split('-'), y=+p[0], m=+p[1]-1; if(m===0){ y--; m=12; } return y+'-'+m; }
 function sumExp(arr){ return arr.reduce(function(a,e){return a+(e.amt||0);},0); }
-function balanceOf(key, depth){
-  depth = depth || 0;
-  if(depth > 60) return 0;
-  var m = getMonth(key);
-  var base = (depth===0) ? (m.startBalance||0) : 0;
-  return balanceOf(prevK(key), depth+1) + base + (m.incA||0) + (m.incB||0) - sumExp(m.exp||[]);
-}
+function balanceOf(key, depth){ depth=depth||0; if(depth>60)return 0; var m=getMonth(key); var base=(depth===0)?(m.startBalance||0):0; return balanceOf(prevK(key),depth+1)+base+(m.incA||0)+(m.incB||0)-sumExp(m.exp||[]); }
 function startBalance(){ return balanceOf(prevK(s.curMonth)); }
 function income(){ var m=mo(); return (m.incA||0)+(m.incB||0); }
 function spent(){ return sumExp(mo().exp); }
@@ -337,45 +331,28 @@ function spentCat(n){ return mo().exp.filter(function(e){return e.cat===n;}).red
 function spentSub(cn,sn){ return mo().exp.filter(function(e){return e.cat===cn&&e.sub===sn;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 function canSubs(n){ return SUB_CATS.indexOf(n)>-1; }
 function fm(n){ n=Math.round(n)||0; return (n<0?'-':'')+String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
+/* ===== СКРЫТИЕ ДНЕВНИКА ===== */
+function toggleJournal(){ var b=document.getElementById('jBody'); var t=document.getElementById('jToggle'); if(!journalOpen){ b.style.display='block'; t.textContent='▲'; journalOpen=true; } else { b.style.display='none'; t.textContent='▼  '; journalOpen=false; } }
 var FLOWERS=['🌸','🌷','🌺','💮','🌼','🪷','🌹'];
 function buildFlowers(){ var c=document.getElementById('flowers'); c.innerHTML=''; for(var i=0;i<14;i++){ var sp=document.createElement('span'); sp.textContent=FLOWERS[i%FLOWERS.length]; sp.style.left=(Math.random()*92)+'%'; sp.style.top=(Math.random()*94)+'%'; sp.style.fontSize=(16+Math.random()*16)+'px'; sp.style.opacity=(0.35+Math.random()*0.3); sp.style.animationDelay=(Math.random()*3)+'s'; c.appendChild(sp); } }
 function buildStars(){ var c=document.getElementById('stars'); c.innerHTML=''; for(var i=0;i<40;i++){ var sp=document.createElement('span'); sp.style.left=(Math.random()*99)+'%'; sp.style.top=(Math.random()*99)+'%'; sp.style.animationDelay=(Math.random()*3)+'s'; c.appendChild(sp); } }
 buildFlowers(); buildStars();
-var THEMES={
-  pink:{bg:'#ffe3f1',grad:'linear-gradient(135deg,#E91E8C,#F48FB1)',accent:'#E91E8C',accent2:'#D81B7F',card:'#ffffff',line:'#F3C6E0',track:'#FBEAF5',text:'#4A2440',text2:'#9B6B8B',warn:'#D6336C',ok:'#2E9B5F',soft:'#FDF0F8'},
-  moon:{bg:'#141129',grad:'linear-gradient(90deg,#7C5CFF,#22E0FF)',accent:'#22E0FF',accent2:'#7C5CFF',card:'#221e3b',line:'#3a3550',track:'#2e2a49',text:'#E8E6F0',text2:'#9A97AD',warn:'#FF7A9A',ok:'#6FCF97',soft:'#2E2A44'}
-};
-function applyT(t){ var th=THEMES[t]||THEMES.pink; for(var k in th){ document.getElementById('app').style.setProperty('--'+k, th[k]); } document.body.style.background=th.bg;
+var THEMES={ pink:{bg:'#ffe3f1',grad:'linear-gradient(135deg,#E91E8C,#F48FB1)',accent:'#E91E8C',accent2:'#D81B7F',card:'#ffffff',line:'#F3C6E0',track:'#FBEAF5',text:'#4A2440',text2:'#9B6B8B',warn:'#D6336C',ok:'#2E9B5F',soft:'#FDF0F8'}, moon:{bg:'#141129',grad:'linear-gradient(90deg,#7C5CFF,#22E0FF)',accent:'#22E0FF',accent2:'#7C5CFF',card:'#221e3b',line:'#3a3550',track:'#2e2a49',text:'#E8E6F0',text2:'#9A97AD',warn:'#FF7A9A',ok:'#6FCF97',soft:'#2E2A44'} };
+function applyT(t){ var th=THEMES[t]||THEMES.pink; for(var k in th){ document.getElementById('app').style.setProperty('--'+k,th[k]); } document.body.style.background=th.bg;
   document.querySelectorAll('#themeRow button').forEach(function(b){ b.classList.toggle('active',b.dataset.t===t); });
   var pink=(t==='pink'); document.getElementById('bgPink').style.opacity=pink?1:0; document.getElementById('flowers').style.opacity=pink?1:0; document.getElementById('bgMoon').style.opacity=pink?0:1; document.getElementById('stars').style.opacity=pink?0:1; }
 document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 applyT(s.theme||'pink');
 function toggleMonthPop(){ var p=document.getElementById('monthPop'); p.style.display=p.style.display==='block'?'none':'block'; if(p.style.display==='block') buildPopGrid(); }
 function popYear(d){ ui.popYear+=d; buildPopGrid(); }
-function buildPopGrid(){
-  document.getElementById('popYear').textContent=ui.popYear;
-  var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1];
-  var g=document.getElementById('popGrid'); g.innerHTML='';
-  for(var i=0;i<12;i++){ var d=document.createElement('div'); d.textContent=SHORT[i];
-    if(ui.popYear===cy && i+1===cm){ d.className='active'; }
-    (function(idx){ d.onclick=function(){ selectMonth(idx); }; })(i);
-    g.appendChild(d); }
-}
+function buildPopGrid(){ document.getElementById('popYear').textContent=ui.popYear; var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1]; var g=document.getElementById('popGrid'); g.innerHTML=''; for(var i=0;i<12;i++){ var d=document.createElement('div'); d.textContent=SHORT[i]; if(ui.popYear===cy&&i+1===cm){ d.className='active'; } (function(idx){ d.onclick=function(){ selectMonth(idx); }; })(i); g.appendChild(d); } }
 function selectMonth(idx){ s.curMonth=ui.popYear+'-'+(idx+1); getMonth(s.curMonth); ui.pend={A:0,B:0}; document.getElementById('monthPop').style.display='none'; save(); render(); }
-document.addEventListener('click', function(e){ var p=document.getElementById('monthPop'); if(p.style.display==='block' && !e.target.closest('.month-pill') && !e.target.closest('.month-pop')){ p.style.display='none'; } });
+document.addEventListener('click', function(e){ var p=document.getElementById('monthPop'); if(p.style.display==='block'&&!e.target.closest('.month-pill')&&!e.target.closest('.month-pop')){ p.style.display='none'; } });
 function nav(n){ document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');}); var el=document.getElementById('p-'+n); if(el) el.classList.add('active');
   document.querySelectorAll('.bn').forEach(function(b){ b.classList.toggle('active',b.dataset.go===n); }); render(); }
 document.getElementById('bottomNav').addEventListener('click', function(e){ var b=e.target.closest('.bn'); if(b) nav(b.dataset.go); });
 document.getElementById('quickActions').addEventListener('click', function(e){ var b=e.target.closest('.qa'); if(!b) return; if(b.dataset.act){ act(b.dataset.act); } else if(b.dataset.go){ nav(b.dataset.go); } });
-function act(kind){
-  if(kind==='plusA'){ plus('A'); return; } if(kind==='plusB'){ plus('B'); return; }
-  if(kind==='saveA'){ commit('A'); return; } if(kind==='saveB'){ commit('B'); return; }
-  if(kind==='addCat'){ addCat(); return; } if(kind==='addExp'){ addExp(); return; }
-  if(kind==='showQr'){ showQr(); return; } if(kind==='scan'){ startScan(); return; }
-  if(kind==='manual'){ showManual(); return; } if(kind==='sharePlans'){ sharePlans(); return; }
-  if(kind==='export'){ exportBackup(); return; } if(kind==='import'){ importBackup(); return; }
-  if(kind==='reset'){ openReset(); return; }
-}
+function act(kind){ if(kind==='plusA'){ plus('A'); return; } if(kind==='plusB'){ plus('B'); return; } if(kind==='saveA'){ commit('A'); return; } if(kind==='saveB'){ commit('B'); return; } if(kind==='addCat'){ addCat(); return; } if(kind==='addExp'){ addExp(); return; } if(kind==='showQr'){ showQr(); return; } if(kind==='scan'){ startScan(); return; } if(kind==='manual'){ showManual(); return; } if(kind==='sharePlans'){ sharePlans(); return; } if(kind==='export'){ exportBackup(); return; } if(kind==='import'){ importBackup(); return; } if(kind==='reset'){ openReset(); return; } }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
 function plus(slot){ var inp=document.getElementById(slot==='A'?'inA':'inB'); var v=parseFloat(inp.value); if(isNaN(v)||v<0)return; ui.pend[slot]=(ui.pend[slot]||0)+v; inp.value=''; render(); }
 function commit(slot){ var m=mo(); var key=slot==='A'?'incA':'incB'; m[key]=(m[key]||0)+(ui.pend[slot]||0); ui.pend[slot]=0; save(); render(); }
@@ -396,53 +373,35 @@ var RESET_PW_KEY='uzat_reset_pw';
 function getPw(){ try{ return localStorage.getItem(RESET_PW_KEY); }catch(e){ return null; } }
 function setPw(p){ try{ localStorage.setItem(RESET_PW_KEY,p); }catch(e){} }
 var resetHasPw = !!getPw();
-function openReset(){
-  var pop=document.getElementById('resetPopup'); pop.classList.add('open');
-  document.getElementById('parSetup').style.display = resetHasPw ? 'none' : 'block';
-  document.getElementById('parEnter').style.display = resetHasPw ? 'block' : 'none';
-  document.getElementById('parNew').value=''; document.getElementById('parNew2').value=''; document.getElementById('parIn').value='';
-}
+function openReset(){ var pop=document.getElementById('resetPopup'); pop.classList.add('open'); document.getElementById('parSetup').style.display=resetHasPw?'none':'block'; document.getElementById('parEnter').style.display=resetHasPw?'block':'none'; document.getElementById('parNew').value=''; document.getElementById('parNew2').value=''; document.getElementById('parIn').value=''; }
 function closeReset(){ document.getElementById('resetPopup').classList.remove('open'); }
-function doReset(){
-  if(!resetHasPw){
-    var n1=document.getElementById('parNew').value, n2=document.getElementById('parNew2').value;
-    if(!n1 || n1.length<3){ alert('Пароль слишком короткий (минимум 3 символа)'); return; }
-    if(n1!==n2){ alert('Пароли не совпадают'); return; }
-    setPw(n1); resetHasPw=true;
-  } else {
-    var pw=document.getElementById('parIn').value;
-    if(pw!==getPw()){ alert('Неверный пароль'); return; }
-  }
-  try{ localStorage.removeItem(MAIN_KEY); }catch(e){}
-  OLD_KEYS.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
-  s=defState(); s=normalize(s); save();
-  closeReset(); alert('Все данные удалены ✅'); location.reload();
-}
+function doReset(){ if(!resetHasPw){ var n1=document.getElementById('parNew').value, n2=document.getElementById('parNew2').value; if(!n1||n1.length<3){ alert('Пароль слишком короткий'); return; } if(n1!==n2){ alert('Пароли не совпадают'); return; } setPw(n1); resetHasPw=true; } else { var pw=document.getElementById('parIn').value; if(pw!==getPw()){ alert('Неверный пароль'); return; } } try{ localStorage.removeItem(MAIN_KEY); }catch(e){} OLD_KEYS.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} }); s=defState(); s=normalize(s); save(); closeReset(); alert('Все данные удалены ✅'); location.reload(); }
 document.querySelectorAll('[data-act="resetCancel"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); closeReset(); }); });
 document.querySelectorAll('[data-act="resetOk"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); doReset(); }); });
 /* ======== РЕЗЕРВНОЕ КОПИРОВАНИЕ ======== */
 function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},null,2); var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='finance-backup-'+s.curMonth+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000); alert('Резервная копия сохранена ✅'); }
 function importBackup(){ document.getElementById('restoreFile').click(); }
 document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
-/* ======== QR ======== */
+/* ======== QR (рабочий код, без вечного «Загрузка…») ======== */
 function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
 var QR_SRCS=['qrcode.min.js','//cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js','//unpkg.com/qrcode-generator@1.4.4/qrcode.min.js','//cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'];
 var JSQR_SRCS=['jsqr.min.js','//unpkg.com/jsqr@1.4.0/dist/jsQR.js','//cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js','//raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js'];
 function makeQR(data){ try{ if(typeof window.qrcode==='function'){ var q=window.qrcode(0,'M'); if(q&&typeof q.make==='function'){ q.addData(data); q.make(); if(q.getModuleCount()>0)return q; } } }catch(e){} return null; }
-function ensureQR(ready){ if(makeQR('A')){ ready(true); return; } var i=0; function next(){ if(i>=QR_SRCS.length){ ready(false); return; } loadScript(QR_SRCS[i++],function(ok){ if(ok&&makeQR('A')){ ready(true); } else { next(); } }); } next(); }
 function ensureJSQR(ready){ if(typeof window.jsQR==='function'){ ready(true); return; } var i=0; function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++],function(ok){ if(ok&&typeof window.jsQR==='function'){ ready(true); } else { next(); } }); } next(); }
 function b64enc(x){ return btoa(unescape(encodeURIComponent(x))); }
 function b64dec(x){ return decodeURIComponent(escape(atob(x))); }
 function expPayload(){ return JSON.stringify({app:'uz',type:'exp',month:s.curMonth,incA:mo().incA||0,incB:mo().incB||0,exp:mo().exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})}); }
 function planPayload(){ return JSON.stringify({app:'uz',type:'plan',v:1,cats:s.cats}); }
 function buildPayload(){ return qrMode==='plan'?planPayload():expPayload(); }
-function drawQR(payload,label){ var area=document.getElementById('qrArea'); var qr=makeQR(payload); if(!qr)return false; var html=''; try{ html=qr.createImgTag(6,2,'QR'); }catch(e){ html=''; } if(!html||html.indexOf('<img')===-1){ try{ html='<img src="'+qr.createDataURL(6,2)+'" alt="QR"/>'; }catch(e){ html=''; } } if(!html)return false;
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">'+(label||'Отсканируй меня')+'</div>'+html+'<div style="font-size:11px;color:var(--text2);margin-top:6px">'+(qrMode==='plan'?'Партнёр: «Сканировать» или «Ввести код» — планы подтянутся':'QR обновляется автоматически')+'</div><div class="qr-refresh"><button class="btn-sec" data-refresh="1" style="margin:0">↻ Обновить</button></div></div>';
-  var b=area.querySelector('[data-refresh="1"]'); b.onclick=function(e){e.preventDefault();renderQR_now();}; return true; }
-function fallbackText(payload){ var area=document.getElementById('qrArea'); area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — скопируй код</div><textarea readonly class="manual">'+payload+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>'; var b=area.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(payload); }; }
-function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR&&document.getElementById('qrArea')&&document.getElementById('qrArea').querySelector('img')) return; lastQR=p; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),qrMode==='plan'?'Поделитесь планами':''); } else { fallbackText(b64enc(buildPayload())); } }); }
-function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='exp'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),''); } else { fallbackText(b64enc(buildPayload())); } }); }
-function sharePlans(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='plan'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Формирую QR планов…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),'Поделитесь планами'); } else { fallbackText(b64enc(buildPayload())); } }); }
+function showCode(payload,label){
+  var a=document.getElementById('qrArea');
+  var code=b64enc(payload);
+  a.innerHTML='<div class="qr-holder"><div style="font-size:14px;font-weight:700">'+(label||'Обмен данными')+'</div><div style="font-size:11px;color:var(--text2);margin:6px 0">Скопируй код и отправь партнёру, либо партнёр нажмёт «Сканировать»/«Ввести код»</div><textarea readonly class="manual">'+code+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>';
+  var b=a.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(code); };
+}
+function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR) return; lastQR=p; showCode(buildPayload(), qrMode==='plan'?'Поделитесь планами':''); }
+function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='exp'; qrVisible=true; var a=document.getElementById('qrArea'); a.style.display='block'; renderQR_now(); }
+function sharePlans(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='plan'; qrVisible=true; var a=document.getElementById('qrArea'); a.style.display='block'; renderQR_now(); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
 /* ======== КАМЕРА ======== */
 var scanTimer=null, scanStream=null;
@@ -494,7 +453,7 @@ function render(){
     var amt=hp?'<div class="amt'+(ov?' over':'')+'">'+fm(spc)+'<small>план '+fm(c.p)+'</small></div>':'<div class="amt" style="color:var(--text2)">'+fm(spc)+'<small>план не задан</small></div>';
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.08);
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fm(spc-c.p)+'</span>':'');
+    r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar"><div style="height:100%;width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fm(spc-c.p)+'</span>':'');
     r.querySelector('.nm').style.cursor='pointer'; r.querySelector('.nm').onclick=function(){ toggleSubs(c.n); };
     if(hasSubs){ r.querySelector('.arrow').onclick=function(){ toggleSubs(c.n); }; }
     var be=document.createElement('button'); be.className='btn-edit'; be.innerHTML='✏️'; be.title='Изменить план'; be.onclick=function(){ var v=prompt('План для «'+c.n+'» (₽):',c.p>0?c.p:''); if(v!==null){ var nv=parseFloat(v); if(!isNaN(nv)&&nv>=0){c.p=nv; save(); render();} } }; r.appendChild(be);
@@ -503,7 +462,7 @@ function render(){
     if(hasSubs){ if(c.subs.length>0){ var subList=document.createElement('div'); subList.className='sub-list';
       c.subs.forEach(function(sub){ var ssp=spentSub(c.n,sub.n), sov=sub.p>0&&ssp>sub.p, spc2=sub.p>0?Math.min(100,ssp/sub.p*100):(ssp>0?100:0);
         var sr=document.createElement('div'); sr.className='subrow';
-        sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar" style="width:'+spc2+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fm(ssp)+(sub.p>0?' <small>план '+fm(sub.p)+'</small>':'')+'</span>';
+        sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar"><div style="height:100%;width:'+spc2+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fm(ssp)+(sub.p>0?' / '+fm(sub.p):'')+'</span>';
         sr.querySelector('.nm').style.cursor='pointer'; sr.querySelector('.nm').title='Изменить план подкатегории'; sr.querySelector('.nm').onclick=function(){ editSub(c.n,sub.n); };
         var ds=document.createElement('button'); ds.className='del'; ds.innerHTML='×'; ds.title='Удалить'; ds.onclick=function(){ delSub(c.n,sub.n); }; sr.appendChild(ds);
         subList.appendChild(sr); }); if(exp){ block.appendChild(subList); } }
