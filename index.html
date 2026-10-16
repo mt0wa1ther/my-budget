@@ -27,13 +27,25 @@
   @keyframes twinkle{ 0%,100%{opacity:.2;} 50%{opacity:.8;} }
   .phone{ --bg:#ffe3f1; --grad:linear-gradient(135deg,#E91E8C,#F48FB1); --accent:#E91E8C; --accent2:#D81B7F;
     --card:#ffffff; --line:#F3C6E0; --track:#FBEAF5; --text:#4A2440; --text2:#9B6B8B; --warn:#D6336C; --ok:#2E9B5F; --soft:#FDF0F8; color:var(--text); }
-  .mob-head{ position:sticky; top:0; z-index:20; background:var(--grad); color:#fff; padding:18px 18px 16px; border-radius:0 0 24px 24px; box-shadow:0 4px 20px rgba(0,0,0,.18); }
+  .mob-head{ position:relative; z-index:20; background:var(--grad); color:#fff; padding:18px 18px 12px; border-radius:0 0 24px 24px; box-shadow:0 4px 20px rgba(0,0,0,.18); }
   .mob-head .hello{ font-size:13px; opacity:.92; }
   .mob-head .balance{ font-size:32px; font-weight:700; margin:4px 0 2px; letter-spacing:.5px; }
-  .mob-head .month{ font-size:12px; opacity:.85; }
-  .theme-row{ display:flex; justify-content:flex-end; gap:6px; margin-top:-6px; }
-  .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:32px; height:32px; border-radius:50%; cursor:pointer; line-height:1; }
+  .month-row{ display:flex; justify-content:space-between; align-items:center; margin-top:2px; }
+  .month-pill{ background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.4); color:#fff; font-size:12px; font-weight:600; padding:5px 12px; border-radius:999px; cursor:pointer; }
+  .month-pill:active{ background:rgba(255,255,255,.35); }
+  .theme-row{ display:flex; gap:6px; }
+  .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; cursor:pointer; line-height:1; }
   .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+  /* popup месяцев */
+  .month-pop{ position:absolute; top:120px; left:14px; right:14px; z-index:60; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.2); }
+  .month-pop .pop-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .month-pop .pop-head button{ background:var(--soft); border:1px solid var(--line); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:10px; cursor:pointer; }
+  .month-pop .pop-head span{ font-size:14px; font-weight:700; color:var(--text); }
+  .month-pop .pop-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .month-pop .pop-grid div{ text-align:center; padding:10px 4px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; color:var(--text); border:1px solid transparent; }
+  .month-pop .pop-grid div:hover{ background:var(--soft); }
+  .month-pop .pop-grid div.active{ background:var(--accent); color:#fff; }
+  .mob-head .carry{ font-size:11px; opacity:.85; margin-top:2px; }
   .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 14px 0; }
   .qa{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.06); }
   .qa:active{ transform:scale(.97); }
@@ -132,12 +144,20 @@
       <div>
         <div class="hello">Привет 👋 Текущий остаток</div>
         <div class="balance" id="hBalance">0 ₽</div>
-        <div class="month" id="hMonth"></div>
+        <div class="month-row">
+          <div class="month-pill" id="hMonth" onclick="toggleMonthPop()">окт ▾</div>
+          <div class="carry" id="hCarry"></div>
+        </div>
       </div>
       <div class="theme-row" id="themeRow">
         <button data-t="pink" class="active">🌸</button>
         <button data-t="moon">🌙</button>
       </div>
+    </div>
+    <!-- поп-ап месяцев -->
+    <div class="month-pop" id="monthPop" style="display:none">
+      <div class="pop-head"><button onclick="popYear(-1)">‹</button><span id="popYear">2025</span><button onclick="popYear(1)">›</button></div>
+      <div class="pop-grid" id="popGrid"></div>
     </div>
   </div>
 
@@ -221,11 +241,12 @@
   <div class="tab-panel" id="p-sync">
     <div class="card">
       <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Один показывает QR, второй сканирует камерой. QR обновляется автоматически при изменении трат.</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">QR обновляется автоматически. Один показывает QR, второй сканирует камерой или вставляет код.</div>
       <div class="sync-cta">
-        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой QR</div><div class="ss">показать QR</div></div>
+        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой QR</div><div class="ss">траты за месяц</div></div>
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
-        <div class="sync-btn" data-act="manual" style="grid-column:1/-1"><div class="si">⌨️</div><div class="st2">Ввести код вручную</div><div class="ss">если камера не работает</div></div>
+        <div class="sync-btn" data-act="sharePlans"><div class="si">📋</div><div class="st2">Поделиться планами</div><div class="ss">категории и планы</div></div>
+        <div class="sync-btn" data-act="manual"><div class="si">⌨️</div><div class="st2">Ввести код</div><div class="ss">вручную</div></div>
       </div>
       <div id="qrArea" style="display:none;margin-top:12px"></div>
       <div id="scanArea" style="display:none;margin-top:12px"></div>
@@ -242,35 +263,44 @@
 </div>
 
 <script>
-var K='uzat_budget_v13';
+var K='uzat_budget_v14';
+var SHORT=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
-var ui={expanded:{},pend:{A:0,B:0}};
-var qrVisible=false, lastQRPayload='';
+var ui={expanded:{},pend:{A:0,B:0},popYear:new Date().getFullYear()};
+var qrVisible=false, lastQR='', qrMode='exp';
 var s=null;
-try{ s=JSON.parse(localStorage.getItem(K)); }catch(e){ s=null; }
-if(!s || typeof s!=='object' || !s.cats){
-  s={month:cmk(),incA:0,incB:0,cats:[
-    {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
-    {n:'Еда',p:0,c:'#81C784',subs:[]},
-    {n:'Развлечения',p:0,c:'#B39DDB',subs:[]},
-    {n:'Одежда',p:0,c:'#64B5F6',subs:[]},
-    {n:SPEC,p:0,c:'#FFAB91',subs:[]}
-  ],exp:[],theme:'pink'};
+var raw=null; try{ raw=JSON.parse(localStorage.getItem(K)); }catch(e){}
+if(raw && raw.cats && raw.months){ s=raw; }
+else if(raw && raw.cats){
+  var om=raw.month||cmk(); s={theme:raw.theme||'pink',cats:raw.cats,months:{},curMonth:om};
+  s.months[om]={incA:raw.incA||0,incB:raw.incB||0,exp:raw.exp||[],startBalance:0};
 }
+if(!s){ s={theme:'pink',cats:[
+  {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
+  {n:'Еда',p:0,c:'#81C784',subs:[]},
+  {n:'Развлечения',p:0,c:'#B39DDB',subs:[]},
+  {n:'Одежда',p:0,c:'#64B5F6',subs:[]},
+  {n:SPEC,p:0,c:'#FFAB91',subs:[]}
+],months:{},curMonth:cmk()}; }
+if(!s.curMonth || !/^\d{4}-\d{1,2}$/.test(s.curMonth||'')) s.curMonth=cmk();
 s.cats.forEach(function(c){ if(!c.subs)c.subs=[]; });
-if(s.month!==cmk()){ s.month=cmk(); s.exp=[]; }
 
-function canSubs(n){ return SUB_CATS.indexOf(n)>-1; }
 function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
-function mn(){ return ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][new Date().getMonth()]; }
-function fmt(n){ n=Math.round(n)||0; return (n<0?'-':'')+String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
+function getMonth(key){ if(!s.months[key]) s.months[key]={incA:0,incB:0,exp:[],startBalance:0}; return s.months[key]; }
+function mo(){ return getMonth(s.curMonth); }
+function prevK(key){ var p=key.split('-'), y=+p[0], m=+p[1]-1; if(m===0){y--;m=12;} return y+'-'+m; }
+function sumExp(arr){ return arr.reduce(function(a,e){return a+(e.amt||0);},0); }
+function monthEnd(key){ var m=getMonth(key); return (m.startBalance||0)+(m.incA||0)+(m.incB||0)-sumExp(m.exp); }
+function startBalance(){ return monthEnd(prevK(s.curMonth)); }
+function income(){ var m=mo(); return (m.incA||0)+(m.incB||0); }
+function spent(){ return sumExp(mo().exp); }
+function totalBal(){ return startBalance()+income()-spent(); }
+function spentCat(n){ return mo().exp.filter(function(e){return e.cat===n;}).reduce(function(a,e){return a+(e.amt||0);},0); }
+function spentSub(cn,sn){ return mo().exp.filter(function(e){return e.cat===cn&&e.sub===sn;}).reduce(function(a,e){return a+(e.amt||0);},0); }
+function canSubs(n){ return SUB_CATS.indexOf(n)>-1; }
+function fm(n){ n=Math.round(n)||0; return (n<0?'-':'')+String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
 function save(){ try{ localStorage.setItem(K,JSON.stringify(s)); }catch(e){} }
-function income(){ return (s.incA||0)+(s.incB||0); }
-function spent(){ return s.exp.reduce(function(a,e){return a+(e.amt||0);},0); }
-function spentCat(n){ return s.exp.filter(function(e){return e.cat===n;}).reduce(function(a,e){return a+(e.amt||0);},0); }
-function spentSub(cn,sn){ return s.exp.filter(function(e){return e.cat===cn&&e.sub===sn;}).reduce(function(a,e){return a+(e.amt||0);},0); }
-document.getElementById('hMonth').textContent=mn()+' '+new Date().getFullYear();
 
 var FLOWERS=['🌸','🌷','🌺','💮','🌼','🪷','🌹'];
 function buildFlowers(){ var c=document.getElementById('flowers'); c.innerHTML=''; for(var i=0;i<14;i++){ var sp=document.createElement('span'); sp.textContent=FLOWERS[i%FLOWERS.length]; sp.style.left=(Math.random()*92)+'%'; sp.style.top=(Math.random()*94)+'%'; sp.style.fontSize=(16+Math.random()*16)+'px'; sp.style.opacity=(0.35+Math.random()*0.3); sp.style.animationDelay=(Math.random()*3)+'s'; c.appendChild(sp); } }
@@ -281,19 +311,29 @@ var THEMES={
   pink:{bg:'#ffe3f1',grad:'linear-gradient(135deg,#E91E8C,#F48FB1)',accent:'#E91E8C',accent2:'#D81B7F',card:'#ffffff',line:'#F3C6E0',track:'#FBEAF5',text:'#4A2440',text2:'#9B6B8B',warn:'#D6336C',ok:'#2E9B5F',soft:'#FDF0F8'},
   moon:{bg:'#141129',grad:'linear-gradient(90deg,#7C5CFF,#22E0FF)',accent:'#22E0FF',accent2:'#7C5CFF',card:'#221e3b',line:'#3a3550',track:'#2e2a49',text:'#E8E6F0',text2:'#9A97AD',warn:'#FF7A9A',ok:'#6FCF97',soft:'#2E2A44'}
 };
-function applyT(t){
-  var th=THEMES[t]||THEMES.pink;
-  for(var k in th){ document.getElementById('app').style.setProperty('--'+k, th[k]); }
-  document.body.style.background=th.bg;
+function applyT(t){ var th=THEMES[t]||THEMES.pink; for(var k in th){ document.getElementById('app').style.setProperty('--'+k, th[k]); } document.body.style.background=th.bg;
   document.querySelectorAll('#themeRow button').forEach(function(b){ b.classList.toggle('active',b.dataset.t===t); });
-  var pink=(t==='pink');
-  document.getElementById('bgPink').style.opacity=pink?1:0;
-  document.getElementById('flowers').style.opacity=pink?1:0;
-  document.getElementById('bgMoon').style.opacity=pink?0:1;
-  document.getElementById('stars').style.opacity=pink?0:1;
-}
+  var pink=(t==='pink'); document.getElementById('bgPink').style.opacity=pink?1:0; document.getElementById('flowers').style.opacity=pink?1:0; document.getElementById('bgMoon').style.opacity=pink?0:1; document.getElementById('stars').style.opacity=pink?0:1; }
 document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 applyT(s.theme||'pink');
+
+/* ===== МЕСЯЦЫ: пилюля + поп-ап ===== */
+function monthLabel(key){ var p=key.split('-'), y=+p[0], m=+p[1]; return {y:y,m:m}; }
+function toggleMonthPop(){ var p=document.getElementById('monthPop'); p.style.display = p.style.display==='block'?'none':'block'; if(p.style.display==='block') buildPopGrid(); }
+function popYear(d){ ui.popYear+=d; buildPopGrid(); }
+function buildPopGrid(){
+  document.getElementById('popYear').textContent=ui.popYear;
+  var cur=monthLabel(s.curMonth);
+  var g=document.getElementById('popGrid'); g.innerHTML='';
+  for(var i=0;i<12;i++){
+    var d=document.createElement('div'); d.textContent=SHORT[i];
+    if(ui.popYear===cur.y && i+1===cur.m){ d.className='active'; }
+    d.onclick=function(idx){ return function(){ selectMonth(idx); }; }(i);
+    g.appendChild(d);
+  }
+}
+function selectMonth(idx){ s.curMonth=ui.popYear+'-'+(idx+1); getMonth(s.curMonth); ui.pend={A:0,B:0}; document.getElementById('monthPop').style.display='none'; save(); render(); }
+document.addEventListener('click', function(e){ var p=document.getElementById('monthPop'); if(p.style.display==='block' && !e.target.closest('.month-pill') && !e.target.closest('.month-pop')){ p.style.display='none'; } });
 
 function nav(n){ document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');}); var el=document.getElementById('p-'+n); if(el) el.classList.add('active');
   document.querySelectorAll('.bn').forEach(function(b){ b.classList.toggle('active',b.dataset.go===n); }); render(); }
@@ -301,179 +341,121 @@ document.getElementById('bottomNav').addEventListener('click', function(e){ var 
 document.getElementById('quickActions').addEventListener('click', function(e){ var b=e.target.closest('.qa'); if(b) nav(b.dataset.go); });
 
 function act(kind){
-  if(kind==='plusA'){ plus('A'); return; }
-  if(kind==='plusB'){ plus('B'); return; }
-  if(kind==='saveA'){ commit('A'); return; }
-  if(kind==='saveB'){ commit('B'); return; }
-  if(kind==='addCat'){ addCat(); return; }
-  if(kind==='addExp'){ addExp(); return; }
-  if(kind==='showQr'){ showQr(); return; }
-  if(kind==='scan'){ startScan(); return; }
-  if(kind==='manual'){ showManual(); return; }
+  if(kind==='plusA'){ plus('A'); return; } if(kind==='plusB'){ plus('B'); return; }
+  if(kind==='saveA'){ commit('A'); return; } if(kind==='saveB'){ commit('B'); return; }
+  if(kind==='addCat'){ addCat(); return; } if(kind==='addExp'){ addExp(); return; }
+  if(kind==='showQr'){ showQr(); return; } if(kind==='scan'){ startScan(); return; }
+  if(kind==='manual'){ showManual(); return; } if(kind==='sharePlans'){ sharePlans(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
 
 function plus(slot){ var inp=document.getElementById(slot==='A'?'inA':'inB'); var v=parseFloat(inp.value); if(isNaN(v)||v<0)return; ui.pend[slot]=(ui.pend[slot]||0)+v; inp.value=''; render(); }
-function commit(slot){ var key=slot==='A'?'incA':'incB'; s[key]=(s[key]||0)+(ui.pend[slot]||0); ui.pend[slot]=0; save(); render(); }
+function commit(slot){ var m=mo(); var key=slot==='A'?'incA':'incB'; m[key]=(m[key]||0)+(ui.pend[slot]||0); ui.pend[slot]=0; save(); render(); }
 document.querySelectorAll('.edit').forEach(function(e2){ e2.addEventListener('click', function(){ editIncome(e2.dataset.edit); }); });
-function editIncome(k){ var cur=k==='incA'?(s.incA||0):(s.incB||0); var v=prompt('Новая сумма (₽):',cur); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} if(k==='incA')s.incA=nv; else s.incB=nv; save(); render(); }
+function editIncome(k){ var m=mo(); var cur=k==='incA'?(m.incA||0):(m.incB||0); var v=prompt('Новая сумма (₽):',cur); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} if(k==='incA')m.incA=nv; else m.incB=nv; save(); render(); }
 
 function toggleSubs(cn){ if(!canSubs(cn))return; ui.expanded[cn]=!ui.expanded[cn]; render(); }
 function addSub(cn){ var n=prompt('Название подкатегории:'); if(!n||!n.trim())return; var p=parseFloat(prompt('План (₽):',0)); if(isNaN(p)||p<0)p=0; var c=s.cats.find(function(x){return x.n===cn;}); c.subs.push({n:n.trim(),p:p}); ui.expanded[cn]=true; save(); render(); }
 function editSub(cn,sn){ var c=s.cats.find(function(x){return x.n===cn;}); var sub=c.subs.find(function(x){return x.n===sn;}); var v=prompt('Новый план для «'+sn+'» (₽):',sub.p); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} sub.p=nv; save(); render(); }
-function delSub(cn,sn){ var c=s.cats.find(function(x){return x.n===cn;}); c.subs=c.subs.filter(function(x){return x.n!==sn;}); s.exp.forEach(function(e){ if(e.cat===cn&&e.sub===sn)e.sub=''; }); save(); render(); }
-
+function delSub(cn,sn){ var c=s.cats.find(function(x){return x.n===cn;}); c.subs=c.subs.filter(function(x){return x.n!==sn;}); mo().exp.forEach(function(e){ if(e.cat===cn&&e.sub===sn)e.sub=''; }); save(); render(); }
 function addCat(){ var n=document.getElementById('nCat').value.trim(),t=document.getElementById('nType').value,a=parseFloat(document.getElementById('nAmt').value); if(!n)return; if(isNaN(a)||a<0)a=0; var cl=['#F06292','#4DB6AC','#9575CD','#4FC3F7','#AED581','#FFB74D','#7986CB']; s.cats.push({n:n,p:a,c:cl[s.cats.length%cl.length],subs:[]}); document.getElementById('nCat').value=''; document.getElementById('nAmt').value=''; save(); render(); }
-function delCat(n){ if(n===MAND||n===SPEC)return; s.cats=s.cats.filter(function(x){return x.n!==n;}); s.exp=s.exp.filter(function(x){return x.cat!==n;}); save(); render(); }
+function delCat(n){ if(n===MAND||n===SPEC)return; s.cats=s.cats.filter(function(x){return x.n!==n;}); mo().exp=mo().exp.filter(function(x){return x.cat!==n;}); save(); render(); }
 function makeId(){ return 't'+Date.now()+Math.random().toString(36).slice(2,7); }
-function addExp(){
-  var d=parseInt(document.getElementById('tDay').value), c=document.getElementById('tCat').value, a=parseFloat(document.getElementById('tAmt').value);
-  if(!d||d<1||d>31||isNaN(a)||a<=0)return;
-  var sub=document.getElementById('tSub').value||'';
-  s.exp.push({id:makeId(),day:d,cat:c,sub:sub,amt:a,ts:Date.now()});
-  document.getElementById('tAmt').value=''; save(); render();
-}
-function editExp(i){ var e=s.exp[i]; var v=prompt('Новая сумма для «'+e.cat+((e.sub)?' / '+e.sub:'')+'» ('+e.day+' числа), ₽:',e.amt); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} e.amt=nv; save(); render(); }
-function delExp(i){ s.exp.splice(i,1); save(); render(); }
+function addExp(){ var d=parseInt(document.getElementById('tDay').value), c=document.getElementById('tCat').value, a=parseFloat(document.getElementById('tAmt').value); if(!d||d<1||d>31||isNaN(a)||a<=0)return; var sub=document.getElementById('tSub').value||''; mo().exp.push({id:makeId(),day:d,cat:c,sub:sub,amt:a,ts:Date.now()}); document.getElementById('tAmt').value=''; save(); render(); }
+function editExp(i){ var e=mo().exp[i]; var v=prompt('Новая сумма для «'+e.cat+((e.sub)?' / '+e.sub:'')+'» ('+e.day+' числа), ₽:',e.amt); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} e.amt=nv; save(); render(); }
+function delExp(i){ mo().exp.splice(i,1); save(); render(); }
 
-/* ======== QR: надёжная загрузка и отрисовка ======== */
-function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){ cb(true); }; sc.onerror=function(){ cb(false); }; document.head.appendChild(sc); }
+/* ======== QR (надёжно) ======== */
+function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
 var QR_SRCS=['qrcode.min.js','//cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js','//unpkg.com/qrcode-generator@1.4.4/qrcode.min.js','//cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'];
 var JSQR_SRCS=['jsqr.min.js','//unpkg.com/jsqr@1.4.0/dist/jsQR.js','//cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js','//raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js'];
-function makeQR(data){
-  try{
-    if(typeof window.qrcode==='function'){
-      var q=window.qrcode(0,'M');
-      if(q && typeof q.make==='function'){ q.addData(data); q.make(); if(q.getModuleCount()>0) return q; }
-    }
-  }catch(e){}
-  return null;
-}
-function ensureQR(ready){
-  if(makeQR('A')){ ready(true); return; }
-  var i=0;
-  function next(){ if(i>=QR_SRCS.length){ ready(false); return; } loadScript(QR_SRCS[i++], function(ok){ if(ok && makeQR('A')){ ready(true); } else { next(); } }); }
-  next();
-}
-function ensureJSQR(ready){
-  if(typeof window.jsQR==='function'){ ready(true); return; }
-  var i=0;
-  function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++], function(ok){ if(ok && typeof window.jsQR==='function'){ ready(true); } else { next(); } }); }
-  next();
-}
-function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
-function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
-function buildPayloadB64(){ return b64enc(JSON.stringify({app:'uz',v:2,exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})})); }
-function drawQR(payload){
-  var area=document.getElementById('qrArea');
-  var qr=makeQR(payload);
-  if(!qr){ return false; }
-  var html='';
-  try{ html=qr.createImgTag(6,2,'QR'); }catch(e){ html=''; }
-  if(!html || html.indexOf('<img')=== -1){ try{ html='<img src="'+qr.createDataURL(6,2)+'" alt="QR"/>'; }catch(e){ html=''; } }
-  if(!html){ return false; }
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">Отсканируй меня</div>'+html+'<div style="font-size:11px;color:var(--text2);margin-top:6px">QR обновляется автоматически при изменении трат</div><div class="qr-refresh"><button class="btn-sec" data-act="refreshQR" style="margin:0">↻ Обновить QR</button></div></div>';
-  bindRefresh();
-  return true;
-}
-function bindRefresh(){ var b=document.querySelector('[data-act="refreshQR"]'); if(b){ b.addEventListener('click',function(e){ e.preventDefault(); renderQR_now(); }); } }
-function renderQR_now(){
-  if(!qrVisible) return;
-  var p=buildPayloadB64();
-  if(p===lastQRPayload && document.getElementById('qrArea') && document.getElementById('qrArea').querySelector('img')) return;
-  lastQRPayload=p;
-  ensureQR(function(ok){ if(ok){ drawQR(p); } else { fallbackText(p); } });
-}
-function fallbackText(payload){
-  var area=document.getElementById('qrArea');
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — скопируй код</div><textarea readonly class="manual">'+payload+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>';
-  var b=area.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(payload); };
-}
-function showQr(){
-  stopScan(); document.getElementById('scanArea').style.display='none';
-  qrVisible=true; document.getElementById('qrArea').style.display='block';
-  document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>';
-  ensureQR(function(ok){
-    if(ok){ drawQR(buildPayloadB64()); } else { fallbackText(buildPayloadB64()); }
-  });
-}
+function makeQR(data){ try{ if(typeof window.qrcode==='function'){ var q=window.qrcode(0,'M'); if(q&&typeof q.make==='function'){ q.addData(data); q.make(); if(q.getModuleCount()>0)return q; } } }catch(e){} return null; }
+function ensureQR(ready){ if(makeQR('A')){ ready(true); return; } var i=0; function next(){ if(i>=QR_SRCS.length){ ready(false); return; } loadScript(QR_SRCS[i++],function(ok){ if(ok&&makeQR('A')){ ready(true); } else { next(); } }); } next(); }
+function ensureJSQR(ready){ if(typeof window.jsQR==='function'){ ready(true); return; } var i=0; function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++],function(ok){ if(ok&&typeof window.jsQR==='function'){ ready(true); } else { next(); } }); } next(); }
+function b64enc(x){ return btoa(unescape(encodeURIComponent(x))); }
+function b64dec(x){ return decodeURIComponent(escape(atob(x))); }
+function expPayload(){ return JSON.stringify({app:'uz',type:'exp',month:s.curMonth,exp:mo().exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})}); }
+function planPayload(){ return JSON.stringify({app:'uz',type:'plan',v:1,cats:s.cats}); }
+function buildPayload(){ return qrMode==='plan'?planPayload():expPayload(); }
+function drawQR(payload,label){ var area=document.getElementById('qrArea'); var qr=makeQR(payload); if(!qr) return false; var html=''; try{ html=qr.createImgTag(6,2,'QR'); }catch(e){ html=''; } if(!html||html.indexOf('<img')===-1){ try{ html='<img src="'+qr.createDataURL(6,2)+'" alt="QR"/>'; }catch(e){ html=''; } } if(!html) return false;
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">'+(label||'Отсканируй меня')+'</div>'+html+'<div style="font-size:11px;color:var(--text2);margin-top:6px">'+(qrMode==='plan'?'Партнёр: «Сканировать» или «Ввести код» — планы и категории подтянутся':'QR обновляется автоматически')+'</div><div class="qr-refresh"><button class="btn-sec" data-refresh="1" style="margin:0">↻ Обновить</button></div></div>';
+  var b=area.querySelector('[data-refresh="1"]'); b.onclick=function(e){e.preventDefault();renderQR_now();}; return true; }
+function fallbackText(payload){ var area=document.getElementById('qrArea'); area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — скопируй код</div><textarea readonly class="manual">'+payload+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>'; var b=area.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(payload); }; }
+function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR&&document.getElementById('qrArea')&&document.getElementById('qrArea').querySelector('img')) return; lastQR=p; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()), qrMode==='plan'?'Поделитесь планами':''); } else { fallbackText(b64enc(buildPayload())); } }); }
+function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='exp'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),''); } else { fallbackText(b64enc(buildPayload())); } }); }
+function sharePlans(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='plan'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Формирую QR планов…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),'Поделитесь планами'); } else { fallbackText(b64enc(buildPayload())); } }); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
 
 /* ======== КАМЕРА ======== */
 var scanTimer=null, scanStream=null;
-function startScan(){
-  document.getElementById('qrArea').style.display='none'; qrVisible=false;
-  var area=document.getElementById('scanArea'); area.style.display='block';
-  area.innerHTML='<div class="empty">Подготовка камеры…</div>';
-  ensureJSQR(function(has){
-    if(!has){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m=area.querySelector('[data-manual="1"]'); if(m)m.onclick=function(){ showManual(); }; return; }
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m2=area.querySelector('[data-manual="1"]'); if(m2)m2.onclick=function(){ showManual(); }; return; }
+function startScan(){ document.getElementById('qrArea').style.display='none'; qrVisible=false; var area=document.getElementById('scanArea'); area.style.display='block'; area.innerHTML='<div class="empty">Подготовка камеры…</div>';
+  ensureJSQR(function(has){ if(!has){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m=area.querySelector('[data-manual="1"]'); if(m)m.onclick=function(){ showManual(); }; return; }
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m2=area.querySelector('[data-manual="1"]'); if(m2)m2.onclick=function(){ showManual(); }; return; }
     area.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-stop="1">Отмена</button><button class="btn-sec" data-manual="1">Ввести вручную</button>';
-    var sb=area.querySelector('[data-stop="1"]'); if(sb)sb.onclick=function(){ stopScan(); };
-    var mb=area.querySelector('[data-manual="1"]'); if(mb)mb.onclick=function(){ stopScan(); showManual(); };
+    var sb=area.querySelector('[data-stop="1"]'); if(sb)sb.onclick=function(){ stopScan(); }; var mb=area.querySelector('[data-manual="1"]'); if(mb)mb.onclick=function(){ stopScan(); showManual(); };
     var video=document.getElementById('scanner');
-    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var mm=area.querySelector('[data-manual="1"]'); if(mm)mm.onclick=function(){ showManual(); }; });
-  });
-}
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var mm=area.querySelector('[data-manual="1"]'); if(mm)mm.onclick=function(){ showManual(); }; }); }); }
 function tickScan(){ var video=document.getElementById('scanner'); try{ if(!video||video.videoWidth===0)return; var cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight; var ctx=cv.getContext('2d'); ctx.drawImage(video,0,0,cv.width,cv.height); var img=ctx.getImageData(0,0,cv.width,cv.height); var code=jsQR(img.data,img.width,img.height); if(code&&code.data){ stopScan(); mergePayload(code.data); } }catch(e){} }
 function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование завершено.</div>'; } }
-function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block';
-  area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-merge="1">Объединить</button>';
-  var b=area.querySelector('[data-merge="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
-function parseData(raw){
-  var data=null;
-  try{ data=JSON.parse(b64dec(raw)); }catch(e){ data=null; }
-  if(!data){ try{ data=JSON.parse(raw); }catch(e){ data=null; } }
-  return data;
-}
+function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block'; area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-merge="1">Объединить</button>'; var b=area.querySelector('[data-merge="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
+function parseData(raw){ var data=null; try{ data=JSON.parse(b64dec(raw)); }catch(e){ data=null; } if(!data){ try{ data=JSON.parse(raw); }catch(e){ data=null; } } return data; }
 function mergePayload(str){
   var area=document.getElementById('scanArea'); area.style.display='block';
   var data=parseData(str);
-  if(!data || data.app!=='uz' || !data.exp){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Попробовать ещё</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
-  var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
-  data.exp.forEach(function(e){ if(e.id&&!myIds[e.id]){ s.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
-  save(); render(); qrVisible=false;
-  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
+  if(!data||data.app!=='uz'){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Попробовать ещё</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
+  if(data.type==='plan'){ importPlan(data); return; }
+  importExp(data);
 }
+function importPlan(data){ var area=document.getElementById('scanArea'); var added=0, upd=0;
+  (data.cats||[]).forEach(function(ic){ var ex=s.cats.find(function(c){return c.n===ic.n;});
+    if(ex){ ex.p=ic.p||0; ex.c=ic.c||ex.c; ex.t=ic.t||ex.t; ex.subs=(ic.subs||[]).slice(); upd++; }
+    else { s.cats.push({n:ic.n,p:ic.p||0,c:ic.c||'#F06292',t:ic.t||'reg',subs:(ic.subs||[]).slice()}); added++; } });
+  save(); render(); qrVisible=false;
+  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Планы импортированы!</div><div style="font-size:13px;color:var(--text2)">Новых категорий: <b style="color:var(--text)">'+added+'</b>, обновлено: <b style="color:var(--text)">'+upd+'</b></div><br><button class="btn-main" data-go="budget">К плану</button></div>'; }
+function importExp(data){ var area=document.getElementById('scanArea'); var myIds={}; mo().exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
+  (data.exp||[]).forEach(function(e){ if(e.id&&!myIds[e.id]){ mo().exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
+  save(); render(); qrVisible=false;
+  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>'; }
 
 /* ======== RENDER ======== */
 function hexA(hex,a){ var h=hex.replace('#',''); if(h.length===3)h=h.split('').map(function(x){return x+x;}).join(''); var num=parseInt(h,16); var r=(num>>16)&255,g=(num>>8)&255,b=num&255; return 'rgba('+r+','+g+','+b+','+a+')'; }
 function render(){
-  document.getElementById('hBalance').textContent=fmt(income()-spent());
-  document.getElementById('sIncome').textContent=fmt(income());
-  document.getElementById('sSpent').textContent=fmt(spent());
-  var l=income()-spent(), el=document.getElementById('sLeft'); el.textContent=fmt(l); el.style.color=l<0?'var(--warn)':'var(--text)';
-  document.getElementById('iA').textContent=fmt((s.incA||0)+(ui.pend.A||0));
-  document.getElementById('iB').textContent=fmt((s.incB||0)+(ui.pend.B||0));
-  document.getElementById('pendA').textContent=ui.pend.A>0?('＋ '+fmt(ui.pend.A)+' — нажми «OK»'):'';
-  document.getElementById('pendB').textContent=ui.pend.B>0?('＋ '+fmt(ui.pend.B)+' — нажми «OK»'):'';
+  var cur=monthLabel(s.curMonth);
+  var pill=document.getElementById('hMonth'); pill.textContent=SHORT[cur.m-1]+' '+cur.y+' ▾';
+  var sb=startBalance();
+  document.getElementById('hCarry').textContent=sb!==0?('перенос: '+fm(sb)):'перенос: 0 ₽';
+  document.getElementById('hBalance').textContent=fm(totalBal());
+  document.getElementById('sIncome').textContent=fm(income());
+  document.getElementById('sSpent').textContent=fm(spent());
+  var l=totalBal(), el=document.getElementById('sLeft'); el.textContent=fm(l); el.style.color=l<0?'var(--warn)':'var(--text)';
+  document.getElementById('iA').textContent=fm((mo().incA||0)+(ui.pend.A||0));
+  document.getElementById('iB').textContent=fm((mo().incB||0)+(ui.pend.B||0));
+  document.getElementById('pendA').textContent=ui.pend.A>0?('＋ '+fm(ui.pend.A)+' — нажми «OK»'):'';
+  document.getElementById('pendB').textContent=ui.pend.B>0?('＋ '+fm(ui.pend.B)+' — нажми «OK»'):'';
 
   var cats=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var b=document.getElementById('bRows'); b.innerHTML=''; var planT=0;
   cats.forEach(function(c){ var sp=spentCat(c.n), hp=c.p>0, ov=c.p>0&&sp>c.p, pc=c.p>0?Math.min(100,sp/c.p*100):(sp>0?100:0); planT+=c.p;
     var hasSubs=canSubs(c.n), exp=!!ui.expanded[c.n];
     var arrow=hasSubs?(exp?'▼':'▶'):'';
-    var amt=hp?'<div class="amt'+(ov?' over':'')+'">'+fmt(sp)+'<small>план '+fmt(c.p)+'</small></div>':'<div class="amt" style="color:var(--text2)">'+fmt(sp)+'<small>план не задан</small></div>';
+    var amt=hp?'<div class="amt'+(ov?' over':'')+'">'+fm(sp)+'<small>план '+fm(c.p)+'</small></div>':'<div class="amt" style="color:var(--text2)">'+fm(sp)+'<small>план не задан</small></div>';
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.08);
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fmt(sp-c.p)+'</span>':'');
+    r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fm(sp-c.p)+'</span>':'');
     r.querySelector('.nm').style.cursor='pointer'; r.querySelector('.nm').onclick=function(){ toggleSubs(c.n); };
     if(hasSubs){ r.querySelector('.arrow').onclick=function(){ toggleSubs(c.n); }; }
     var be=document.createElement('button'); be.className='btn-edit'; be.innerHTML='✏️'; be.title='Изменить план'; be.onclick=function(){ var v=prompt('План для «'+c.n+'» (₽):',c.p>0?c.p:''); if(v!==null){ var nv=parseFloat(v); if(!isNaN(nv)&&nv>=0){c.p=nv; save(); render();} } }; r.appendChild(be);
     if(c.n!==MAND&&c.n!==SPEC){ var d=document.createElement('button'); d.className='btn-danger'; d.innerHTML='×'; d.title='Удалить'; d.onclick=function(){ delCat(c.n); }; r.appendChild(d); }
     block.appendChild(r);
     if(hasSubs){
-      if(c.subs.length>0){
-        var subList=document.createElement('div'); subList.className='sub-list';
+      if(c.subs.length>0){ var subList=document.createElement('div'); subList.className='sub-list';
         c.subs.forEach(function(sub){ var ssp=spentSub(c.n,sub.n), sov=sub.p>0&&ssp>sub.p, spc=sub.p>0?Math.min(100,ssp/sub.p*100):(ssp>0?100:0);
           var sr=document.createElement('div'); sr.className='subrow';
-          sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar" style="width:'+spc+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fmt(ssp)+(sub.p>0?' <small>план '+fmt(sub.p)+'</small>':'')+'</span>';
+          sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar" style="width:'+spc+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fm(ssp)+(sub.p>0?' <small>план '+fm(sub.p)+'</small>':'')+'</span>';
           sr.querySelector('.nm').style.cursor='pointer'; sr.querySelector('.nm').title='Изменить план подкатегории'; sr.querySelector('.nm').onclick=function(){ editSub(c.n,sub.n); };
           var ds=document.createElement('button'); ds.className='del'; ds.innerHTML='×'; ds.title='Удалить'; ds.onclick=function(){ delSub(c.n,sub.n); }; sr.appendChild(ds);
-          subList.appendChild(sr);
-        });
-        if(exp){ block.appendChild(subList); }
-      }
+          subList.appendChild(sr); });
+        if(exp){ block.appendChild(subList); } }
       var as=document.createElement('div'); as.className='add-sub'; as.textContent='＋ Добавить подкатегорию'; as.onclick=function(){ addSub(c.n); }; block.appendChild(as);
     }
     b.appendChild(block);
@@ -482,35 +464,30 @@ function render(){
   var sc=document.getElementById('tCat'), pv=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv)o.selected=true; sc.appendChild(o); });
   renderSubSelect();
 
-  var dl=document.getElementById('dList'); dl.innerHTML=''; document.getElementById('dCount').textContent=s.exp.length+' записей';
-  if(s.exp.length===0){ dl.innerHTML='<div class="empty">Пока нет трат ✨</div>'; }
-  else{ s.exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=s.exp.indexOf(e), c=s.cats.find(function(x){return x.n===e.cat;}), cl=c?c.c:'#E777A8';
+  var dl=document.getElementById('dList'); dl.innerHTML=''; document.getElementById('dCount').textContent=mo().exp.length+' записей';
+  if(mo().exp.length===0){ dl.innerHTML='<div class="empty">Пока нет трат ✨</div>'; }
+  else{ mo().exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=mo().exp.indexOf(e), c=s.cats.find(function(x){return x.n===e.cat;}), cl=c?c.c:'#E777A8';
     var r=document.createElement('div'); r.className='day-item';
-    r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+((e.sub)?' / '+e.sub:'')+'</span><span class="s">'+fmt(e.amt)+'</span><button class="btn-edit" title="Изменить сумму">✏️</button><button class="btn-danger" title="Удалить">×</button>';
+    r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+((e.sub)?' / '+e.sub:'')+'</span><span class="s">'+fm(e.amt)+'</span><button class="btn-edit" title="Изменить сумму">✏️</button><button class="btn-danger" title="Удалить">×</button>';
     r.querySelector('.btn-edit').onclick=function(){ editExp(i); }; r.querySelector('.btn-danger').onclick=function(){ delExp(i); }; dl.appendChild(r); }); }
 
   var sorted=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0, ua=0;
-  sorted.forEach(function(c){ var sp=spentCat(c.n), df=c.p-sp, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fmt(df); ua+=df; } else { st='перерасход '+fmt(-df); oa+=(-df); }
+  sorted.forEach(function(c){ var sp=spentCat(c.n), df=c.p-sp, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fm(df); ua+=df; } else { st='перерасход '+fm(-df); oa+=(-df); }
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.07);
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="amt'+(df<0?' over':'')+'">'+fmt(sp)+(c.p>0?'<small>план '+fmt(c.p)+'</small>':'<small>план не задан</small>')+'</div><span class="status" style="color:'+(df<0?'var(--warn)':(c.p>0?'var(--ok)':'var(--text2)'))+'">'+st+'</span>';
+    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="amt'+(df<0?' over':'')+'">'+fm(sp)+(c.p>0?'<small>план '+fm(c.p)+'</small>':'<small>план не задан</small>')+'</div><span class="status" style="color:'+(df<0?'var(--warn)':(c.p>0?'var(--ok)':'var(--text2)'))+'">'+st+'</span>';
     block.appendChild(r); rr.appendChild(block); });
   var sum=document.getElementById('rSum');
-  if(oa>0){ sum.style.background='var(--soft)'; sum.style.color='var(--warn)'; sum.textContent='⚠️ Перерасход: '+fmt(oa); }
+  if(oa>0){ sum.style.background='var(--soft)'; sum.style.color='var(--warn)'; sum.textContent='⚠️ Перерасход: '+fm(oa); }
   else if(planT===0){ sum.style.background='var(--soft)'; sum.style.color='var(--text2)'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
-  else { sum.style.background='var(--soft)'; sum.style.color='var(--ok)'; sum.textContent='✅ В рамках бюджета. Экономия: '+fmt(ua); }
+  else { sum.style.background='var(--soft)'; sum.style.color='var(--ok)'; sum.textContent='✅ В рамках бюджета. Экономия: '+fm(ua); }
 
   if(qrVisible){ renderQR_now(); }
 }
-function renderSubSelect(){
-  var cat=document.getElementById('tCat').value;
-  var c=s.cats.find(function(x){return x.n===cat;});
-  var sel=document.getElementById('tSub');
+function renderSubSelect(){ var cat=document.getElementById('tCat').value; var c=s.cats.find(function(x){return x.n===cat;}); var sel=document.getElementById('tSub');
   if(c&&c.subs&&c.subs.length>0){ sel.style.display=''; } else { sel.style.display='none'; }
-  var prev=sel.value; sel.innerHTML='<option value="">— вся —</option>';
-  if(c&&c.subs){ c.subs.forEach(function(sb){ var o=document.createElement('option'); o.value=sb.n; o.textContent=sb.n; if(prev===sb.n)o.selected=true; sel.appendChild(o); }); }
-}
+  var prev=sel.value; sel.innerHTML='<option value="">— вся —</option>'; if(c&&c.subs){ c.subs.forEach(function(sb){ var o=document.createElement('option'); o.value=sb.n; o.textContent=sb.n; if(prev===sb.n)o.selected=true; sel.appendChild(o); }); } }
 document.getElementById('tCat').addEventListener('change', function(){ renderSubSelect(); });
 applyT(s.theme||'pink');
 render();
