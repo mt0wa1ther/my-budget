@@ -21,7 +21,7 @@
   .bg-moon{ background:linear-gradient(160deg,#141129 0%,#1e1a2e 60%,#0e0b1c 100%); }
   .flowers{ position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
   .flowers span{ position:absolute; font-size:22px; opacity:.55; animation:float 6s ease-in-out infinite; }
-  @keyframes float{ 0%,100%{ transform:translateY(0) rotate(0);} 50%{ transform:translateY(-9px) rotate(8deg);} }
+  @keyframes float{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-9px) rotate(8deg);} }
   .stars{ position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
   .stars span{ position:absolute; width:3px; height:3px; border-radius:50%; background:#fff; opacity:.5; animation:twinkle 3s ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.2;} 50%{opacity:.8;} }
@@ -110,7 +110,7 @@
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .btn-sec{ width:100%; padding:11px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; }
   .qr-holder{ text-align:center; padding:14px; background:var(--soft); border:2px dashed var(--accent); border-radius:14px; }
-  #qrcanvas{ max-width:100%; background:#fff; border-radius:10px; margin:10px auto; display:block; }
+  .qr-holder img{ width:236px; height:236px; background:#fff; border-radius:10px; margin:10px auto; display:block; image-rendering:pixelated; }
   .qr-refresh{ display:flex; gap:8px; justify-content:center; margin-top:6px; align-items:center; flex-wrap:wrap; }
   #scannerWrap{ position:relative; overflow:hidden; border-radius:14px; border:2px solid var(--accent); background:#000; margin-top:12px; }
   #scanner{ width:100%; display:block; max-height:340px; object-fit:contain; }
@@ -241,11 +241,8 @@
   </div>
 </div>
 
-<script src="qrcode.min.js"></script>
-<script src="jsqr.min.js"></script>
-
 <script>
-var K='uzat_budget_v12';
+var K='uzat_budget_v13';
 var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},pend:{A:0,B:0}};
@@ -339,81 +336,83 @@ function addExp(){
 function editExp(i){ var e=s.exp[i]; var v=prompt('Новая сумма для «'+e.cat+((e.sub)?' / '+e.sub:'')+'» ('+e.day+' числа), ₽:',e.amt); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} e.amt=nv; save(); render(); }
 function delExp(i){ s.exp.splice(i,1); save(); render(); }
 
-/* ===== ДИНАМИЧЕСКАЯ ПОДГРУЗКА БИБЛИОТЕК (с запасными источниками) ===== */
-function loadScript(src, cb){
-  var sc=document.createElement('script'); sc.src=src;
-  sc.onload=function(){ cb(true); }; sc.onerror=function(){ cb(false); };
-  document.head.appendChild(sc);
+/* ======== QR: надёжная загрузка и отрисовка ======== */
+function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){ cb(true); }; sc.onerror=function(){ cb(false); }; document.head.appendChild(sc); }
+var QR_SRCS=['qrcode.min.js','//cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js','//unpkg.com/qrcode-generator@1.4.4/qrcode.min.js','//cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'];
+var JSQR_SRCS=['jsqr.min.js','//unpkg.com/jsqr@1.4.0/dist/jsQR.js','//cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js','//raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js'];
+function makeQR(data){
+  try{
+    if(typeof window.qrcode==='function'){
+      var q=window.qrcode(0,'M');
+      if(q && typeof q.make==='function'){ q.addData(data); q.make(); if(q.getModuleCount()>0) return q; }
+    }
+  }catch(e){}
+  return null;
 }
-var QR_SRCS=['qrcode.min.js','https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js','https://unpkg.com/qrcode-generator@1.4.4/qrcode.min.js'];
-var JSQR_SRCS=['jsqr.min.js','https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js','https://unpkg.com/jsqr@1.4.0/dist/jsQR.js'];
-function ensureQR(cb){
-  if(typeof qrcode!=='undefined'){ cb(true); return; }
+function ensureQR(ready){
+  if(makeQR('A')){ ready(true); return; }
   var i=0;
-  function tryNext(){ if(i>=QR_SRCS.length){ cb(false); return; } loadScript(QR_SRCS[i++], function(ok){ if(ok && typeof qrcode!=='undefined'){ cb(true); } else { tryNext(); } }); }
-  tryNext();
+  function next(){ if(i>=QR_SRCS.length){ ready(false); return; } loadScript(QR_SRCS[i++], function(ok){ if(ok && makeQR('A')){ ready(true); } else { next(); } }); }
+  next();
 }
-function ensureJSQR(cb){
-  if(typeof jsQR!=='undefined'){ cb(true); return; }
+function ensureJSQR(ready){
+  if(typeof window.jsQR==='function'){ ready(true); return; }
   var i=0;
-  function tryNext(){ if(i>=JSQR_SRCS.length){ cb(false); return; } loadScript(JSQR_SRCS[i++], function(ok){ if(ok && typeof jsQR!=='undefined'){ cb(true); } else { tryNext(); } }); }
-  tryNext();
+  function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++], function(ok){ if(ok && typeof window.jsQR==='function'){ ready(true); } else { next(); } }); }
+  next();
 }
-
-/* ===== QR ПОКАЗ (с автообновлением) ===== */
-function buildQRPayload(){ return JSON.stringify({app:'uz',v:2,exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})}); }
+function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
+function buildPayloadB64(){ return b64enc(JSON.stringify({app:'uz',v:2,exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})})); }
 function drawQR(payload){
   var area=document.getElementById('qrArea');
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">Отсканируй меня</div></div>';
-  var holder=area.querySelector('.qr-holder');
-  var qr=qrcode(0,'M'); qr.addData(payload); qr.make();
-  var n=qr.getModuleCount(), cell=5;
-  var cv=document.createElement('canvas'); cv.id='qrcanvas'; cv.width=n*cell; cv.height=n*cell; cv.style.width='240px'; cv.style.height='240px';
-  var ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,n*cell,n*cell); ctx.fillStyle='#4A2440';
-  for(var r=0;r<n;r++){ for(var c=0;c<n;c++){ if(qr.isDark(r,c)){ ctx.fillRect(c*cell,r*cell,cell,cell); } } }
-  holder.appendChild(cv);
-  area.innerHTML+='<div style="font-size:11px;color:var(--text2);text-align:center;margin-top:6px">QR обновляется автоматически при изменении трат</div><div class="qr-refresh"><button class="btn-sec" data-act="refreshQR">↻ Обновить QR</button></div>';
-  bindAction('refreshQR', function(){ renderQR_now(); });
+  var qr=makeQR(payload);
+  if(!qr){ return false; }
+  var html='';
+  try{ html=qr.createImgTag(6,2,'QR'); }catch(e){ html=''; }
+  if(!html || html.indexOf('<img')=== -1){ try{ html='<img src="'+qr.createDataURL(6,2)+'" alt="QR"/>'; }catch(e){ html=''; } }
+  if(!html){ return false; }
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">Отсканируй меня</div>'+html+'<div style="font-size:11px;color:var(--text2);margin-top:6px">QR обновляется автоматически при изменении трат</div><div class="qr-refresh"><button class="btn-sec" data-act="refreshQR" style="margin:0">↻ Обновить QR</button></div></div>';
+  bindRefresh();
+  return true;
 }
+function bindRefresh(){ var b=document.querySelector('[data-act="refreshQR"]'); if(b){ b.addEventListener('click',function(e){ e.preventDefault(); renderQR_now(); }); } }
 function renderQR_now(){
   if(!qrVisible) return;
-  var p=buildQRPayload();
-  if(p===lastQRPayload && document.getElementById('qrcanvas')) return; // уже актуальный
+  var p=buildPayloadB64();
+  if(p===lastQRPayload && document.getElementById('qrArea') && document.getElementById('qrArea').querySelector('img')) return;
   lastQRPayload=p;
-  if(typeof qrcode==='undefined'){ ensureQR(function(ok){ if(ok){ drawQR(p); } else { fallbackText(p); } }); }
-  else { drawQR(p); }
+  ensureQR(function(ok){ if(ok){ drawQR(p); } else { fallbackText(p); } });
 }
 function fallbackText(payload){
   var area=document.getElementById('qrArea');
-  var code=btoa(unescape(encodeURIComponent(payload)));
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — используй код</div><textarea readonly class="manual">'+code+'</textarea><button class="btn-main" data-refresh="1">↻ Скопировать код</button></div>';
-  var b=area.querySelector('[data-refresh="1"]'); b.onclick=function(){ copyCode(code); };
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — скопируй код</div><textarea readonly class="manual">'+payload+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>';
+  var b=area.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(payload); };
 }
 function showQr(){
   stopScan(); document.getElementById('scanArea').style.display='none';
   qrVisible=true; document.getElementById('qrArea').style.display='block';
   document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>';
   ensureQR(function(ok){
-    if(ok){ renderQR_now(); } else { fallbackText(buildQRPayload()); }
+    if(ok){ drawQR(buildPayloadB64()); } else { fallbackText(buildPayloadB64()); }
   });
 }
-function bindAction(kind, fn){ document.querySelectorAll('[data-act="'+kind+'"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); fn(); }); }); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
 
-/* ===== КАМЕРА (с автообновлением распознавателя) ===== */
+/* ======== КАМЕРА ======== */
 var scanTimer=null, scanStream=null;
 function startScan(){
   document.getElementById('qrArea').style.display='none'; qrVisible=false;
   var area=document.getElementById('scanArea'); area.style.display='block';
   area.innerHTML='<div class="empty">Подготовка камеры…</div>';
-  ensureJSQR(function(hasJsqr){
-    if(!hasJsqr){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var b=area.querySelector('[data-manual="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var b2=area.querySelector('[data-manual="1"]'); if(b2)b2.onclick=function(){ showManual(); }; return; }
+  ensureJSQR(function(has){
+    if(!has){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m=area.querySelector('[data-manual="1"]'); if(m)m.onclick=function(){ showManual(); }; return; }
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m2=area.querySelector('[data-manual="1"]'); if(m2)m2.onclick=function(){ showManual(); }; return; }
     area.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-stop="1">Отмена</button><button class="btn-sec" data-manual="1">Ввести вручную</button>';
     var sb=area.querySelector('[data-stop="1"]'); if(sb)sb.onclick=function(){ stopScan(); };
     var mb=area.querySelector('[data-manual="1"]'); if(mb)mb.onclick=function(){ stopScan(); showManual(); };
     var video=document.getElementById('scanner');
-    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m2=area.querySelector('[data-manual="1"]'); if(m2)m2.onclick=function(){ showManual(); }; });
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var mm=area.querySelector('[data-manual="1"]'); if(mm)mm.onclick=function(){ showManual(); }; });
   });
 }
 function tickScan(){ var video=document.getElementById('scanner'); try{ if(!video||video.videoWidth===0)return; var cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight; var ctx=cv.getContext('2d'); ctx.drawImage(video,0,0,cv.width,cv.height); var img=ctx.getImageData(0,0,cv.width,cv.height); var code=jsQR(img.data,img.width,img.height); if(code&&code.data){ stopScan(); mergePayload(code.data); } }catch(e){} }
@@ -421,15 +420,23 @@ function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } 
 function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block';
   area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-merge="1">Объединить</button>';
   var b=area.querySelector('[data-merge="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
-function mergePayload(str){ var area=document.getElementById('scanArea'); area.style.display='block'; var data=null; try{ data=JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){}
-  if(!data||data.app!=='uz'||!data.exp){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Ещё раз</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
+function parseData(raw){
+  var data=null;
+  try{ data=JSON.parse(b64dec(raw)); }catch(e){ data=null; }
+  if(!data){ try{ data=JSON.parse(raw); }catch(e){ data=null; } }
+  return data;
+}
+function mergePayload(str){
+  var area=document.getElementById('scanArea'); area.style.display='block';
+  var data=parseData(str);
+  if(!data || data.app!=='uz' || !data.exp){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Попробовать ещё</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
   var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
   data.exp.forEach(function(e){ if(e.id&&!myIds[e.id]){ s.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
 }
 
-/* ===== render ===== */
+/* ======== RENDER ======== */
 function hexA(hex,a){ var h=hex.replace('#',''); if(h.length===3)h=h.split('').map(function(x){return x+x;}).join(''); var num=parseInt(h,16); var r=(num>>16)&255,g=(num>>8)&255,b=num&255; return 'rgba('+r+','+g+','+b+','+a+')'; }
 function render(){
   document.getElementById('hBalance').textContent=fmt(income()-spent());
@@ -444,15 +451,13 @@ function render(){
   var cats=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var b=document.getElementById('bRows'); b.innerHTML=''; var planT=0;
   cats.forEach(function(c){ var sp=spentCat(c.n), hp=c.p>0, ov=c.p>0&&sp>c.p, pc=c.p>0?Math.min(100,sp/c.p*100):(sp>0?100:0); planT+=c.p;
-    var hasSubs=canSubs(c.n);
-    var exp=!!ui.expanded[c.n];
+    var hasSubs=canSubs(c.n), exp=!!ui.expanded[c.n];
     var arrow=hasSubs?(exp?'▼':'▶'):'';
     var amt=hp?'<div class="amt'+(ov?' over':'')+'">'+fmt(sp)+'<small>план '+fmt(c.p)+'</small></div>':'<div class="amt" style="color:var(--text2)">'+fmt(sp)+'<small>план не задан</small></div>';
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.08);
     var r=document.createElement('div'); r.className='row';
     r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fmt(sp-c.p)+'</span>':'');
-    r.querySelector('.nm').style.cursor='pointer';
-    r.querySelector('.nm').onclick=function(){ toggleSubs(c.n); };
+    r.querySelector('.nm').style.cursor='pointer'; r.querySelector('.nm').onclick=function(){ toggleSubs(c.n); };
     if(hasSubs){ r.querySelector('.arrow').onclick=function(){ toggleSubs(c.n); }; }
     var be=document.createElement('button'); be.className='btn-edit'; be.innerHTML='✏️'; be.title='Изменить план'; be.onclick=function(){ var v=prompt('План для «'+c.n+'» (₽):',c.p>0?c.p:''); if(v!==null){ var nv=parseFloat(v); if(!isNaN(nv)&&nv>=0){c.p=nv; save(); render();} } }; r.appendChild(be);
     if(c.n!==MAND&&c.n!==SPEC){ var d=document.createElement('button'); d.className='btn-danger'; d.innerHTML='×'; d.title='Удалить'; d.onclick=function(){ delCat(c.n); }; r.appendChild(d); }
@@ -460,8 +465,7 @@ function render(){
     if(hasSubs){
       if(c.subs.length>0){
         var subList=document.createElement('div'); subList.className='sub-list';
-        c.subs.forEach(function(sub){
-          var ssp=spentSub(c.n,sub.n), sov=sub.p>0&&ssp>sub.p, spc=sub.p>0?Math.min(100,ssp/sub.p*100):(ssp>0?100:0);
+        c.subs.forEach(function(sub){ var ssp=spentSub(c.n,sub.n), sov=sub.p>0&&ssp>sub.p, spc=sub.p>0?Math.min(100,ssp/sub.p*100):(ssp>0?100:0);
           var sr=document.createElement('div'); sr.className='subrow';
           sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar" style="width:'+spc+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fmt(ssp)+(sub.p>0?' <small>план '+fmt(sub.p)+'</small>':'')+'</span>';
           sr.querySelector('.nm').style.cursor='pointer'; sr.querySelector('.nm').title='Изменить план подкатегории'; sr.querySelector('.nm').onclick=function(){ editSub(c.n,sub.n); };
@@ -497,7 +501,6 @@ function render(){
   else if(planT===0){ sum.style.background='var(--soft)'; sum.style.color='var(--text2)'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
   else { sum.style.background='var(--soft)'; sum.style.color='var(--ok)'; sum.textContent='✅ В рамках бюджета. Экономия: '+fmt(ua); }
 
-  // автообновление QR при изменении данных (если панель QR открыта)
   if(qrVisible){ renderQR_now(); }
 }
 function renderSubSelect(){
