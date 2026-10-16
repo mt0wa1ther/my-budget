@@ -1,0 +1,16 @@
+{
+  "name": "Совместные финансы",
+  "short_name": "Финансы",
+  "description": "Совместный бюджет пары с синхронизацией",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E91E8C",
+  "icons": [
+    {
+      "src": "aicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
