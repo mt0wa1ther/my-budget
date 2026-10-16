@@ -41,16 +41,17 @@
   .month-pop .pop-head button{ background:var(--soft); border:1px solid var(--line); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:10px; cursor:pointer; }
   .month-pop .pop-head span{ font-size:14px; font-weight:700; color:var(--text); }
   .month-pop .pop-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-  .month-pop .pop-grid div{ text-align:center; padding:10px 4px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; color:var(--text); border:1px solid transparent; }
+  .month-pop .pop-grid div{ text-align:center; padding:10px 4px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; color:var(--text); }
   .month-pop .pop-grid div:hover{ background:var(--soft); }
   .month-pop .pop-grid div.active{ background:var(--accent); color:#fff; }
   .mob-head .carry{ font-size:11px; opacity:.9; }
-  .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 14px 0; }
-  .qa{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .quick-actions{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:14px 14px 0; }
+  .qa{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.06); text-align:center; }
   .qa:active{ transform:scale(.97); }
-  .qa .ic{ width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:19px; background:var(--soft); flex:none; }
-  .qa .tt{ font-size:13px; font-weight:600; color:var(--text); }
-  .qa .st{ font-size:11px; color:var(--text2); margin-top:1px; }
+  .qa .ic{ font-size:20px; }
+  .qa .tt{ font-size:12px; font-weight:600; color:var(--text); }
+  .qa .st{ font-size:9px; color:var(--text2); }
+  .qa[data-act="reset"]{ border-color:#D6336C; background:var(--soft); }
   .strip{ display:flex; gap:8px; padding:14px 14px 0; }
   .mini{ flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.05); }
   .mini .l{ font-size:10px; color:var(--text2); }
@@ -131,12 +132,10 @@
 </style>
 </head>
 <body>
-
 <div class="bg-deco bg-pink" id="bgPink"></div>
 <div class="flowers" id="flowers"></div>
 <div class="bg-deco bg-moon" id="bgMoon" style="opacity:0"></div>
 <div class="stars" id="stars" style="opacity:0"></div>
-
 <div class="phone" id="app">
   <div class="mob-head">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -159,12 +158,14 @@
     </div>
   </div>
 
+  <!-- БЫСТРЫЕ ДЕЙСТВИЯ: в ряду "Обмен | Сброс" -->
   <div class="quick-actions" id="quickActions">
-    <div class="qa" data-go="track"><div class="ic">✍️</div><div><div class="tt">Траты</div><div class="st">Ежедневно</div></div></div>
-    <div class="qa" data-go="budget"><div class="ic">📋</div><div><div class="tt">План</div><div class="st">Категории</div></div></div>
-    <div class="qa" data-go="result"><div class="ic">📊</div><div><div class="tt">Итог</div><div class="st">План vs факт</div></div></div>
-    <div class="qa" data-go="income"><div class="ic">💳</div><div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div></div>
-    <div class="qa" data-go="sync"><div class="ic">🔗</div><div><div class="tt">Обмен</div><div class="st">Синхронизация</div></div></div>
+    <div class="qa" data-go="track"><div class="ic">✍️</div><div class="tt">Траты</div><div class="st">Ежедневно</div></div>
+    <div class="qa" data-go="budget"><div class="ic">📋</div><div class="tt">План</div><div class="st">Категории</div></div>
+    <div class="qa" data-go="result"><div class="ic">📊</div><div class="tt">Итог</div><div class="st">План vs факт</div></div>
+    <div class="qa" data-go="income"><div class="ic">💳</div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div>
+    <div class="qa" data-go="sync"><div class="ic">🔗</div><div class="tt">Обмен</div><div class="st">Синхронизация</div></div>
+    <div class="qa" data-act="reset"><div class="ic">🗑</div><div class="tt">Сброс данных</div><div class="st">с паролем</div></div>
   </div>
 
   <div class="strip">
@@ -172,7 +173,6 @@
     <div class="mini"><div class="l">Потрачено</div><div class="v" id="sSpent">0 ₽</div></div>
     <div class="mini"><div class="l">Остаток</div><div class="v" id="sLeft">0 ₽</div></div>
   </div>
-
   <div class="tab-panel active" id="p-track">
     <div class="card">
       <h3>✍️ Трата за день</h3>
@@ -186,7 +186,6 @@
     </div>
     <div class="card"><h3>📅 Дневник <span class="tag" id="dCount"></span></h3><div class="day-list" id="dList"></div></div>
   </div>
-
   <div class="tab-panel" id="p-budget">
     <div class="card">
       <h3>📋 План расходов <span class="tag">▼ раскрыть подкатегории</span></h3>
@@ -199,7 +198,6 @@
       </div>
     </div>
   </div>
-
   <div class="tab-panel" id="p-result">
     <div class="card">
       <h3>📊 План vs факт <span class="tag">по размеру трат</span></h3>
@@ -207,7 +205,6 @@
       <div id="rSum" style="font-size:13px;padding:12px;border-radius:14px;margin-top:10px;background:var(--soft);color:var(--text2)"></div>
     </div>
   </div>
-
   <div class="tab-panel" id="p-income">
     <div class="card">
       <h3>💳 Доход за месяц <span class="tag">＋ суммирует, затем OK</span></h3>
@@ -235,7 +232,6 @@
       </div>
     </div>
   </div>
-
   <div class="tab-panel" id="p-sync">
     <div class="card">
       <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
@@ -253,13 +249,33 @@
       <input type="file" id="restoreFile" accept=".json,application/json" style="display:none">
     </div>
   </div>
-
   <div class="bottom-nav" id="bottomNav">
     <button class="bn active" data-go="track"><span class="bic">✍️</span>Траты</button>
     <button class="bn" data-go="budget"><span class="bic">📋</span>План</button>
     <button class="bn" data-go="result"><span class="bic">📊</span>Итог</button>
     <button class="bn" data-go="income"><span class="bic">💳</span>Доход</button>
     <button class="bn" data-go="sync"><span class="bic">🔗</span>Обмен</button>
+  </div>
+</div>
+
+<!-- Поп-ап сброса данных -->
+<div id="resetPopup" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:320px;width:100%;color:var(--text)">
+    <h3 style="font-size:15px;margin-bottom:8px">🗑 Полный сброс данных</h3>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Будут удалены ВСЕ данные: категории, планы, доходы, траты, все месяцы и настройки. Действие необратимо.</div>
+    <div id="parSetup" style="display:none">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Задайте пароль для сброса:</div>
+      <input type="password" id="parNew" placeholder="Новый пароль" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--text);margin-bottom:6px">
+      <input type="password" id="parNew2" placeholder="Повторите пароль" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--text);margin-bottom:8px">
+    </div>
+    <div id="parEnter">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Введите пароль для сброса:</div>
+      <input type="password" id="parIn" placeholder="Пароль" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--text);margin-bottom:8px">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sec" data-act="resetCancel" style="flex:1;margin:0">Отмена</button>
+      <button class="btn-main" data-act="resetOk" style="flex:1">Сбросить</button>
+    </div>
   </div>
 </div>
 
@@ -272,7 +288,6 @@ var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},pend:{A:0,B:0},popYear:new Date().getFullYear()};
 var qrVisible=false, lastQR='', qrMode='exp';
-
 function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function defState(){ return {theme:'pink',cats:[
   {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
@@ -297,16 +312,13 @@ function load(){ var dat=null; try{ dat=JSON.parse(localStorage.getItem(MAIN_KEY
   return dat; }
 var s=load();
 function save(){ try{ localStorage.setItem(MAIN_KEY,JSON.stringify(s)); }catch(e){} }
-
 function getMonth(key){ if(!s.months[key]) s.months[key]={incA:0,incB:0,exp:[],startBalance:0}; return s.months[key]; }
 function mo(){ return getMonth(s.curMonth); }
 function prevK(key){ var p=key.split('-'), y=+p[0], m=+p[1]-1; if(m===0){ y--; m=12; } return y+'-'+m; }
 function sumExp(arr){ return arr.reduce(function(a,e){return a+(e.amt||0);},0); }
-
-/* ======== ГЛАВНОЕ ИСПРАВЛЕНИЕ: сквозная цепочка переноса ======== */
 function balanceOf(key, depth){
   depth = depth || 0;
-  if(depth > 60) return 0; // защита от глубокой рекурсии
+  if(depth > 60) return 0;
   var m = getMonth(key);
   var base = (depth===0) ? (m.startBalance||0) : 0;
   return balanceOf(prevK(key), depth+1) + base + (m.incA||0) + (m.incB||0) - sumExp(m.exp||[]);
@@ -319,12 +331,10 @@ function spentCat(n){ return mo().exp.filter(function(e){return e.cat===n;}).red
 function spentSub(cn,sn){ return mo().exp.filter(function(e){return e.cat===cn&&e.sub===sn;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 function canSubs(n){ return SUB_CATS.indexOf(n)>-1; }
 function fm(n){ n=Math.round(n)||0; return (n<0?'-':'')+String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
-
 var FLOWERS=['🌸','🌷','🌺','💮','🌼','🪷','🌹'];
 function buildFlowers(){ var c=document.getElementById('flowers'); c.innerHTML=''; for(var i=0;i<14;i++){ var sp=document.createElement('span'); sp.textContent=FLOWERS[i%FLOWERS.length]; sp.style.left=(Math.random()*92)+'%'; sp.style.top=(Math.random()*94)+'%'; sp.style.fontSize=(16+Math.random()*16)+'px'; sp.style.opacity=(0.35+Math.random()*0.3); sp.style.animationDelay=(Math.random()*3)+'s'; c.appendChild(sp); } }
 function buildStars(){ var c=document.getElementById('stars'); c.innerHTML=''; for(var i=0;i<40;i++){ var sp=document.createElement('span'); sp.style.left=(Math.random()*99)+'%'; sp.style.top=(Math.random()*99)+'%'; sp.style.animationDelay=(Math.random()*3)+'s'; c.appendChild(sp); } }
 buildFlowers(); buildStars();
-
 var THEMES={
   pink:{bg:'#ffe3f1',grad:'linear-gradient(135deg,#E91E8C,#F48FB1)',accent:'#E91E8C',accent2:'#D81B7F',card:'#ffffff',line:'#F3C6E0',track:'#FBEAF5',text:'#4A2440',text2:'#9B6B8B',warn:'#D6336C',ok:'#2E9B5F',soft:'#FDF0F8'},
   moon:{bg:'#141129',grad:'linear-gradient(90deg,#7C5CFF,#22E0FF)',accent:'#22E0FF',accent2:'#7C5CFF',card:'#221e3b',line:'#3a3550',track:'#2e2a49',text:'#E8E6F0',text2:'#9A97AD',warn:'#FF7A9A',ok:'#6FCF97',soft:'#2E2A44'}
@@ -334,7 +344,6 @@ function applyT(t){ var th=THEMES[t]||THEMES.pink; for(var k in th){ document.ge
   var pink=(t==='pink'); document.getElementById('bgPink').style.opacity=pink?1:0; document.getElementById('flowers').style.opacity=pink?1:0; document.getElementById('bgMoon').style.opacity=pink?0:1; document.getElementById('stars').style.opacity=pink?0:1; }
 document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 applyT(s.theme||'pink');
-
 function toggleMonthPop(){ var p=document.getElementById('monthPop'); p.style.display=p.style.display==='block'?'none':'block'; if(p.style.display==='block') buildPopGrid(); }
 function popYear(d){ ui.popYear+=d; buildPopGrid(); }
 function buildPopGrid(){
@@ -348,12 +357,10 @@ function buildPopGrid(){
 }
 function selectMonth(idx){ s.curMonth=ui.popYear+'-'+(idx+1); getMonth(s.curMonth); ui.pend={A:0,B:0}; document.getElementById('monthPop').style.display='none'; save(); render(); }
 document.addEventListener('click', function(e){ var p=document.getElementById('monthPop'); if(p.style.display==='block' && !e.target.closest('.month-pill') && !e.target.closest('.month-pop')){ p.style.display='none'; } });
-
 function nav(n){ document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');}); var el=document.getElementById('p-'+n); if(el) el.classList.add('active');
   document.querySelectorAll('.bn').forEach(function(b){ b.classList.toggle('active',b.dataset.go===n); }); render(); }
 document.getElementById('bottomNav').addEventListener('click', function(e){ var b=e.target.closest('.bn'); if(b) nav(b.dataset.go); });
-document.getElementById('quickActions').addEventListener('click', function(e){ var b=e.target.closest('.qa'); if(b) nav(b.dataset.go); });
-
+document.getElementById('quickActions').addEventListener('click', function(e){ var b=e.target.closest('.qa'); if(!b) return; if(b.dataset.act){ act(b.dataset.act); } else if(b.dataset.go){ nav(b.dataset.go); } });
 function act(kind){
   if(kind==='plusA'){ plus('A'); return; } if(kind==='plusB'){ plus('B'); return; }
   if(kind==='saveA'){ commit('A'); return; } if(kind==='saveB'){ commit('B'); return; }
@@ -361,14 +368,13 @@ function act(kind){
   if(kind==='showQr'){ showQr(); return; } if(kind==='scan'){ startScan(); return; }
   if(kind==='manual'){ showManual(); return; } if(kind==='sharePlans'){ sharePlans(); return; }
   if(kind==='export'){ exportBackup(); return; } if(kind==='import'){ importBackup(); return; }
+  if(kind==='reset'){ openReset(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
-
 function plus(slot){ var inp=document.getElementById(slot==='A'?'inA':'inB'); var v=parseFloat(inp.value); if(isNaN(v)||v<0)return; ui.pend[slot]=(ui.pend[slot]||0)+v; inp.value=''; render(); }
 function commit(slot){ var m=mo(); var key=slot==='A'?'incA':'incB'; m[key]=(m[key]||0)+(ui.pend[slot]||0); ui.pend[slot]=0; save(); render(); }
 document.querySelectorAll('.edit').forEach(function(e2){ e2.addEventListener('click', function(){ editIncome(e2.dataset.edit); }); });
 function editIncome(k){ var m=mo(); var cur=k==='incA'?(m.incA||0):(m.incB||0); var v=prompt('Новая сумма (₽):',cur); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} if(k==='incA')m.incA=nv; else m.incB=nv; save(); render(); }
-
 function toggleSubs(cn){ if(!canSubs(cn))return; ui.expanded[cn]=!ui.expanded[cn]; render(); }
 function addSub(cn){ var n=prompt('Название подкатегории:'); if(!n||!n.trim())return; var p=parseFloat(prompt('План (₽):',0)); if(isNaN(p)||p<0)p=0; var c=s.cats.find(function(x){return x.n===cn;}); c.subs.push({n:n.trim(),p:p}); ui.expanded[cn]=true; save(); render(); }
 function editSub(cn,sn){ var c=s.cats.find(function(x){return x.n===cn;}); var sub=c.subs.find(function(x){return x.n===sn;}); var v=prompt('Новый план для «'+sn+'» (₽):',sub.p); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} sub.p=nv; save(); render(); }
@@ -379,17 +385,39 @@ function makeId(){ return 't'+Date.now()+Math.random().toString(36).slice(2,7); 
 function addExp(){ var d=parseInt(document.getElementById('tDay').value), c=document.getElementById('tCat').value, a=parseFloat(document.getElementById('tAmt').value); if(!d||d<1||d>31||isNaN(a)||a<=0)return; var sub=document.getElementById('tSub').value||''; mo().exp.push({id:makeId(),day:d,cat:c,sub:sub,amt:a,ts:Date.now()}); document.getElementById('tAmt').value=''; save(); render(); }
 function editExp(i){ var e=mo().exp[i]; var v=prompt('Новая сумма для «'+e.cat+((e.sub)?' / '+e.sub:'')+'» ('+e.day+' числа), ₽:',e.amt); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} e.amt=nv; save(); render(); }
 function delExp(i){ mo().exp.splice(i,1); save(); render(); }
-
+/* ======== СБРОС ДАННЫХ С ПАРОЛЕМ ======== */
+var RESET_PW_KEY='uzat_reset_pw';
+function getPw(){ try{ return localStorage.getItem(RESET_PW_KEY); }catch(e){ return null; } }
+function setPw(p){ try{ localStorage.setItem(RESET_PW_KEY,p); }catch(e){} }
+var resetHasPw = !!getPw();
+function openReset(){
+  var pop=document.getElementById('resetPopup'); pop.style.display='flex';
+  document.getElementById('parSetup').style.display = resetHasPw ? 'none' : 'block';
+  document.getElementById('parEnter').style.display = resetHasPw ? 'block' : 'none';
+  document.getElementById('parNew').value=''; document.getElementById('parNew2').value=''; document.getElementById('parIn').value='';
+}
+function closeReset(){ document.getElementById('resetPopup').style.display='none'; }
+function doReset(){
+  if(!resetHasPw){
+    var n1=document.getElementById('parNew').value, n2=document.getElementById('parNew2').value;
+    if(!n1 || n1.length<3){ alert('Пароль слишком короткий (минимум 3 символа)'); return; }
+    if(n1!==n2){ alert('Пароли не совпадают'); return; }
+    setPw(n1); resetHasPw=true;
+  } else {
+    var pw=document.getElementById('parIn').value;
+    if(pw!==getPw()){ alert('Неверный пароль'); return; }
+  }
+  try{ localStorage.removeItem(MAIN_KEY); }catch(e){}
+  OLD_KEYS.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  s=defState(); s=normalize(s); save();
+  closeReset(); alert('Все данные удалены ✅'); location.reload();
+}
+document.querySelectorAll('[data-act="resetCancel"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); closeReset(); }); });
+document.querySelectorAll('[data-act="resetOk"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); doReset(); }); });
 /* ======== РЕЗЕРВНОЕ КОПИРОВАНИЕ ======== */
 function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},null,2); var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='finance-backup-'+s.curMonth+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000); alert('Резервная копия сохранена ✅'); }
 function importBackup(){ document.getElementById('restoreFile').click(); }
-document.getElementById('restoreFile').addEventListener('change', function(ev){
-  var f=ev.target.files[0]; if(!f) return;
-  var rd=new FileReader();
-  rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; };
-  rd.readAsText(f);
-});
-
+document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
 /* ======== QR ======== */
 function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
 var QR_SRCS=['qrcode.min.js','//cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js','//unpkg.com/qrcode-generator@1.4.4/qrcode.min.js','//cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'];
@@ -410,27 +438,26 @@ function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if
 function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='exp'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),''); } else { fallbackText(b64enc(buildPayload())); } }); }
 function sharePlans(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='plan'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Формирую QR планов…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),'Поделитесь планами'); } else { fallbackText(b64enc(buildPayload())); } }); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
-
 /* ======== КАМЕРА ======== */
 var scanTimer=null, scanStream=null;
 function startScan(){ document.getElementById('qrArea').style.display='none'; qrVisible=false; var area=document.getElementById('scanArea'); area.style.display='block'; area.innerHTML='<div class="empty">Подготовка камеры…</div>';
-  ensureJSQR(function(has){ if(!has){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m=area.querySelector('[data-manual="1"]'); if(m)m.onclick=function(){ showManual(); }; return; }
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m2=area.querySelector('[data-manual="1"]'); if(m2)m2.onclick=function(){ showManual(); }; return; }
-    area.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-stop="1">Отмена</button><button class="btn-sec" data-manual="1">Ввести вручную</button>';
-    var sb=area.querySelector('[data-stop="1"]'); if(sb)sb.onclick=function(){ stopScan(); }; var mb=area.querySelector('[data-manual="1"]'); if(mb)mb.onclick=function(){ stopScan(); showManual(); };
+  ensureJSQR(function(has){ if(!has){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-man="1">Ввести вручную</button>'; var m=area.querySelector('[data-man="1"]'); if(m)m.onclick=function(){ showManual(); }; return; }
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-man="1">Ввести вручную</button>'; var m2=area.querySelector('[data-man="1"]'); if(m2)m2.onclick=function(){ showManual(); }; return; }
+    area.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-stop="1">Отмена</button><button class="btn-sec" data-man="1">Ввести вручную</button>';
+    var sb=area.querySelector('[data-stop="1"]'); if(sb)sb.onclick=function(){ stopScan(); }; var mb=area.querySelector('[data-man="1"]'); if(mb)mb.onclick=function(){ stopScan(); showManual(); };
     var video=document.getElementById('scanner');
-    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var mm=area.querySelector('[data-manual="1"]'); if(mm)mm.onclick=function(){ showManual(); }; }); }); }
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-man="1">Ввести вручную</button>'; var mm=area.querySelector('[data-man="1"]'); if(mm)mm.onclick=function(){ showManual(); }; }); }); }
 function tickScan(){ var video=document.getElementById('scanner'); try{ if(!video||video.videoWidth===0)return; var cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight; var ctx=cv.getContext('2d'); ctx.drawImage(video,0,0,cv.width,cv.height); var img=ctx.getImageData(0,0,cv.width,cv.height); var code=jsQR(img.data,img.width,img.height); if(code&&code.data){ stopScan(); mergePayload(code.data); } }catch(e){} }
 function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование завершено.</div>'; } }
-function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block'; area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-merge="1">Объединить</button>'; var b=area.querySelector('[data-merge="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
+function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block'; area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-mg="1">Объединить</button>'; var b=area.querySelector('[data-mg="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
 function parseData(raw){ var data=null; try{ data=JSON.parse(b64dec(raw)); }catch(e){ data=null; } if(!data){ try{ data=JSON.parse(raw); }catch(e){ data=null; } } return data; }
 function mergePayload(str){ var area=document.getElementById('scanArea'); area.style.display='block'; var data=parseData(str);
-  if(!data||data.app!=='uz'){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Попробовать ещё</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
+  if(!data||data.app!=='uz'){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-r="1">Попробовать ещё</button>'; var b=area.querySelector('[data-r="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
   if(data.type==='plan'){ importPlan(data); return; } importExp(data); }
 function importPlan(data){ var area=document.getElementById('scanArea'); var added=0, upd=0;
   (data.cats||[]).forEach(function(ic){ var ex=s.cats.find(function(c){return c.n===ic.n;});
-    if(ex){ ex.p=ic.p||0; ex.c=ic.c||ex.c; ex.t=ic.t||ex.t; ex.subs=(ic.subs||[]).slice(); upd++; }
-    else { s.cats.push({n:ic.n,p:ic.p||0,c:ic.c||'#F06292',t:ic.t||'reg',subs:(ic.subs||[]).slice()}); added++; } });
+    if(ex){ ex.p=ic.p||0; ex.c=ic.c||ex.c; ex.subs=(ic.subs||[]).slice(); upd++; }
+    else { s.cats.push({n:ic.n,p:ic.p||0,c:ic.c||'#F06292',subs:(ic.subs||[]).slice()}); added++; } });
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Планы импортированы!</div><div style="font-size:13px;color:var(--text2)">Новых категорий: <b style="color:var(--text)">'+added+'</b>, обновлено: <b style="color:var(--text)">'+upd+'</b></div><br><button class="btn-main" data-go="budget">К плану</button></div>'; }
 function importExp(data){ var area=document.getElementById('scanArea'); var myIds={}; mo().exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
@@ -438,7 +465,6 @@ function importExp(data){ var area=document.getElementById('scanArea'); var myId
   if(data.incA!==undefined && data.incB!==undefined){ var m=mo(); if(!m.incA)m.incA=data.incA; if(!m.incB)m.incB=data.incB; }
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>'; }
-
 /* ======== RENDER ======== */
 function hexA(hex,a){ var h=hex.replace('#',''); if(h.length===3)h=h.split('').map(function(x){return x+x;}).join(''); var num=parseInt(h,16); var r=(num>>16)&255,g=(num>>8)&255,b=num&255; return 'rgba('+r+','+g+','+b+','+a+')'; }
 function render(){
@@ -454,7 +480,6 @@ function render(){
   document.getElementById('iB').textContent=fm((mo().incB||0)+(ui.pend.B||0));
   document.getElementById('pendA').textContent=ui.pend.A>0?('＋ '+fm(ui.pend.A)+' — нажми «OK»'):'';
   document.getElementById('pendB').textContent=ui.pend.B>0?('＋ '+fm(ui.pend.B)+' — нажми «OK»'):'';
-
   var cats=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var b=document.getElementById('bRows'); b.innerHTML=''; var planT=0;
   cats.forEach(function(c){ var spc=spentCat(c.n), hp=c.p>0, ov=c.p>0&&spc>c.p, pc=c.p>0?Math.min(100,spc/c.p*100):(spc>0?100:0); planT+=c.p;
@@ -479,17 +504,14 @@ function render(){
       var as=document.createElement('div'); as.className='add-sub'; as.textContent='＋ Добавить подкатегорию'; as.onclick=function(){ addSub(c.n); }; block.appendChild(as); }
     b.appendChild(block);
   });
-
   var sc=document.getElementById('tCat'), pv2=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv2)o.selected=true; sc.appendChild(o); });
   renderSubSelect();
-
   var dl=document.getElementById('dList'); dl.innerHTML=''; document.getElementById('dCount').textContent=mo().exp.length+' записей';
   if(mo().exp.length===0){ dl.innerHTML='<div class="empty">Пока нет трат ✨</div>'; }
   else{ mo().exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=mo().exp.indexOf(e), c=s.cats.find(function(x){return x.n===e.cat;}), cl=c?c.c:'#E777A8';
     var r=document.createElement('div'); r.className='day-item';
     r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+((e.sub)?' / '+e.sub:'')+'</span><span class="s">'+fm(e.amt)+'</span><button class="btn-edit" title="Изменить сумму">✏️</button><button class="btn-danger" title="Удалить">×</button>';
     r.querySelector('.btn-edit').onclick=function(){ editExp(i); }; r.querySelector('.btn-danger').onclick=function(){ delExp(i); }; dl.appendChild(r); }); }
-
   var sorted=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0, ua=0;
   sorted.forEach(function(c){ var spc=spentCat(c.n), df=c.p-spc, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fm(df); ua+=df; } else { st='перерасход '+fm(-df); oa+=(-df); }
@@ -501,7 +523,6 @@ function render(){
   if(oa>0){ sum.style.background='var(--soft)'; sum.style.color='var(--warn)'; sum.textContent='⚠️ Перерасход: '+fm(oa); }
   else if(planT===0){ sum.style.background='var(--soft)'; sum.style.color='var(--text2)'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
   else { sum.style.background='var(--soft)'; sum.style.color='var(--ok)'; sum.textContent='✅ В рамках бюджета. Экономия: '+fm(ua); }
-
   if(qrVisible){ renderQR_now(); }
 }
 function renderSubSelect(){ var cat=document.getElementById('tCat').value; var c=s.cats.find(function(x){return x.n===cat;}); var sel=document.getElementById('tSub');
