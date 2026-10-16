@@ -36,7 +36,6 @@
   .theme-row{ display:flex; gap:6px; }
   .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; cursor:pointer; line-height:1; }
   .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
-  /* popup месяцев */
   .month-pop{ position:absolute; top:120px; left:14px; right:14px; z-index:60; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.2); }
   .month-pop .pop-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
   .month-pop .pop-head button{ background:var(--soft); border:1px solid var(--line); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:10px; cursor:pointer; }
@@ -154,7 +153,6 @@
         <button data-t="moon">🌙</button>
       </div>
     </div>
-    <!-- поп-ап месяцев -->
     <div class="month-pop" id="monthPop" style="display:none">
       <div class="pop-head"><button onclick="popYear(-1)">‹</button><span id="popYear">2025</span><button onclick="popYear(1)">›</button></div>
       <div class="pop-grid" id="popGrid"></div>
@@ -247,9 +245,12 @@
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
         <div class="sync-btn" data-act="sharePlans"><div class="si">📋</div><div class="st2">Поделиться планами</div><div class="ss">категории и планы</div></div>
         <div class="sync-btn" data-act="manual"><div class="si">⌨️</div><div class="st2">Ввести код</div><div class="ss">вручную</div></div>
+        <div class="sync-btn" data-act="export"><div class="si">💾</div><div class="st2">Сохранить копию</div><div class="ss">скачать файл</div></div>
+        <div class="sync-btn" data-act="import"><div class="si">📂</div><div class="st2">Восстановить</div><div class="ss">из файла</div></div>
       </div>
       <div id="qrArea" style="display:none;margin-top:12px"></div>
       <div id="scanArea" style="display:none;margin-top:12px"></div>
+      <input type="file" id="restoreFile" accept=".json,application/json" style="display:none">
     </div>
   </div>
 
@@ -263,35 +264,55 @@
 </div>
 
 <script>
-var K='uzat_budget_v14';
+/* ============================================================
+   МАСТЕР-КЛЮЧ + МИГРАЦИЯ: данные НЕ пропадают при обновлении
+   ============================================================ */
+var MAIN_KEY='uzat_budget_main';
+var OLD_KEYS=['uzat_budget_v14','uzat_budget_v13','uzat_budget_v12','uzat_budget_v11','uzat_budget_v10','uzat_budget_v9','uzat_budget_v8','uzat_budget_v7','uzat_budget_v6','uzat_budget_v5'];
 var SHORT=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},pend:{A:0,B:0},popYear:new Date().getFullYear()};
 var qrVisible=false, lastQR='', qrMode='exp';
-var s=null;
-var raw=null; try{ raw=JSON.parse(localStorage.getItem(K)); }catch(e){}
-if(raw && raw.cats && raw.months){ s=raw; }
-else if(raw && raw.cats){
-  var om=raw.month||cmk(); s={theme:raw.theme||'pink',cats:raw.cats,months:{},curMonth:om};
-  s.months[om]={incA:raw.incA||0,incB:raw.incB||0,exp:raw.exp||[],startBalance:0};
-}
-if(!s){ s={theme:'pink',cats:[
+
+function defState(){ return {theme:'pink',cats:[
   {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
   {n:'Еда',p:0,c:'#81C784',subs:[]},
   {n:'Развлечения',p:0,c:'#B39DDB',subs:[]},
   {n:'Одежда',p:0,c:'#64B5F6',subs:[]},
   {n:SPEC,p:0,c:'#FFAB91',subs:[]}
 ],months:{},curMonth:cmk()}; }
-if(!s.curMonth || !/^\d{4}-\d{1,2}$/.test(s.curMonth||'')) s.curMonth=cmk();
-s.cats.forEach(function(c){ if(!c.subs)c.subs=[]; });
+function normalize(st){
+  if(!st || typeof st!=='object' || !(st.cats instanceof Array)) return null;
+  if(!(st.months && typeof st.months==='object')){ // старый формат (v6-v14 без months)
+    var om=st.curMonth||cmk(); st.months={}; st.months[om]={incA:st.incA||0,incB:st.incB||0,exp:(st.exp||[]).slice(),startBalance:st.startBalance||0};
+    delete st.incA; delete st.incB; delete st.exp; delete st.startBalance;
+  }
+  if(!st.curMonth || !/^\d{4}-\d{1,2}$/.test(String(st.curMonth))) st.curMonth=cmk();
+  st.cats.forEach(function(c){ if(!c.subs)c.subs=[]; });
+  Object.keys(st.months).forEach(function(k){ var m=st.months[k]; if(!m.exp)m.exp=[]; if(m.incA===undefined)m.incA=0; if(m.incB===undefined)m.incB=0; if(m.startBalance===undefined)m.startBalance=0; });
+  if(st.theme!=='pink'&&st.theme!=='moon') st.theme='pink';
+  return st;
+}
+function load(){
+  var dat=null;
+  try{ dat=JSON.parse(localStorage.getItem(MAIN_KEY)); }catch(e){ dat=null; }
+  if(!dat){ // ищем в старых ключах и переносим
+    for(var i=0;i<OLD_KEYS.length;i++){ try{ var t=JSON.parse(localStorage.getItem(OLD_KEYS[i])); if(t){ dat=t; localStorage.removeItem(OLD_KEYS[i]); break; } }catch(e){} }
+  }
+  if(!dat){ dat=defState(); }
+  dat=normalize(dat); if(!dat){ dat=defState(); }
+  return dat;
+}
+var s=load();
+function save(){ try{ localStorage.setItem(MAIN_KEY,JSON.stringify(s)); }catch(e){} }
 
 function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function getMonth(key){ if(!s.months[key]) s.months[key]={incA:0,incB:0,exp:[],startBalance:0}; return s.months[key]; }
 function mo(){ return getMonth(s.curMonth); }
 function prevK(key){ var p=key.split('-'), y=+p[0], m=+p[1]-1; if(m===0){y--;m=12;} return y+'-'+m; }
 function sumExp(arr){ return arr.reduce(function(a,e){return a+(e.amt||0);},0); }
-function monthEnd(key){ var m=getMonth(key); return (m.startBalance||0)+(m.incA||0)+(m.incB||0)-sumExp(m.exp); }
+function monthEnd(key){ var m=getMonth(key); return (m.startBalance||0)+(m.incA||0)+(m.incB||0)-sumExp(m.exp||[]); }
 function startBalance(){ return monthEnd(prevK(s.curMonth)); }
 function income(){ var m=mo(); return (m.incA||0)+(m.incB||0); }
 function spent(){ return sumExp(mo().exp); }
@@ -300,7 +321,6 @@ function spentCat(n){ return mo().exp.filter(function(e){return e.cat===n;}).red
 function spentSub(cn,sn){ return mo().exp.filter(function(e){return e.cat===cn&&e.sub===sn;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 function canSubs(n){ return SUB_CATS.indexOf(n)>-1; }
 function fm(n){ n=Math.round(n)||0; return (n<0?'-':'')+String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
-function save(){ try{ localStorage.setItem(K,JSON.stringify(s)); }catch(e){} }
 
 var FLOWERS=['🌸','🌷','🌺','💮','🌼','🪷','🌹'];
 function buildFlowers(){ var c=document.getElementById('flowers'); c.innerHTML=''; for(var i=0;i<14;i++){ var sp=document.createElement('span'); sp.textContent=FLOWERS[i%FLOWERS.length]; sp.style.left=(Math.random()*92)+'%'; sp.style.top=(Math.random()*94)+'%'; sp.style.fontSize=(16+Math.random()*16)+'px'; sp.style.opacity=(0.35+Math.random()*0.3); sp.style.animationDelay=(Math.random()*3)+'s'; c.appendChild(sp); } }
@@ -317,20 +337,16 @@ function applyT(t){ var th=THEMES[t]||THEMES.pink; for(var k in th){ document.ge
 document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 applyT(s.theme||'pink');
 
-/* ===== МЕСЯЦЫ: пилюля + поп-ап ===== */
-function monthLabel(key){ var p=key.split('-'), y=+p[0], m=+p[1]; return {y:y,m:m}; }
-function toggleMonthPop(){ var p=document.getElementById('monthPop'); p.style.display = p.style.display==='block'?'none':'block'; if(p.style.display==='block') buildPopGrid(); }
+function toggleMonthPop(){ var p=document.getElementById('monthPop'); p.style.display=p.style.display==='block'?'none':'block'; if(p.style.display==='block') buildPopGrid(); }
 function popYear(d){ ui.popYear+=d; buildPopGrid(); }
 function buildPopGrid(){
   document.getElementById('popYear').textContent=ui.popYear;
-  var cur=monthLabel(s.curMonth);
+  var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1];
   var g=document.getElementById('popGrid'); g.innerHTML='';
-  for(var i=0;i<12;i++){
-    var d=document.createElement('div'); d.textContent=SHORT[i];
-    if(ui.popYear===cur.y && i+1===cur.m){ d.className='active'; }
-    d.onclick=function(idx){ return function(){ selectMonth(idx); }; }(i);
-    g.appendChild(d);
-  }
+  for(var i=0;i<12;i++){ var d=document.createElement('div'); d.textContent=SHORT[i];
+    if(ui.popYear===cy && i+1===cm){ d.className='active'; }
+    (function(idx){ d.onclick=function(){ selectMonth(idx); }; })(i);
+    g.appendChild(d); }
 }
 function selectMonth(idx){ s.curMonth=ui.popYear+'-'+(idx+1); getMonth(s.curMonth); ui.pend={A:0,B:0}; document.getElementById('monthPop').style.display='none'; save(); render(); }
 document.addEventListener('click', function(e){ var p=document.getElementById('monthPop'); if(p.style.display==='block' && !e.target.closest('.month-pill') && !e.target.closest('.month-pop')){ p.style.display='none'; } });
@@ -346,6 +362,7 @@ function act(kind){
   if(kind==='addCat'){ addCat(); return; } if(kind==='addExp'){ addExp(); return; }
   if(kind==='showQr'){ showQr(); return; } if(kind==='scan'){ startScan(); return; }
   if(kind==='manual'){ showManual(); return; } if(kind==='sharePlans'){ sharePlans(); return; }
+  if(kind==='export'){ exportBackup(); return; } if(kind==='import'){ importBackup(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
 
@@ -365,7 +382,21 @@ function addExp(){ var d=parseInt(document.getElementById('tDay').value), c=docu
 function editExp(i){ var e=mo().exp[i]; var v=prompt('Новая сумма для «'+e.cat+((e.sub)?' / '+e.sub:'')+'» ('+e.day+' числа), ₽:',e.amt); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} e.amt=nv; save(); render(); }
 function delExp(i){ mo().exp.splice(i,1); save(); render(); }
 
-/* ======== QR (надёжно) ======== */
+/* ======== РЕЗЕРВНОЕ КОПИРОВАНИЕ ======== */
+function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},null,2); var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='finance-backup-'+s.curMonth+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000); alert('Резервная копия сохранена ✅'); }
+function importBackup(){ document.getElementById('restoreFile').click(); }
+document.getElementById('restoreFile').addEventListener('change', function(ev){
+  var f=ev.target.files[0]; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); alert('Данные восстановлены ✅'); }
+    catch(e){ alert('Ошибка чтения файла'); }
+    ev.target.value='';
+  };
+  rd.readAsText(f);
+});
+
+/* ======== QR ======== */
 function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
 var QR_SRCS=['qrcode.min.js','//cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js','//unpkg.com/qrcode-generator@1.4.4/qrcode.min.js','//cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'];
 var JSQR_SRCS=['jsqr.min.js','//unpkg.com/jsqr@1.4.0/dist/jsQR.js','//cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js','//raw.githubusercontent.com/cozmo/jsQR/master/dist/jsQR.js'];
@@ -374,14 +405,14 @@ function ensureQR(ready){ if(makeQR('A')){ ready(true); return; } var i=0; funct
 function ensureJSQR(ready){ if(typeof window.jsQR==='function'){ ready(true); return; } var i=0; function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++],function(ok){ if(ok&&typeof window.jsQR==='function'){ ready(true); } else { next(); } }); } next(); }
 function b64enc(x){ return btoa(unescape(encodeURIComponent(x))); }
 function b64dec(x){ return decodeURIComponent(escape(atob(x))); }
-function expPayload(){ return JSON.stringify({app:'uz',type:'exp',month:s.curMonth,exp:mo().exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})}); }
+function expPayload(){ return JSON.stringify({app:'uz',type:'exp',month:s.curMonth,incA:mo().incA||0,incB:mo().incB||0,exp:mo().exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})}); }
 function planPayload(){ return JSON.stringify({app:'uz',type:'plan',v:1,cats:s.cats}); }
 function buildPayload(){ return qrMode==='plan'?planPayload():expPayload(); }
-function drawQR(payload,label){ var area=document.getElementById('qrArea'); var qr=makeQR(payload); if(!qr) return false; var html=''; try{ html=qr.createImgTag(6,2,'QR'); }catch(e){ html=''; } if(!html||html.indexOf('<img')===-1){ try{ html='<img src="'+qr.createDataURL(6,2)+'" alt="QR"/>'; }catch(e){ html=''; } } if(!html) return false;
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">'+(label||'Отсканируй меня')+'</div>'+html+'<div style="font-size:11px;color:var(--text2);margin-top:6px">'+(qrMode==='plan'?'Партнёр: «Сканировать» или «Ввести код» — планы и категории подтянутся':'QR обновляется автоматически')+'</div><div class="qr-refresh"><button class="btn-sec" data-refresh="1" style="margin:0">↻ Обновить</button></div></div>';
+function drawQR(payload,label){ var area=document.getElementById('qrArea'); var qr=makeQR(payload); if(!qr)return false; var html=''; try{ html=qr.createImgTag(6,2,'QR'); }catch(e){ html=''; } if(!html||html.indexOf('<img')===-1){ try{ html='<img src="'+qr.createDataURL(6,2)+'" alt="QR"/>'; }catch(e){ html=''; } } if(!html)return false;
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">'+(label||'Отсканируй меня')+'</div>'+html+'<div style="font-size:11px;color:var(--text2);margin-top:6px">'+(qrMode==='plan'?'Партнёр: «Сканировать» или «Ввести код» — планы подтянутся':'QR обновляется автоматически')+'</div><div class="qr-refresh"><button class="btn-sec" data-refresh="1" style="margin:0">↻ Обновить</button></div></div>';
   var b=area.querySelector('[data-refresh="1"]'); b.onclick=function(e){e.preventDefault();renderQR_now();}; return true; }
 function fallbackText(payload){ var area=document.getElementById('qrArea'); area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — скопируй код</div><textarea readonly class="manual">'+payload+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>'; var b=area.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(payload); }; }
-function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR&&document.getElementById('qrArea')&&document.getElementById('qrArea').querySelector('img')) return; lastQR=p; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()), qrMode==='plan'?'Поделитесь планами':''); } else { fallbackText(b64enc(buildPayload())); } }); }
+function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR&&document.getElementById('qrArea')&&document.getElementById('qrArea').querySelector('img')) return; lastQR=p; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),qrMode==='plan'?'Поделитесь планами':''); } else { fallbackText(b64enc(buildPayload())); } }); }
 function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='exp'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),''); } else { fallbackText(b64enc(buildPayload())); } }); }
 function sharePlans(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='plan'; qrVisible=true; document.getElementById('qrArea').style.display='block'; document.getElementById('qrArea').innerHTML='<div class="empty">Формирую QR планов…</div>'; ensureQR(function(ok){ if(ok){ drawQR(b64enc(buildPayload()),'Поделитесь планами'); } else { fallbackText(b64enc(buildPayload())); } }); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
@@ -399,13 +430,9 @@ function tickScan(){ var video=document.getElementById('scanner'); try{ if(!vide
 function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование завершено.</div>'; } }
 function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block'; area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-merge="1">Объединить</button>'; var b=area.querySelector('[data-merge="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
 function parseData(raw){ var data=null; try{ data=JSON.parse(b64dec(raw)); }catch(e){ data=null; } if(!data){ try{ data=JSON.parse(raw); }catch(e){ data=null; } } return data; }
-function mergePayload(str){
-  var area=document.getElementById('scanArea'); area.style.display='block';
-  var data=parseData(str);
+function mergePayload(str){ var area=document.getElementById('scanArea'); area.style.display='block'; var data=parseData(str);
   if(!data||data.app!=='uz'){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Попробовать ещё</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
-  if(data.type==='plan'){ importPlan(data); return; }
-  importExp(data);
-}
+  if(data.type==='plan'){ importPlan(data); return; } importExp(data); }
 function importPlan(data){ var area=document.getElementById('scanArea'); var added=0, upd=0;
   (data.cats||[]).forEach(function(ic){ var ex=s.cats.find(function(c){return c.n===ic.n;});
     if(ex){ ex.p=ic.p||0; ex.c=ic.c||ex.c; ex.t=ic.t||ex.t; ex.subs=(ic.subs||[]).slice(); upd++; }
@@ -414,19 +441,22 @@ function importPlan(data){ var area=document.getElementById('scanArea'); var add
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Планы импортированы!</div><div style="font-size:13px;color:var(--text2)">Новых категорий: <b style="color:var(--text)">'+added+'</b>, обновлено: <b style="color:var(--text)">'+upd+'</b></div><br><button class="btn-main" data-go="budget">К плану</button></div>'; }
 function importExp(data){ var area=document.getElementById('scanArea'); var myIds={}; mo().exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
   (data.exp||[]).forEach(function(e){ if(e.id&&!myIds[e.id]){ mo().exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
+  // если QR принёс доход — тоже сохраняем (только если не пусто)
+  if(data.incA!==undefined && data.incB!==undefined){ var m=mo(); if(!m.incA)m.incA=data.incA; if(!m.incB)m.incB=data.incB; }
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>'; }
 
 /* ======== RENDER ======== */
 function hexA(hex,a){ var h=hex.replace('#',''); if(h.length===3)h=h.split('').map(function(x){return x+x;}).join(''); var num=parseInt(h,16); var r=(num>>16)&255,g=(num>>8)&255,b=num&255; return 'rgba('+r+','+g+','+b+','+a+')'; }
 function render(){
-  var cur=monthLabel(s.curMonth);
-  var pill=document.getElementById('hMonth'); pill.textContent=SHORT[cur.m-1]+' '+cur.y+' ▾';
+  var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1];
+  var pill=document.getElementById('hMonth'); pill.textContent=SHORT[cm-1]+' '+cy+' ▾';
   var sb=startBalance();
   document.getElementById('hCarry').textContent=sb!==0?('перенос: '+fm(sb)):'перенос: 0 ₽';
   document.getElementById('hBalance').textContent=fm(totalBal());
-  document.getElementById('sIncome').textContent=fm(income());
-  document.getElementById('sSpent').textContent=fm(spent());
+  var inc=income(), sp=spent();
+  document.getElementById('sIncome').textContent=fm(inc);
+  document.getElementById('sSpent').textContent=fm(sp);
   var l=totalBal(), el=document.getElementById('sLeft'); el.textContent=fm(l); el.style.color=l<0?'var(--warn)':'var(--text)';
   document.getElementById('iA').textContent=fm((mo().incA||0)+(ui.pend.A||0));
   document.getElementById('iB').textContent=fm((mo().incB||0)+(ui.pend.B||0));
@@ -435,33 +465,30 @@ function render(){
 
   var cats=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var b=document.getElementById('bRows'); b.innerHTML=''; var planT=0;
-  cats.forEach(function(c){ var sp=spentCat(c.n), hp=c.p>0, ov=c.p>0&&sp>c.p, pc=c.p>0?Math.min(100,sp/c.p*100):(sp>0?100:0); planT+=c.p;
+  cats.forEach(function(c){ var spc=spentCat(c.n), hp=c.p>0, ov=c.p>0&&spc>c.p, pc=c.p>0?Math.min(100,spc/c.p*100):(spc>0?100:0); planT+=c.p;
     var hasSubs=canSubs(c.n), exp=!!ui.expanded[c.n];
     var arrow=hasSubs?(exp?'▼':'▶'):'';
-    var amt=hp?'<div class="amt'+(ov?' over':'')+'">'+fm(sp)+'<small>план '+fm(c.p)+'</small></div>':'<div class="amt" style="color:var(--text2)">'+fm(sp)+'<small>план не задан</small></div>';
+    var amt=hp?'<div class="amt'+(ov?' over':'')+'">'+fm(spc)+'<small>план '+fm(c.p)+'</small></div>':'<div class="amt" style="color:var(--text2)">'+fm(spc)+'<small>план не задан</small></div>';
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.08);
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fm(sp-c.p)+'</span>':'');
+    r.innerHTML='<span class="arrow" data-arrow="'+c.n+'">'+arrow+'</span><span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'var(--warn)':c.c)+'"></div></div>'+amt+(ov?'<span class="status" style="color:var(--warn)">+'+fm(spc-c.p)+'</span>':'');
     r.querySelector('.nm').style.cursor='pointer'; r.querySelector('.nm').onclick=function(){ toggleSubs(c.n); };
     if(hasSubs){ r.querySelector('.arrow').onclick=function(){ toggleSubs(c.n); }; }
     var be=document.createElement('button'); be.className='btn-edit'; be.innerHTML='✏️'; be.title='Изменить план'; be.onclick=function(){ var v=prompt('План для «'+c.n+'» (₽):',c.p>0?c.p:''); if(v!==null){ var nv=parseFloat(v); if(!isNaN(nv)&&nv>=0){c.p=nv; save(); render();} } }; r.appendChild(be);
     if(c.n!==MAND&&c.n!==SPEC){ var d=document.createElement('button'); d.className='btn-danger'; d.innerHTML='×'; d.title='Удалить'; d.onclick=function(){ delCat(c.n); }; r.appendChild(d); }
     block.appendChild(r);
-    if(hasSubs){
-      if(c.subs.length>0){ var subList=document.createElement('div'); subList.className='sub-list';
-        c.subs.forEach(function(sub){ var ssp=spentSub(c.n,sub.n), sov=sub.p>0&&ssp>sub.p, spc=sub.p>0?Math.min(100,ssp/sub.p*100):(ssp>0?100:0);
-          var sr=document.createElement('div'); sr.className='subrow';
-          sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar" style="width:'+spc+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fm(ssp)+(sub.p>0?' <small>план '+fm(sub.p)+'</small>':'')+'</span>';
-          sr.querySelector('.nm').style.cursor='pointer'; sr.querySelector('.nm').title='Изменить план подкатегории'; sr.querySelector('.nm').onclick=function(){ editSub(c.n,sub.n); };
-          var ds=document.createElement('button'); ds.className='del'; ds.innerHTML='×'; ds.title='Удалить'; ds.onclick=function(){ delSub(c.n,sub.n); }; sr.appendChild(ds);
-          subList.appendChild(sr); });
-        if(exp){ block.appendChild(subList); } }
-      var as=document.createElement('div'); as.className='add-sub'; as.textContent='＋ Добавить подкатегорию'; as.onclick=function(){ addSub(c.n); }; block.appendChild(as);
-    }
+    if(hasSubs){ if(c.subs.length>0){ var subList=document.createElement('div'); subList.className='sub-list';
+      c.subs.forEach(function(sub){ var ssp=spentSub(c.n,sub.n), sov=sub.p>0&&ssp>sub.p, spc2=sub.p>0?Math.min(100,ssp/sub.p*100):(ssp>0?100:0);
+        var sr=document.createElement('div'); sr.className='subrow';
+        sr.innerHTML='<span class="sdot" style="background:'+c.c+'"></span><span class="nm">'+sub.n+'</span><div class="bar-wrap"><div class="bar" style="width:'+spc2+'%;background:'+(sov?'var(--warn)':c.c)+'"></div></div><span class="amt'+(sov?' over':'')+'" style="color:'+(sov?'var(--warn)':'var(--text)')+'">'+fm(ssp)+(sub.p>0?' <small>план '+fm(sub.p)+'</small>':'')+'</span>';
+        sr.querySelector('.nm').style.cursor='pointer'; sr.querySelector('.nm').title='Изменить план подкатегории'; sr.querySelector('.nm').onclick=function(){ editSub(c.n,sub.n); };
+        var ds=document.createElement('button'); ds.className='del'; ds.innerHTML='×'; ds.title='Удалить'; ds.onclick=function(){ delSub(c.n,sub.n); }; sr.appendChild(ds);
+        subList.appendChild(sr); }); if(exp){ block.appendChild(subList); } }
+      var as=document.createElement('div'); as.className='add-sub'; as.textContent='＋ Добавить подкатегорию'; as.onclick=function(){ addSub(c.n); }; block.appendChild(as); }
     b.appendChild(block);
   });
 
-  var sc=document.getElementById('tCat'), pv=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv)o.selected=true; sc.appendChild(o); });
+  var sc=document.getElementById('tCat'), pv2=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv2)o.selected=true; sc.appendChild(o); });
   renderSubSelect();
 
   var dl=document.getElementById('dList'); dl.innerHTML=''; document.getElementById('dCount').textContent=mo().exp.length+' записей';
@@ -473,10 +500,10 @@ function render(){
 
   var sorted=s.cats.slice().sort(function(a,b){ return spentCat(b.n)-spentCat(a.n); });
   var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0, ua=0;
-  sorted.forEach(function(c){ var sp=spentCat(c.n), df=c.p-sp, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fm(df); ua+=df; } else { st='перерасход '+fm(-df); oa+=(-df); }
+  sorted.forEach(function(c){ var spc=spentCat(c.n), df=c.p-spc, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fm(df); ua+=df; } else { st='перерасход '+fm(-df); oa+=(-df); }
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.07);
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="amt'+(df<0?' over':'')+'">'+fm(sp)+(c.p>0?'<small>план '+fm(c.p)+'</small>':'<small>план не задан</small>')+'</div><span class="status" style="color:'+(df<0?'var(--warn)':(c.p>0?'var(--ok)':'var(--text2)'))+'">'+st+'</span>';
+    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="nm">'+c.n+(c.subs&&c.subs.length?' <small>'+c.subs.length+' подкат.</small>':'')+'</span><div class="amt'+(df<0?' over':'')+'">'+fm(spc)+(c.p>0?'<small>план '+fm(c.p)+'</small>':'<small>план не задан</small>')+'</div><span class="status" style="color:'+(df<0?'var(--warn)':(c.p>0?'var(--ok)':'var(--text2)'))+'">'+st+'</span>';
     block.appendChild(r); rr.appendChild(block); });
   var sum=document.getElementById('rSum');
   if(oa>0){ sum.style.background='var(--soft)'; sum.style.color='var(--warn)'; sum.textContent='⚠️ Перерасход: '+fm(oa); }
