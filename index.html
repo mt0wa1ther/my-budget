@@ -3,67 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Финансы">
+<meta name="theme-color" content="#E91E8C">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="512x512" href="aicon.png">
+<link rel="apple-touch-icon" href="aicon.png">
 <title>Совместные финансы</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
   *{ box-sizing:border-box; margin:0; }
-  body{ background:#FFF7FB; font-family:'Segoe UI',Roboto,Arial,sans-serif; }
-  .phone{ max-width:420px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:90px; }
-  .mob-head{ position:sticky; top:0; z-index:20; background:linear-gradient(135deg,#E91E8C,#F48FB1); color:#fff; padding:16px 18px 14px; border-radius:0 0 22px 22px; box-shadow:0 4px 18px rgba(233,30,140,.25); }
-  .mob-head .hello{ font-size:13px; opacity:.9; }
-  .mob-head .balance{ font-size:30px; font-weight:700; margin:4px 0 2px; }
+  body{ background:#F7EEF5; font-family:'Segoe UI',Roboto,Arial,sans-serif; }
+  .phone{ max-width:420px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:92px; }
+  .mob-head{ position:sticky; top:0; z-index:20; background:linear-gradient(135deg,#E91E8C,#F48FB1); color:#fff; padding:18px 18px 16px; border-radius:0 0 24px 24px; box-shadow:0 4px 20px rgba(233,30,140,.3); }
+  .mob-head .hello{ font-size:13px; opacity:.92; }
+  .mob-head .balance{ font-size:32px; font-weight:700; margin:4px 0 2px; letter-spacing:.5px; }
   .mob-head .month{ font-size:12px; opacity:.85; }
-  .theme-row{ display:flex; justify-content:flex-end; gap:6px; margin-top:-8px; }
-  .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:32px; height:32px; border-radius:50%; cursor:pointer; }
+  .theme-row{ display:flex; justify-content:flex-end; gap:6px; margin-top:-6px; }
+  .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:32px; height:32px; border-radius:50%; cursor:pointer; line-height:1; }
   .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
   .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 14px 0; }
-  .qa{ background:#fff; border:1px solid #F3C6E0; border-radius:16px; padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(233,30,140,.06); }
+  .qa{ background:#fff; border:1px solid #F3C6E0; border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(233,30,140,.06); transition:transform .12s, box-shadow .12s; }
+  .qa:hover{ box-shadow:0 4px 14px rgba(233,30,140,.14); }
   .qa:active{ transform:scale(.97); }
-  .qa .ic{ width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; background:#FDF0F8; }
+  .qa .ic{ width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:19px; background:#FDF0F8; flex:none; }
   .qa .tt{ font-size:13px; font-weight:600; color:#4A2440; }
-  .qa .st{ font-size:11px; color:#9B6B8B; }
+  .qa .st{ font-size:11px; color:#9B6B8B; margin-top:1px; }
   .strip{ display:flex; gap:8px; padding:14px 14px 0; }
-  .mini{ flex:1; background:#fff; border:1px solid #F3C6E0; border-radius:14px; padding:12px; text-align:center; }
+  .mini{ flex:1; background:#fff; border:1px solid #F3C6E0; border-radius:14px; padding:12px; text-align:center; box-shadow:0 2px 6px rgba(233,30,140,.05); }
   .mini .l{ font-size:10px; color:#9B6B8B; }
   .mini .v{ font-size:16px; font-weight:700; color:#4A2440; margin-top:2px; }
-  .card{ background:#fff; border:1px solid #F3C6E0; border-radius:18px; padding:16px; margin:12px 14px 0; box-shadow:0 2px 10px rgba(233,30,140,.05); }
-  .card h3{ font-size:13px; font-weight:700; color:#4A2440; margin-bottom:12px; }
-  .row{ display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid #F6E3EE; }
+  .card{ background:#fff; border:1px solid #F3C6E0; border-radius:18px; padding:16px; margin:12px 14px 0; box-shadow:0 2px 10px rgba(233,30,140,.06); }
+  .card h3{ font-size:13px; font-weight:700; color:#4A2440; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .card h3 .tag{ margin-left:auto; font-size:10px; color:#9B6B8B; font-weight:500; }
+  .row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #F6E3EE; }
   .row:last-child{ border:none; }
-  .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 3px rgba(233,30,140,.08); }
   .row .name{ flex:1; font-size:14px; color:#4A2440; font-weight:500; }
+  .row .name small{ display:block; font-size:10px; color:#9B6B8B; font-weight:400; }
   .row .bar-wrap{ flex:1.4; height:8px; background:#FBEAF5; border-radius:999px; overflow:hidden; }
-  .row .bar{ height:100%; border-radius:999px; }
-  .row .amt{ font-size:13px; font-weight:700; color:#4A2440; width:100px; text-align:right; }
+  .row .bar{ height:100%; border-radius:999px; transition:width .4s; }
+  .row .amt{ font-size:13px; font-weight:700; color:#4A2440; width:104px; text-align:right; }
   .row .amt small{ font-size:10px; color:#9B6B8B; font-weight:400; display:block; }
   .add-form{ display:flex; gap:8px; padding-top:12px; flex-wrap:wrap; }
-  .add-form input,.add-form select{ font-size:13px; padding:10px; border:1px solid #F3C6E0; border-radius:12px; background:#FFFDFE; color:#4A2440; flex:1; min-width:70px; outline:none; }
+  .add-form input,.add-form select{ font-size:13px; padding:10px 12px; border:1px solid #F3C6E0; border-radius:12px; background:#FFFDFE; color:#4A2440; flex:1; min-width:70px; outline:none; transition:border-color .15s; }
+  .add-form input:focus,.add-form select:focus{ border-color:#E91E8C; }
   .add-form select{ flex:none; max-width:150px; }
-  .add-form button{ cursor:pointer; padding:10px 16px; border-radius:12px; background:#E91E8C; color:#fff; border:none; font-weight:600; font-size:13px; flex:none; }
-  .btn-danger{ background:none; border:none; color:#D9A8C4; font-size:16px; cursor:pointer; }
-  .day-list{ max-height:40vh; overflow-y:auto; }
-  .day-item{ display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #F6E3EE; font-size:13px; color:#4A2440; }
+  .add-form button{ cursor:pointer; padding:10px 16px; border-radius:12px; background:#E91E8C; color:#fff; border:none; font-weight:600; font-size:13px; flex:none; transition:background .15s; }
+  .add-form button:active{ background:#D81B7F; }
+  .btn-danger{ background:none; border:none; color:#D9A8C4; font-size:16px; cursor:pointer; padding:0 4px; }
+  .btn-danger:active{ color:#D6336C; }
+  .day-list{ max-height:42vh; overflow-y:auto; }
+  .day-item{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid #F6E3EE; font-size:13px; color:#4A2440; }
   .day-item .d{ width:30px; color:#9B6B8B; font-weight:500; }
   .day-item .c{ flex:1; }
   .day-item .s{ font-weight:700; }
   .empty{ color:#9B6B8B; font-size:13px; padding:16px 0; text-align:center; }
   .bottom-nav{ position:fixed; bottom:0; left:0; right:0; z-index:30; max-width:420px; margin:0 auto; display:flex; background:#fff; border-top:1px solid #F3C6E0; border-radius:20px 20px 0 0; padding:8px 4px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -4px 18px rgba(233,30,140,.08); }
   .bn{ flex:1; border:none; background:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; color:#9B6B8B; font-size:10px; font-weight:600; }
-  .bn .bic{ font-size:20px; }
+  .bn .bic{ font-size:20px; line-height:1; }
   .bn.active{ color:#E91E8C; }
   .tab-panel{ display:none; }
-  .tab-panel.active{ display:block; }
+  .tab-panel.active{ display:block; animation:fadeUp .25s ease; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
   .sync-cta{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .sync-btn{ border:1px solid #F3C6E0; background:#fff; border-radius:16px; padding:18px 12px; text-align:center; cursor:pointer; }
+  .sync-btn{ border:1px solid #F3C6E0; background:#fff; border-radius:16px; padding:18px 12px; text-align:center; cursor:pointer; transition:transform .12s, box-shadow .12s; }
+  .sync-btn:active{ transform:scale(.97); background:#FDF0F8; }
   .sync-btn .si{ font-size:30px; }
   .sync-btn .st2{ font-size:13px; font-weight:600; color:#4A2440; margin-top:6px; }
   .sync-btn .ss{ font-size:11px; color:#9B6B8B; margin-top:2px; }
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:#E91E8C; color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .btn-sec{ width:100%; padding:12px; border:1px solid #F3C6E0; background:#fff; color:#4A2440; border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; }
-  .period-select{ display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
-  .pchip{ border:1px solid #F3C6E0; background:#fff; color:#9B6B8B; padding:7px 12px; border-radius:999px; font-size:12px; cursor:pointer; }
-  .pchip.active{ background:#E91E8C; color:#fff; }
   .qr-holder{ text-align:center; padding:14px; background:#FDF0F8; border:2px dashed #E91E8C; border-radius:14px; }
-  #myqr{ width:220px; height:220px; background:#fff; margin:8px auto; display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:9px; word-break:break-all; overflow:hidden; padding:6px; color:#333; }
+  .check-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+  .check-row label{ display:flex; align-items:center; gap:6px; font-size:13px; color:#4A2440; background:#FDF0F8; padding:8px 14px; border-radius:999px; border:1px solid #F3C6E0; cursor:pointer; }
+  .check-row input{ accent-color:#E91E8C; }
 </style>
 </head>
 <body>
@@ -87,7 +103,7 @@
     <div class="qa" onclick="nav('income')"><div class="ic">💳</div><div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div></div>
     <div class="qa" onclick="nav('budget')"><div class="ic">📋</div><div><div class="tt">План</div><div class="st">Категории</div></div></div>
     <div class="qa" onclick="nav('track')"><div class="ic">✍️</div><div><div class="tt">Траты</div><div class="st">Ежедневно</div></div></div>
-    <div class="qa" onclick="nav('sync')"><div class="ic">🔗</div><div><div class="tt">Синхронизация</div><div class="st">Обмен</div></div></div>
+    <div class="qa" onclick="nav('sync')"><div class="ic">🔗</div><div><div class="tt">Обмен</div><div class="st">Синхронизация</div></div></div>
     <div class="qa" onclick="nav('result')"><div class="ic">📊</div><div><div class="tt">Итог</div><div class="st">План vs факт</div></div></div>
   </div>
 
@@ -99,17 +115,17 @@
 
   <div class="tab-panel active" id="p-income">
     <div class="card">
-      <h3>💳 Доход за месяц</h3>
+      <h3>💳 Доход за месяц <span class="tag">введите суммы</span></h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:#FDF0F8;border:1px solid #F3C6E0;border-radius:14px;padding:12px">
           <div style="font-size:11px;color:#9B6B8B">Основная · 5-е</div>
           <div style="font-size:22px;font-weight:700;color:#E91E8C;margin:4px 0" id="iA">0 ₽</div>
-          <div class="add-form"><input type="number" id="inA" placeholder="Сумма ₽"><button onclick="saveInc('a')">OK</button></div>
+          <div class="add-form"><input type="number" id="inA" placeholder="Сумма ₽" inputmode="numeric"><button onclick="saveInc('a')">OK</button></div>
         </div>
         <div style="background:#FDF0F8;border:1px solid #F3C6E0;border-radius:14px;padding:12px">
           <div style="font-size:11px;color:#9B6B8B">Аванс · 20-е</div>
           <div style="font-size:22px;font-weight:700;color:#E91E8C;margin:4px 0" id="iB">0 ₽</div>
-          <div class="add-form"><input type="number" id="inB" placeholder="Сумма ₽"><button onclick="saveInc('b')">OK</button></div>
+          <div class="add-form"><input type="number" id="inB" placeholder="Сумма ₽" inputmode="numeric"><button onclick="saveInc('b')">OK</button></div>
         </div>
       </div>
     </div>
@@ -117,15 +133,14 @@
 
   <div class="tab-panel" id="p-budget">
     <div class="card">
-      <h3>📋 Категории расходов</h3>
+      <h3>📋 Категории расходов <span class="tag">нажми, чтобы задать план</span></h3>
       <div id="bRows"></div>
       <div class="add-form">
         <input type="text" id="nCat" placeholder="Категория">
         <select id="nType"><option value="reg">Обычная</option><option value="mand">Обязат.</option></select>
-        <input type="number" id="nAmt" placeholder="План ₽">
+        <input type="number" id="nAmt" placeholder="План ₽" inputmode="numeric">
         <button onclick="addCat()">+</button>
       </div>
-      <div style="font-size:11px;color:#9B6B8B;margin-top:6px">Нажми на название, чтобы задать план.</div>
     </div>
   </div>
 
@@ -133,26 +148,26 @@
     <div class="card">
       <h3>✍️ Трата за день</h3>
       <div class="add-form">
-        <input type="number" id="tDay" placeholder="1-31" style="max-width:60px">
+        <input type="number" id="tDay" placeholder="1-31" style="max-width:60px" inputmode="numeric">
         <select id="tCat"></select>
-        <input type="number" id="tAmt" placeholder="Сумма ₽">
+        <input type="number" id="tAmt" placeholder="Сумма ₽" inputmode="numeric">
         <button onclick="addExp()">+</button>
       </div>
-      <div class="check-row" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="tMand"> 🧾 Обязат.</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="tSpec"> 🛍️ Особая</label>
+      <div class="check-row">
+        <label><input type="checkbox" id="tMand"> 🧾 Обязат.</label>
+        <label><input type="checkbox" id="tSpec"> 🛍️ Особая</label>
       </div>
     </div>
-    <div class="card"><h3>📅 Дневник</h3><div class="day-list" id="dList"></div></div>
+    <div class="card"><h3>📅 Дневник <span class="tag" id="dCount"></span></h3><div class="day-list" id="dList"></div></div>
   </div>
 
   <div class="tab-panel" id="p-sync">
     <div class="card">
-      <h3>🔗 Синхронизация</h3>
-      <div style="font-size:12px;color:#9B6B8B;margin-bottom:10px">Обмен тратами между вами. Введите код из QR партнёра или вручную.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="sync-btn" onclick="showQr()"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">показать</div></div>
-        <div class="sync-btn" onclick="manualSync()"><div class="si">📥</div><div class="st2">Ввести код</div><div class="ss">партнёра</div></div>
+      <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
+      <div style="font-size:12px;color:#9B6B8B;margin-bottom:10px">Один показывает QR, второй сканирует обычной камерой телефона или вводит код.</div>
+      <div class="sync-cta">
+        <div class="sync-btn" onclick="showQr()"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">показать QR</div></div>
+        <div class="sync-btn" onclick="manualSync()"><div class="si">📥</div><div class="st2">Ввести код</div><div class="ss">данные партнёра</div></div>
       </div>
       <div id="qrArea" style="display:none;margin-top:12px"></div>
     </div>
@@ -160,9 +175,9 @@
 
   <div class="tab-panel" id="p-result">
     <div class="card">
-      <h3>📊 План vs факт</h3>
+      <h3>📊 План vs факт <span class="tag">итог месяца</span></h3>
       <div id="rRows"></div>
-      <div class="empty" id="rSum" style="text-align:left"></div>
+      <div id="rSum" style="font-size:13px;padding:12px;border-radius:14px;margin-top:10px;background:#FDF0F8;color:#9B6B8B"></div>
     </div>
   </div>
 
@@ -176,7 +191,7 @@
 </div>
 
 <script>
-var K='uzat_budget_v2', MAND='Обязательные', SPEC='Особая статья';
+var K='uzat_budget_v4', MAND='Обязательные', SPEC='Особая статья';
 var s;
 try{ s=JSON.parse(localStorage.getItem(K)); }catch(e){ s=null; }
 if(!s){ s={month:cmk(),incA:0,incB:0,cats:[
@@ -208,22 +223,35 @@ function delCat(n){ if(n===MAND||n===SPEC)return; s.cats=s.cats.filter(function(
 function makeId(){ return 't'+Date.now()+Math.random().toString(36).slice(2,7); }
 function addExp(){ var d=parseInt(document.getElementById('tDay').value),c=document.getElementById('tCat').value,a=parseFloat(document.getElementById('tAmt').value); if(!d||d<1||d>31||isNaN(a)||a<=0)return; if(document.getElementById('tMand').checked)c=MAND; else if(document.getElementById('tSpec').checked)c=SPEC; s.exp.push({id:makeId(),day:d,cat:c,amt:a,ts:Date.now()}); document.getElementById('tAmt').value=''; document.getElementById('tMand').checked=false; document.getElementById('tSpec').checked=false; save(); render(); }
 function delExp(i){ s.exp.splice(i,1); save(); render(); }
-function chip(t){ return t==='mand'?' <span style="font-size:10px">🧾</span>':(t==='spec'?' <span style="font-size:10px">🛍️</span>':''); }
+function chip(t){ return t==='mand'?' <small>🧾</small>':(t==='spec'?' <small>🛍️</small>':''); }
 
-/* ===== СИНХРОНИЗАЦИЯ (автономно, без библиотек) ===== */
-function encode(list){ return btoa(unescape(encodeURIComponent(JSON.stringify({app:'uz',exp:list})))); }
-function decode(str){ try{ return JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){ return null; } }
+/* ===== QR (настоящий, рисуется в canvas) ===== */
 function showQr(){
   var area=document.getElementById('qrArea'); area.style.display='block';
-  var code=encode(s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,amt:e.amt};}));
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:600;color:#4A2440">Твой код для передачи</div><div id="myqr">'+code+'</div><div style="font-size:11px;color:#9B6B8B">Отправь этот текст партнёру или покажи QR (если есть сканер).</div></div>';
-  // пробуем нарисовать упрощённый QR-подобный узор как картинку-заглушку (текст кода корректен)
+  var payload=JSON.stringify({app:'uz',exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,amt:e.amt};})});
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Отсканируй меня</div><canvas id="qrc" width="260" height="260" style="margin:10px auto;background:#fff;border-radius:10px;display:block"></canvas><div style="font-size:11px;color:#9B6B8B">Партнёр: штатной камерой или «Ввести код»</div></div>';
+  var c=document.getElementById('qrc');
+  if(typeof qrcode !== 'undefined'){
+    var qr=qrcode(0,'M'); qr.addData(payload); qr.make();
+    var n=qr.getModuleCount(), cell=260/n, ctx=c.getContext('2d');
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,260,260);
+    ctx.fillStyle='#4A2440';
+    for(var r=0;r<n;r++){ for(var col=0;col<n;col++){ if(qr.isDark(r,col)){ ctx.fillRect(col*cell,r*cell,cell+0.5,cell+0.5); } } }
+  } else {
+    // библиотека не загрузилась — показываем текст
+    var code=btoa(unescape(encodeURIComponent(payload)));
+    c.remove(); area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Твой код (QR-библиотека не загрузилась)</div><div style="font-family:monospace;font-size:9px;word-break:break-all;background:#fff;padding:8px;border-radius:8px;margin:8px 0;text-align:left">'+code+'</div><button class="btn-sec" onclick="copyCode()">Скопировать</button></div>';
+  }
 }
+function copyCode(){ var a=document.getElementById('qrArea'); var t=a.innerText; if(navigator.clipboard){ navigator.clipboard.writeText(t).then(function(){alert('Скопировано ✅');}); } else { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('Скопировано ✅'); } }
 function manualSync(){
-  var inp=prompt('Вставь код партнёра (длинная строка из его приложения):');
+  var inp=prompt('Вставь код партнёра (строка из его вкладки «Мой код» или из QR):');
   if(!inp)return;
-  var data=decode(inp.trim());
-  if(!data||!data.exp||data.app!=='uz'){ alert('Код не распознан'); return; }
+  var raw=inp.trim();
+  // если вставили закодированную строку
+  var data=null;
+  try{ data=JSON.parse(decodeURIComponent(escape(atob(raw)))); }catch(e){}
+  if(!data||data.app!=='uz'||!data.exp){ alert('Код не распознан'); return; }
   var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;});
   var added=0;
   data.exp.forEach(function(e){ if(e.id&&!myIds[e.id]){ s.exp.push({id:e.id,day:e.day,cat:e.cat,amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
@@ -231,7 +259,7 @@ function manualSync(){
 }
 
 function render(){
-  document.getElementById('hBalance').textContent=fmt(income())+' ₽';
+  document.getElementById('hBalance').textContent=fmt(income());
   document.getElementById('sIncome').textContent=fmt(income());
   document.getElementById('sSpent').textContent=fmt(spent());
   var l=income()-spent(),el=document.getElementById('sLeft'); el.textContent=fmt(l); el.style.color=l<0?'#D6336C':'#4A2440';
@@ -247,17 +275,21 @@ function render(){
     b.appendChild(r); });
   var sc=document.getElementById('tCat'),pv=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv)o.selected=true; sc.appendChild(o); });
   var dl=document.getElementById('dList'); dl.innerHTML='';
+  document.getElementById('dCount').textContent=s.exp.length+' записей';
   if(s.exp.length===0){ dl.innerHTML='<div class="empty">Пока нет трат ✨</div>'; }
   else{ s.exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=s.exp.indexOf(e),c=s.cats.find(function(x){return x.n===e.cat;}),cl=c?c.c:'#E777A8';
     var r=document.createElement('div'); r.className='day-item';
     r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+chip(c&&c.t)+'</span><span class="s">'+fmt(e.amt)+'</span><button class="btn-danger">×</button>';
     r.querySelector('button').onclick=function(){ delExp(i); }; dl.appendChild(r); }); }
   var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0,ua=0;
-  s.cats.forEach(function(c){ var sp=spentCat(c.n),df=c.p-sp,st,stt; if(c.p===0){st='нет плана';} else if(df>=0){st='экономия '+fmt(df); ua+=df;} else {st='перерасход '+fmt(-df); oa+=(-df);}
+  s.cats.forEach(function(c){ var sp=spentCat(c.n),df=c.p-sp,st; if(c.p===0){st='нет плана';} else if(df>=0){st='экономия '+fmt(df); ua+=df;} else {st='перерасход '+fmt(-df); oa+=(-df);}
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="name">'+c.n+chip(c.t)+'</span><span class="amt">'+fmt(sp)+'<small>план '+fmt(c.p)+'</small></span><span style="font-size:12px;color:'+(df<0?'#D6336C':(c.p>0?'#2E9B5F':'#9B6B8B'))+'">'+st+'</span>';
+    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="name">'+c.n+chip(c.t)+'</span><div class="amt">'+fmt(sp)+(c.p>0?'<small>план '+fmt(c.p)+'</small>':'<small>план не задан</small>')+'</div><span style="font-size:12px;color:'+(df<0?'#D6336C':(c.p>0?'#2E9B5F':'#9B6B8B'))+'">'+st+'</span>';
     rr.appendChild(r); });
-  document.getElementById('rSum').textContent = oa>0 ? '⚠️ Перерасход: '+fmt(oa) : (planT===0 ? 'Задай планы, чтобы увидеть итог.' : '✅ В рамках бюджета. Экономия: '+fmt(ua));
+  var sum=document.getElementById('rSum');
+  if(oa>0){ sum.style.background='#FDE8EC'; sum.style.color='#D6336C'; sum.textContent='⚠️ Перерасход: '+fmt(oa); }
+  else if(planT===0){ sum.style.background='#FDF0F8'; sum.style.color='#9B6B8B'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
+  else { sum.style.background='#EAFAF2'; sum.style.color='#2E9B5F'; sum.textContent='✅ В рамках бюджета. Экономия: '+fmt(ua); }
 }
 render();
 </script>
