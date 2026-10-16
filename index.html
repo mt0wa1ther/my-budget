@@ -16,7 +16,6 @@
   *{ box-sizing:border-box; margin:0; }
   body{ margin:0; font-family:'Segoe UI',Roboto,Arial,sans-serif; transition:background .3s; }
   .phone{ max-width:420px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:92px; }
-
   .bg-deco{ position:fixed; inset:0; z-index:-2; pointer-events:none; transition:opacity .3s; }
   .bg-pink{ background:linear-gradient(160deg,#ffe3f1 0%,#fff6fb 45%,#ffd9ec 100%); }
   .bg-moon{ background:linear-gradient(160deg,#141129 0%,#1e1a2e 60%,#0e0b1c 100%); }
@@ -26,10 +25,8 @@
   .stars{ position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
   .stars span{ position:absolute; width:3px; height:3px; border-radius:50%; background:#fff; opacity:.5; animation:twinkle 3s ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.2;} 50%{opacity:.8;} }
-
   .phone{ --bg:#ffe3f1; --grad:linear-gradient(135deg,#E91E8C,#F48FB1); --accent:#E91E8C; --accent2:#D81B7F;
     --card:#ffffff; --line:#F3C6E0; --track:#FBEAF5; --text:#4A2440; --text2:#9B6B8B; --warn:#D6336C; --ok:#2E9B5F; --soft:#FDF0F8; color:var(--text); }
-
   .mob-head{ position:sticky; top:0; z-index:20; background:var(--grad); color:#fff; padding:18px 18px 16px; border-radius:0 0 24px 24px; box-shadow:0 4px 20px rgba(0,0,0,.18); }
   .mob-head .hello{ font-size:13px; opacity:.92; }
   .mob-head .balance{ font-size:32px; font-weight:700; margin:4px 0 2px; letter-spacing:.5px; }
@@ -37,23 +34,19 @@
   .theme-row{ display:flex; justify-content:flex-end; gap:6px; margin-top:-6px; }
   .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:32px; height:32px; border-radius:50%; cursor:pointer; line-height:1; }
   .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
-
   .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 14px 0; }
   .qa{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.06); }
   .qa:active{ transform:scale(.97); }
   .qa .ic{ width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:19px; background:var(--soft); flex:none; }
   .qa .tt{ font-size:13px; font-weight:600; color:var(--text); }
   .qa .st{ font-size:11px; color:var(--text2); margin-top:1px; }
-
   .strip{ display:flex; gap:8px; padding:14px 14px 0; }
   .mini{ flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.05); }
   .mini .l{ font-size:10px; color:var(--text2); }
   .mini .v{ font-size:16px; font-weight:700; color:var(--text); margin-top:2px; }
-
   .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin:12px 14px 0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
   .card h3{ font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .card h3 .tag{ margin-left:auto; font-size:10px; color:var(--text2); font-weight:500; }
-
   .cat-block{ border-radius:14px; padding:10px 12px; margin-bottom:10px; border:1px solid var(--line); }
   .row{ display:flex; align-items:center; gap:8px; }
   .arrow{ flex:none; width:16px; text-align:center; cursor:pointer; color:var(--text2); font-size:12px; user-select:none; }
@@ -76,7 +69,6 @@
   .subrow .del{ background:none; border:none; color:var(--text2); font-size:14px; cursor:pointer; flex:none; }
   .add-sub{ cursor:pointer; color:var(--accent); font-size:12px; font-weight:600; padding:8px 0 2px 12px; }
   .add-sub:active{ opacity:.7; }
-
   .add-form{ display:flex; gap:6px; padding-top:12px; align-items:center; flex-wrap:nowrap; }
   .add-form input,.add-form select{ font-size:13px; padding:8px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); outline:none; min-width:0; width:100%; }
   .add-form input:focus,.add-form select:focus{ border-color:var(--accent); }
@@ -84,7 +76,6 @@
   .add-form button{ cursor:pointer; padding:8px 10px; border-radius:10px; background:var(--accent); color:#fff; border:none; font-weight:600; font-size:12px; flex:none; white-space:nowrap; }
   .add-form button.plus{ background:var(--soft); color:var(--accent); border:1px solid var(--line); }
   .add-form button:active{ filter:brightness(.92); }
-
   .income-cols{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .income-block{ background:var(--soft); border:1px solid var(--line); border-radius:14px; padding:10px; }
   .income-block .lbl{ font-size:11px; color:var(--text2); }
@@ -95,7 +86,6 @@
   .edit{ cursor:pointer; font-size:14px; opacity:.55; }
   .edit:active{ opacity:1; }
   @media (max-width:380px){ .income-cols{ grid-template-columns:1fr; } .add-form{ flex-wrap:wrap; } }
-
   .btn-edit{ background:none; border:none; color:var(--text2); font-size:14px; cursor:pointer; padding:0 3px; flex:none; }
   .btn-danger{ background:none; border:none; color:var(--text2); font-size:16px; cursor:pointer; padding:0 3px; flex:none; }
   .day-list{ max-height:42vh; overflow-y:auto; }
@@ -104,16 +94,13 @@
   .day-item .c{ flex:1; min-width:0; }
   .day-item .s{ font-weight:700; white-space:nowrap; flex:none; }
   .empty{ color:var(--text2); font-size:13px; padding:16px 0; text-align:center; }
-
   .bottom-nav{ position:fixed; bottom:0; left:0; right:0; z-index:50; max-width:420px; margin:0 auto; display:flex; background:var(--card); border-top:1px solid var(--line); border-radius:20px 20px 0 0; padding:8px 4px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -4px 18px rgba(0,0,0,.08); }
   .bn{ flex:1; border:none; background:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; color:var(--text2); font-size:10px; font-weight:600; }
   .bn .bic{ font-size:20px; line-height:1; }
   .bn.active{ color:var(--accent); }
-
   .tab-panel{ display:none; }
   .tab-panel.active{ display:block; animation:fadeUp .2s ease; }
   @keyframes fadeUp{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-
   .sync-cta{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .sync-btn{ border:1px solid var(--line); background:var(--card); border-radius:16px; padding:16px 10px; text-align:center; cursor:pointer; }
   .sync-btn:active{ transform:scale(.97); background:var(--soft); }
@@ -124,6 +111,7 @@
   .btn-sec{ width:100%; padding:11px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; }
   .qr-holder{ text-align:center; padding:14px; background:var(--soft); border:2px dashed var(--accent); border-radius:14px; }
   #qrcanvas{ max-width:100%; background:#fff; border-radius:10px; margin:10px auto; display:block; }
+  .qr-refresh{ display:flex; gap:8px; justify-content:center; margin-top:6px; align-items:center; flex-wrap:wrap; }
   #scannerWrap{ position:relative; overflow:hidden; border-radius:14px; border:2px solid var(--accent); background:#000; margin-top:12px; }
   #scanner{ width:100%; display:block; max-height:340px; object-fit:contain; }
   .scan-line{ position:absolute; left:0; right:0; height:2px; background:var(--accent); animation:scan 2s linear infinite; }
@@ -233,9 +221,9 @@
   <div class="tab-panel" id="p-sync">
     <div class="card">
       <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Один показывает QR, второй сканирует камерой.</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Один показывает QR, второй сканирует камерой. QR обновляется автоматически при изменении трат.</div>
       <div class="sync-cta">
-        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">показать QR</div></div>
+        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой QR</div><div class="ss">показать QR</div></div>
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
         <div class="sync-btn" data-act="manual" style="grid-column:1/-1"><div class="si">⌨️</div><div class="st2">Ввести код вручную</div><div class="ss">если камера не работает</div></div>
       </div>
@@ -257,10 +245,11 @@
 <script src="jsqr.min.js"></script>
 
 <script>
-var K='uzat_budget_v11';
+var K='uzat_budget_v12';
 var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},pend:{A:0,B:0}};
+var qrVisible=false, lastQRPayload='';
 var s=null;
 try{ s=JSON.parse(localStorage.getItem(K)); }catch(e){ s=null; }
 if(!s || typeof s!=='object' || !s.cats){
@@ -297,8 +286,7 @@ var THEMES={
 };
 function applyT(t){
   var th=THEMES[t]||THEMES.pink;
-  var app=document.getElementById('app');
-  for(var k in th){ app.style.setProperty('--'+k, th[k]); }
+  for(var k in th){ document.getElementById('app').style.setProperty('--'+k, th[k]); }
   document.body.style.background=th.bg;
   document.querySelectorAll('#themeRow button').forEach(function(b){ b.classList.toggle('active',b.dataset.t===t); });
   var pink=(t==='pink');
@@ -351,34 +339,97 @@ function addExp(){
 function editExp(i){ var e=s.exp[i]; var v=prompt('Новая сумма для «'+e.cat+((e.sub)?' / '+e.sub:'')+'» ('+e.day+' числа), ₽:',e.amt); if(v===null)return; var nv=parseFloat(v); if(isNaN(nv)||nv<0){alert('Введи число');return;} e.amt=nv; save(); render(); }
 function delExp(i){ s.exp.splice(i,1); save(); render(); }
 
-function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; var area=document.getElementById('qrArea'); area.style.display='block';
-  var payload=JSON.stringify({app:'uz',exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})});
-  if(typeof qrcode!=='undefined'){ var qr=qrcode(0,'M'); qr.addData(payload); qr.make(); var n=qr.getModuleCount(),cell=5; var cv=document.createElement('canvas'); cv.id='qrcanvas'; cv.width=n*cell; cv.height=n*cell; var ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,n*cell,n*cell); ctx.fillStyle='#4A2440'; for(var r=0;r<n;r++){ for(var c=0;c<n;c++){ if(qr.isDark(r,c)){ ctx.fillRect(c*cell,r*cell,cell,cell); } } }
-    area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">Отсканируй меня</div></div>'; area.querySelector('.qr-holder').appendChild(cv); area.innerHTML+='<div style="font-size:11px;color:var(--text2);text-align:center;margin-top:6px">Партнёр жмёт «Сканировать» и наводит камеру</div>';
-  } else { var code=btoa(unescape(encodeURIComponent(payload))); area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — используй код</div><textarea readonly class="manual">'+code+'</textarea><button class="btn-main" data-act="copyCode">Скопировать код</button></div>'; bindCopy(code); } }
-function bindCopy(code){ document.querySelectorAll('[data-act="copyCode"]').forEach(function(b){ b.addEventListener('click',function(){ copyCode(code); }); }); }
+/* ===== ДИНАМИЧЕСКАЯ ПОДГРУЗКА БИБЛИОТЕК (с запасными источниками) ===== */
+function loadScript(src, cb){
+  var sc=document.createElement('script'); sc.src=src;
+  sc.onload=function(){ cb(true); }; sc.onerror=function(){ cb(false); };
+  document.head.appendChild(sc);
+}
+var QR_SRCS=['qrcode.min.js','https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js','https://unpkg.com/qrcode-generator@1.4.4/qrcode.min.js'];
+var JSQR_SRCS=['jsqr.min.js','https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js','https://unpkg.com/jsqr@1.4.0/dist/jsQR.js'];
+function ensureQR(cb){
+  if(typeof qrcode!=='undefined'){ cb(true); return; }
+  var i=0;
+  function tryNext(){ if(i>=QR_SRCS.length){ cb(false); return; } loadScript(QR_SRCS[i++], function(ok){ if(ok && typeof qrcode!=='undefined'){ cb(true); } else { tryNext(); } }); }
+  tryNext();
+}
+function ensureJSQR(cb){
+  if(typeof jsQR!=='undefined'){ cb(true); return; }
+  var i=0;
+  function tryNext(){ if(i>=JSQR_SRCS.length){ cb(false); return; } loadScript(JSQR_SRCS[i++], function(ok){ if(ok && typeof jsQR!=='undefined'){ cb(true); } else { tryNext(); } }); }
+  tryNext();
+}
+
+/* ===== QR ПОКАЗ (с автообновлением) ===== */
+function buildQRPayload(){ return JSON.stringify({app:'uz',v:2,exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};})}); }
+function drawQR(payload){
+  var area=document.getElementById('qrArea');
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">Отсканируй меня</div></div>';
+  var holder=area.querySelector('.qr-holder');
+  var qr=qrcode(0,'M'); qr.addData(payload); qr.make();
+  var n=qr.getModuleCount(), cell=5;
+  var cv=document.createElement('canvas'); cv.id='qrcanvas'; cv.width=n*cell; cv.height=n*cell; cv.style.width='240px'; cv.style.height='240px';
+  var ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,n*cell,n*cell); ctx.fillStyle='#4A2440';
+  for(var r=0;r<n;r++){ for(var c=0;c<n;c++){ if(qr.isDark(r,c)){ ctx.fillRect(c*cell,r*cell,cell,cell); } } }
+  holder.appendChild(cv);
+  area.innerHTML+='<div style="font-size:11px;color:var(--text2);text-align:center;margin-top:6px">QR обновляется автоматически при изменении трат</div><div class="qr-refresh"><button class="btn-sec" data-act="refreshQR">↻ Обновить QR</button></div>';
+  bindAction('refreshQR', function(){ renderQR_now(); });
+}
+function renderQR_now(){
+  if(!qrVisible) return;
+  var p=buildQRPayload();
+  if(p===lastQRPayload && document.getElementById('qrcanvas')) return; // уже актуальный
+  lastQRPayload=p;
+  if(typeof qrcode==='undefined'){ ensureQR(function(ok){ if(ok){ drawQR(p); } else { fallbackText(p); } }); }
+  else { drawQR(p); }
+}
+function fallbackText(payload){
+  var area=document.getElementById('qrArea');
+  var code=btoa(unescape(encodeURIComponent(payload)));
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:var(--text)">QR-библиотека не загрузилась — используй код</div><textarea readonly class="manual">'+code+'</textarea><button class="btn-main" data-refresh="1">↻ Скопировать код</button></div>';
+  var b=area.querySelector('[data-refresh="1"]'); b.onclick=function(){ copyCode(code); };
+}
+function showQr(){
+  stopScan(); document.getElementById('scanArea').style.display='none';
+  qrVisible=true; document.getElementById('qrArea').style.display='block';
+  document.getElementById('qrArea').innerHTML='<div class="empty">Загрузка QR…</div>';
+  ensureQR(function(ok){
+    if(ok){ renderQR_now(); } else { fallbackText(buildQRPayload()); }
+  });
+}
+function bindAction(kind, fn){ document.querySelectorAll('[data-act="'+kind+'"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); fn(); }); }); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
 
+/* ===== КАМЕРА (с автообновлением распознавателя) ===== */
 var scanTimer=null, scanStream=null;
-function startScan(){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block';
-  if(typeof jsQR==='undefined'){ showManual('Библиотека сканера не загрузилась. Введи код партнёра вручную:'); return; }
-  area.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-act="stopScan">Отмена</button><button class="btn-sec" data-act="manual">Ввести вручную</button>';
-  document.querySelectorAll('[data-act="stopScan"]').forEach(function(b){ b.addEventListener('click',function(e){e.preventDefault();stopScan();}); });
-  document.querySelectorAll('[data-act="manual"]').forEach(function(b){ b.addEventListener('click',function(e){e.preventDefault();stopScan();showManual();}); });
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-act="manual">Ввести вручную</button>'; return; }
-  var video=document.getElementById('scanner');
-  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },250); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-act="manual">Ввести вручную</button>'; }); }
+function startScan(){
+  document.getElementById('qrArea').style.display='none'; qrVisible=false;
+  var area=document.getElementById('scanArea'); area.style.display='block';
+  area.innerHTML='<div class="empty">Подготовка камеры…</div>';
+  ensureJSQR(function(hasJsqr){
+    if(!hasJsqr){ area.innerHTML='<div class="empty">Библиотека сканера не загрузилась (нет сети).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var b=area.querySelector('[data-manual="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var b2=area.querySelector('[data-manual="1"]'); if(b2)b2.onclick=function(){ showManual(); }; return; }
+    area.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-stop="1">Отмена</button><button class="btn-sec" data-manual="1">Ввести вручную</button>';
+    var sb=area.querySelector('[data-stop="1"]'); if(sb)sb.onclick=function(){ stopScan(); };
+    var mb=area.querySelector('[data-manual="1"]'); if(mb)mb.onclick=function(){ stopScan(); showManual(); };
+    var video=document.getElementById('scanner');
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },220); }).catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-manual="1">Ввести вручную</button>'; var m2=area.querySelector('[data-manual="1"]'); if(m2)m2.onclick=function(){ showManual(); }; });
+  });
+}
 function tickScan(){ var video=document.getElementById('scanner'); try{ if(!video||video.videoWidth===0)return; var cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight; var ctx=cv.getContext('2d'); ctx.drawImage(video,0,0,cv.width,cv.height); var img=ctx.getImageData(0,0,cv.width,cv.height); var code=jsQR(img.data,img.width,img.height); if(code&&code.data){ stopScan(); mergePayload(code.data); } }catch(e){} }
 function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование завершено.</div>'; } }
 function showManual(msg){ document.getElementById('qrArea').style.display='none'; var area=document.getElementById('scanArea'); area.style.display='block';
-  area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-act="doManual">Объединить</button>';
-  document.querySelectorAll('[data-act="doManual"]').forEach(function(b){ b.addEventListener('click',function(e){e.preventDefault();var v=document.getElementById('manualCode').value; if(v)mergePayload(v.trim());}); }); }
+  area.innerHTML=(msg?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-merge="1">Объединить</button>';
+  var b=area.querySelector('[data-merge="1"]'); b.onclick=function(){ var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }; }
 function mergePayload(str){ var area=document.getElementById('scanArea'); area.style.display='block'; var data=null; try{ data=JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){}
-  if(!data||data.app!=='uz'||!data.exp){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-act="manual">Ввести ещё раз</button>'; return; }
+  if(!data||data.app!=='uz'||!data.exp){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-retry="1">Ещё раз</button>'; var b=area.querySelector('[data-retry="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
   var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
   data.exp.forEach(function(e){ if(e.id&&!myIds[e.id]){ s.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
-  save(); render(); area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>'; }
+  save(); render(); qrVisible=false;
+  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
+}
 
+/* ===== render ===== */
 function hexA(hex,a){ var h=hex.replace('#',''); if(h.length===3)h=h.split('').map(function(x){return x+x;}).join(''); var num=parseInt(h,16); var r=(num>>16)&255,g=(num>>8)&255,b=num&255; return 'rgba('+r+','+g+','+b+','+a+')'; }
 function render(){
   document.getElementById('hBalance').textContent=fmt(income()-spent());
@@ -406,7 +457,6 @@ function render(){
     var be=document.createElement('button'); be.className='btn-edit'; be.innerHTML='✏️'; be.title='Изменить план'; be.onclick=function(){ var v=prompt('План для «'+c.n+'» (₽):',c.p>0?c.p:''); if(v!==null){ var nv=parseFloat(v); if(!isNaN(nv)&&nv>=0){c.p=nv; save(); render();} } }; r.appendChild(be);
     if(c.n!==MAND&&c.n!==SPEC){ var d=document.createElement('button'); d.className='btn-danger'; d.innerHTML='×'; d.title='Удалить'; d.onclick=function(){ delCat(c.n); }; r.appendChild(d); }
     block.appendChild(r);
-    /* ВАЖНО: для категорий с подкатегориями кнопка «+ Добавить» видна ВСЕГДА (даже если подкатегорий ещё нет) */
     if(hasSubs){
       if(c.subs.length>0){
         var subList=document.createElement('div'); subList.className='sub-list';
@@ -446,6 +496,9 @@ function render(){
   if(oa>0){ sum.style.background='var(--soft)'; sum.style.color='var(--warn)'; sum.textContent='⚠️ Перерасход: '+fmt(oa); }
   else if(planT===0){ sum.style.background='var(--soft)'; sum.style.color='var(--text2)'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
   else { sum.style.background='var(--soft)'; sum.style.color='var(--ok)'; sum.textContent='✅ В рамках бюджета. Экономия: '+fmt(ua); }
+
+  // автообновление QR при изменении данных (если панель QR открыта)
+  if(qrVisible){ renderQR_now(); }
 }
 function renderSubSelect(){
   var cat=document.getElementById('tCat').value;
