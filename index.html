@@ -30,13 +30,13 @@
   .mob-head{ position:relative; z-index:20; background:var(--grad); color:#fff; padding:18px 18px 12px; border-radius:0 0 24px 24px; box-shadow:0 4px 20px rgba(0,0,0,.18); }
   .mob-head .hello{ font-size:13px; opacity:.92; }
   .mob-head .balance{ font-size:32px; font-weight:700; margin:4px 0 2px; letter-spacing:.5px; }
-  .month-row{ display:flex; justify-content:space-between; align-items:center; margin-top:2px; }
+  .month-row{ display:flex; justify-content:space-between; align-items:center; margin-top:2px; gap:8px; }
   .month-pill{ background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.4); color:#fff; font-size:12px; font-weight:600; padding:5px 12px; border-radius:999px; cursor:pointer; }
   .month-pill:active{ background:rgba(255,255,255,.35); }
   .theme-row{ display:flex; gap:6px; }
   .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; cursor:pointer; line-height:1; }
   .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
-  .month-pop{ position:absolute; top:120px; left:14px; right:14px; z-index:60; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.2); }
+  .month-pop{ position:absolute; top:120px; left:10px; right:10px; z-index:60; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.2); }
   .month-pop .pop-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
   .month-pop .pop-head button{ background:var(--soft); border:1px solid var(--line); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:10px; cursor:pointer; }
   .month-pop .pop-head span{ font-size:14px; font-weight:700; color:var(--text); }
@@ -44,7 +44,7 @@
   .month-pop .pop-grid div{ text-align:center; padding:10px 4px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; color:var(--text); border:1px solid transparent; }
   .month-pop .pop-grid div:hover{ background:var(--soft); }
   .month-pop .pop-grid div.active{ background:var(--accent); color:#fff; }
-  .mob-head .carry{ font-size:11px; opacity:.85; margin-top:2px; }
+  .mob-head .carry{ font-size:11px; opacity:.9; }
   .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 14px 0; }
   .qa{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.06); }
   .qa:active{ transform:scale(.97); }
@@ -112,12 +112,12 @@
   .tab-panel{ display:none; }
   .tab-panel.active{ display:block; animation:fadeUp .2s ease; }
   @keyframes fadeUp{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-  .sync-cta{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .sync-btn{ border:1px solid var(--line); background:var(--card); border-radius:16px; padding:16px 10px; text-align:center; cursor:pointer; }
+  .sync-cta{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .sync-btn{ border:1px solid var(--line); background:var(--card); border-radius:14px; padding:14px 8px; text-align:center; cursor:pointer; }
   .sync-btn:active{ transform:scale(.97); background:var(--soft); }
-  .sync-btn .si{ font-size:28px; }
-  .sync-btn .st2{ font-size:13px; font-weight:600; color:var(--text); margin-top:4px; }
-  .sync-btn .ss{ font-size:11px; color:var(--text2); margin-top:2px; }
+  .sync-btn .si{ font-size:26px; }
+  .sync-btn .st2{ font-size:12px; font-weight:600; color:var(--text); margin-top:4px; }
+  .sync-btn .ss{ font-size:10px; color:var(--text2); margin-top:2px; }
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .btn-sec{ width:100%; padding:11px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; }
   .qr-holder{ text-align:center; padding:14px; background:var(--soft); border:2px dashed var(--accent); border-radius:14px; }
@@ -239,11 +239,11 @@
   <div class="tab-panel" id="p-sync">
     <div class="card">
       <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">QR обновляется автоматически. Один показывает QR, второй сканирует камерой или вставляет код.</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">QR обновляется автоматически.</div>
       <div class="sync-cta">
-        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой QR</div><div class="ss">траты за месяц</div></div>
+        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой QR</div><div class="ss">траты</div></div>
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
-        <div class="sync-btn" data-act="sharePlans"><div class="si">📋</div><div class="st2">Поделиться планами</div><div class="ss">категории и планы</div></div>
+        <div class="sync-btn" data-act="sharePlans"><div class="si">📋</div><div class="st2">Поделиться планами</div><div class="ss">категории/планы</div></div>
         <div class="sync-btn" data-act="manual"><div class="si">⌨️</div><div class="st2">Ввести код</div><div class="ss">вручную</div></div>
         <div class="sync-btn" data-act="export"><div class="si">💾</div><div class="st2">Сохранить копию</div><div class="ss">скачать файл</div></div>
         <div class="sync-btn" data-act="import"><div class="si">📂</div><div class="st2">Восстановить</div><div class="ss">из файла</div></div>
@@ -264,17 +264,16 @@
 </div>
 
 <script>
-/* ============================================================
-   МАСТЕР-КЛЮЧ + МИГРАЦИЯ: данные НЕ пропадают при обновлении
-   ============================================================ */
+/* ======== ХРАНИЛИЩЕ + МИГРАЦИЯ ======== */
 var MAIN_KEY='uzat_budget_main';
-var OLD_KEYS=['uzat_budget_v14','uzat_budget_v13','uzat_budget_v12','uzat_budget_v11','uzat_budget_v10','uzat_budget_v9','uzat_budget_v8','uzat_budget_v7','uzat_budget_v6','uzat_budget_v5'];
+var OLD_KEYS=['uzat_budget_v14','uzat_budget_v13','uzat_budget_v12','uzat_budget_v11','uzat_budget_v10','uzat_budget_v9','uzat_budget_v8','uzat_budget_v7','uzat_budget_v6','uzat_budget_v5','uzat_budget_v4'];
 var SHORT=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},pend:{A:0,B:0},popYear:new Date().getFullYear()};
 var qrVisible=false, lastQR='', qrMode='exp';
 
+function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function defState(){ return {theme:'pink',cats:[
   {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
   {n:'Еда',p:0,c:'#81C784',subs:[]},
@@ -284,39 +283,38 @@ function defState(){ return {theme:'pink',cats:[
 ],months:{},curMonth:cmk()}; }
 function normalize(st){
   if(!st || typeof st!=='object' || !(st.cats instanceof Array)) return null;
-  if(!(st.months && typeof st.months==='object')){ // старый формат (v6-v14 без months)
-    var om=st.curMonth||cmk(); st.months={}; st.months[om]={incA:st.incA||0,incB:st.incB||0,exp:(st.exp||[]).slice(),startBalance:st.startBalance||0};
-    delete st.incA; delete st.incB; delete st.exp; delete st.startBalance;
-  }
+  if(!(st.months && typeof st.months==='object')){ var om=st.curMonth||cmk(); st.months={}; st.months[om]={incA:st.incA||0,incB:st.incB||0,exp:(st.exp||[]).slice(),startBalance:st.startBalance||0}; delete st.incA; delete st.incB; delete st.exp; delete st.startBalance; }
   if(!st.curMonth || !/^\d{4}-\d{1,2}$/.test(String(st.curMonth))) st.curMonth=cmk();
   st.cats.forEach(function(c){ if(!c.subs)c.subs=[]; });
   Object.keys(st.months).forEach(function(k){ var m=st.months[k]; if(!m.exp)m.exp=[]; if(m.incA===undefined)m.incA=0; if(m.incB===undefined)m.incB=0; if(m.startBalance===undefined)m.startBalance=0; });
   if(st.theme!=='pink'&&st.theme!=='moon') st.theme='pink';
   return st;
 }
-function load(){
-  var dat=null;
-  try{ dat=JSON.parse(localStorage.getItem(MAIN_KEY)); }catch(e){ dat=null; }
-  if(!dat){ // ищем в старых ключах и переносим
-    for(var i=0;i<OLD_KEYS.length;i++){ try{ var t=JSON.parse(localStorage.getItem(OLD_KEYS[i])); if(t){ dat=t; localStorage.removeItem(OLD_KEYS[i]); break; } }catch(e){} }
-  }
-  if(!dat){ dat=defState(); }
-  dat=normalize(dat); if(!dat){ dat=defState(); }
-  return dat;
-}
+function load(){ var dat=null; try{ dat=JSON.parse(localStorage.getItem(MAIN_KEY)); }catch(e){ dat=null; }
+  if(!dat){ for(var i=0;i<OLD_KEYS.length;i++){ try{ var t=JSON.parse(localStorage.getItem(OLD_KEYS[i])); if(t){ dat=t; localStorage.removeItem(OLD_KEYS[i]); break; } }catch(e){} } }
+  if(!dat) dat=defState();
+  dat=normalize(dat); if(!dat) dat=defState();
+  return dat; }
 var s=load();
 function save(){ try{ localStorage.setItem(MAIN_KEY,JSON.stringify(s)); }catch(e){} }
 
-function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function getMonth(key){ if(!s.months[key]) s.months[key]={incA:0,incB:0,exp:[],startBalance:0}; return s.months[key]; }
 function mo(){ return getMonth(s.curMonth); }
-function prevK(key){ var p=key.split('-'), y=+p[0], m=+p[1]-1; if(m===0){y--;m=12;} return y+'-'+m; }
+function prevK(key){ var p=key.split('-'), y=+p[0], m=+p[1]-1; if(m===0){ y--; m=12; } return y+'-'+m; }
 function sumExp(arr){ return arr.reduce(function(a,e){return a+(e.amt||0);},0); }
-function monthEnd(key){ var m=getMonth(key); return (m.startBalance||0)+(m.incA||0)+(m.incB||0)-sumExp(m.exp||[]); }
-function startBalance(){ return monthEnd(prevK(s.curMonth)); }
+
+/* ======== ГЛАВНОЕ ИСПРАВЛЕНИЕ: сквозная цепочка переноса ======== */
+function balanceOf(key, depth){
+  depth = depth || 0;
+  if(depth > 60) return 0; // защита от глубокой рекурсии
+  var m = getMonth(key);
+  var base = (depth===0) ? (m.startBalance||0) : 0;
+  return balanceOf(prevK(key), depth+1) + base + (m.incA||0) + (m.incB||0) - sumExp(m.exp||[]);
+}
+function startBalance(){ return balanceOf(prevK(s.curMonth)); }
 function income(){ var m=mo(); return (m.incA||0)+(m.incB||0); }
 function spent(){ return sumExp(mo().exp); }
-function totalBal(){ return startBalance()+income()-spent(); }
+function totalBal(){ return balanceOf(s.curMonth); }
 function spentCat(n){ return mo().exp.filter(function(e){return e.cat===n;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 function spentSub(cn,sn){ return mo().exp.filter(function(e){return e.cat===cn&&e.sub===sn;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 function canSubs(n){ return SUB_CATS.indexOf(n)>-1; }
@@ -388,11 +386,7 @@ function importBackup(){ document.getElementById('restoreFile').click(); }
 document.getElementById('restoreFile').addEventListener('change', function(ev){
   var f=ev.target.files[0]; if(!f) return;
   var rd=new FileReader();
-  rd.onload=function(){
-    try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); alert('Данные восстановлены ✅'); }
-    catch(e){ alert('Ошибка чтения файла'); }
-    ev.target.value='';
-  };
+  rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; };
   rd.readAsText(f);
 });
 
@@ -441,7 +435,6 @@ function importPlan(data){ var area=document.getElementById('scanArea'); var add
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Планы импортированы!</div><div style="font-size:13px;color:var(--text2)">Новых категорий: <b style="color:var(--text)">'+added+'</b>, обновлено: <b style="color:var(--text)">'+upd+'</b></div><br><button class="btn-main" data-go="budget">К плану</button></div>'; }
 function importExp(data){ var area=document.getElementById('scanArea'); var myIds={}; mo().exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
   (data.exp||[]).forEach(function(e){ if(e.id&&!myIds[e.id]){ mo().exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
-  // если QR принёс доход — тоже сохраняем (только если не пусто)
   if(data.incA!==undefined && data.incB!==undefined){ var m=mo(); if(!m.incA)m.incA=data.incA; if(!m.incB)m.incB=data.incB; }
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>'; }
@@ -452,11 +445,10 @@ function render(){
   var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1];
   var pill=document.getElementById('hMonth'); pill.textContent=SHORT[cm-1]+' '+cy+' ▾';
   var sb=startBalance();
-  document.getElementById('hCarry').textContent=sb!==0?('перенос: '+fm(sb)):'перенос: 0 ₽';
+  document.getElementById('hCarry').textContent='перенос: '+fm(sb);
   document.getElementById('hBalance').textContent=fm(totalBal());
-  var inc=income(), sp=spent();
-  document.getElementById('sIncome').textContent=fm(inc);
-  document.getElementById('sSpent').textContent=fm(sp);
+  document.getElementById('sIncome').textContent=fm(income());
+  document.getElementById('sSpent').textContent=fm(spent());
   var l=totalBal(), el=document.getElementById('sLeft'); el.textContent=fm(l); el.style.color=l<0?'var(--warn)':'var(--text)';
   document.getElementById('iA').textContent=fm((mo().incA||0)+(ui.pend.A||0));
   document.getElementById('iB').textContent=fm((mo().incB||0)+(ui.pend.B||0));
