@@ -36,14 +36,14 @@
   .card{ background:#fff; border:1px solid #F3C6E0; border-radius:18px; padding:16px; margin:12px 14px 0; box-shadow:0 2px 10px rgba(233,30,140,.06); }
   .card h3{ font-size:13px; font-weight:700; color:#4A2440; margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .card h3 .tag{ margin-left:auto; font-size:10px; color:#9B6B8B; font-weight:500; }
-  .row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #F6E3EE; }
+  .row{ display:flex; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid #F6E3EE; }
   .row:last-child{ border:none; }
   .dot{ width:11px; height:11px; border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(233,30,140,.08); }
   .row .name{ flex:1 1 auto; min-width:0; font-size:14px; color:#4A2440; font-weight:500; }
   .row .name small{ display:block; font-size:10px; color:#9B6B8B; font-weight:400; }
   .row .bar-wrap{ flex:1.2 1 0; min-width:0; height:8px; background:#FBEAF5; border-radius:999px; overflow:hidden; }
   .row .bar{ height:100%; border-radius:999px; transition:width .4s; }
-  .row .amt{ flex:0 0 auto; font-size:13px; font-weight:700; color:#4A2440; text-align:right; }
+  .row .amt{ flex:0 0 auto; font-size:13px; font-weight:700; color:#4A2440; text-align:right; min-width:90px; }
   .row .amt small{ font-size:10px; color:#9B6B8B; font-weight:400; display:block; }
   .status{ flex:none; font-size:12px; white-space:nowrap; }
   .add-form{ display:flex; gap:8px; padding-top:12px; align-items:center; }
@@ -52,11 +52,16 @@
   .add-form button{ cursor:pointer; padding:10px 14px; border-radius:12px; background:#E91E8C; color:#fff; border:none; font-weight:600; font-size:13px; flex:none; white-space:nowrap; }
   .add-form button:active{ background:#D81B7F; }
   .income-cols{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .income-block{ background:#FDF0F8; border:1px solid #F3C6E0; border-radius:14px; padding:12px; }
+  .income-block{ background:#FDF0F8; border:1px solid #F3C6E0; border-radius:14px; padding:12px; position:relative; }
   .income-block .lbl{ font-size:11px; color:#9B6B8B; }
-  .income-block .sum{ font-size:22px; font-weight:700; color:#E91E8C; margin:4px 0 6px; }
-  @media (max-width:380px){ .income-cols{ grid-template-columns:1fr; } .add-form{ flex-wrap:nowrap; } }
-  .btn-danger{ background:none; border:none; color:#D9A8C4; font-size:16px; cursor:pointer; padding:0 4px; flex:none; }
+  .income-block .sum{ display:flex; align-items:center; gap:6px; font-size:22px; font-weight:700; color:#E91E8C; margin:4px 0 6px; }
+  .income-block .sum .edit{ cursor:pointer; font-size:14px; opacity:.5; }
+  .income-block .sum .edit:active{ opacity:1; }
+  @media (max-width:380px){ .income-cols{ grid-template-columns:1fr; } }
+  .btn-edit{ background:none; border:none; color:#D9A8C4; font-size:14px; cursor:pointer; padding:0 3px; flex:none; }
+  .btn-edit:active{ color:#E91E8C; }
+  .btn-danger{ background:none; border:none; color:#D9A8C4; font-size:16px; cursor:pointer; padding:0 3px; flex:none; }
+  .btn-danger:active{ color:#D6336C; }
   .day-list{ max-height:42vh; overflow-y:auto; }
   .day-item{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid #F6E3EE; font-size:13px; color:#4A2440; }
   .day-item .d{ width:30px; color:#9B6B8B; font-weight:500; flex:none; }
@@ -79,7 +84,7 @@
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:#E91E8C; color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .btn-sec{ width:100%; padding:12px; border:1px solid #F3C6E0; background:#fff; color:#4A2440; border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; }
   .qr-holder{ text-align:center; padding:14px; background:#FDF0F8; border:2px dashed #E91E8C; border-radius:14px; }
-  #qrCodeCanvas{ max-width:100%; background:#fff; border-radius:10px; margin:10px auto; display:block; }
+  #qrcanvas{ max-width:100%; background:#fff; border-radius:10px; margin:10px auto; display:block; }
   .check-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
   .check-row label{ display:flex; align-items:center; gap:6px; font-size:13px; color:#4A2440; background:#FDF0F8; padding:8px 14px; border-radius:999px; border:1px solid #F3C6E0; cursor:pointer; }
   .check-row input{ accent-color:#E91E8C; }
@@ -87,6 +92,7 @@
   #scanner{ width:100%; display:block; max-height:340px; object-fit:contain; }
   .scan-line{ position:absolute; left:0; right:0; height:2px; background:#E91E8C; animation:scan 2s linear infinite; }
   @keyframes scan{ 0%{ top:10%; } 100%{ top:90%; } }
+  textarea.manual{ width:100%; height:80px; font-family:monospace; font-size:9px; border:1px solid #F3C6E0; border-radius:8px; padding:8px; background:#fff; color:#4A2440; margin:8px 0; }
 </style>
 </head>
 <body>
@@ -122,23 +128,17 @@
 
   <div class="tab-panel active" id="p-income">
     <div class="card">
-      <h3>💳 Доход за месяц <span class="tag">введите суммы</span></h3>
+      <h3>💳 Доход за месяц <span class="tag">нажми ✏️, чтобы менять сумму</span></h3>
       <div class="income-cols">
         <div class="income-block">
           <div class="lbl">Основная · 5-е</div>
-          <div class="sum" id="iA">0 ₽</div>
-          <div class="add-form">
-            <input type="number" id="inA" placeholder="Сумма ₽">
-            <button data-act="incA">OK</button>
-          </div>
+          <div class="sum"><span id="iA">0 ₽</span><span class="edit" data-edit="incA">✏️</span></div>
+          <div class="add-form"><input type="number" id="inA" placeholder="Сумма ₽"><button data-act="incA">OK</button></div>
         </div>
         <div class="income-block">
           <div class="lbl">Аванс · 20-е</div>
-          <div class="sum" id="iB">0 ₽</div>
-          <div class="add-form">
-            <input type="number" id="inB" placeholder="Сумма ₽">
-            <button data-act="incB">OK</button>
-          </div>
+          <div class="sum"><span id="iB">0 ₽</span><span class="edit" data-edit="incB">✏️</span></div>
+          <div class="add-form"><input type="number" id="inB" placeholder="Сумма ₽"><button data-act="incB">OK</button></div>
         </div>
       </div>
     </div>
@@ -146,7 +146,7 @@
 
   <div class="tab-panel" id="p-budget">
     <div class="card">
-      <h3>📋 Категории расходов <span class="tag">нажми, чтобы задать план</span></h3>
+      <h3>📋 Категории расходов <span class="tag">нажми название, чтобы менять план</span></h3>
       <div id="bRows"></div>
       <div class="add-form">
         <input type="text" id="nCat" placeholder="Категория">
@@ -181,6 +181,7 @@
       <div class="sync-cta">
         <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">показать QR</div></div>
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
+        <div class="sync-btn" data-act="manual" style="grid-column:1/-1"><div class="si">⌨️</div><div class="st2">Ввести код вручную</div><div class="ss">если камера не работает</div></div>
       </div>
       <div id="qrArea" style="display:none;margin-top:12px"></div>
       <div id="scanArea" style="display:none;margin-top:12px"></div>
@@ -204,8 +205,12 @@
   </div>
 </div>
 
+<!-- локальные библиотеки: лежат рядом с index.html -->
+<script src="qrcode.min.js"></script>
+<script src="jsqr.min.js"></script>
+
 <script>
-var K='uzat_budget_v6', MAND='Обязательные', SPEC='Особая статья';
+var K='uzat_budget_v7', MAND='Обязательные', SPEC='Особая статья';
 var s=null;
 try{ s=JSON.parse(localStorage.getItem(K)); }catch(e){ s=null; }
 if(!s || typeof s!=='object' || !s.cats){ s={month:cmk(),incA:0,incB:0,cats:[
@@ -222,67 +227,100 @@ function spent(){ return s.exp.reduce(function(a,e){return a+(e.amt||0);},0); }
 function spentCat(n){ return s.exp.filter(function(e){return e.cat===n;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 document.getElementById('hMonth').textContent=mn()+' '+new Date().getFullYear();
 
-/* темы */
 function applyT(t){ document.querySelectorAll('#themeRow button').forEach(function(b){b.classList.toggle('active',b.dataset.t===t);});
   var g={pink:'linear-gradient(135deg,#E91E8C,#F48FB1)',dark:'linear-gradient(90deg,#7C5CFF,#22E0FF)',police:'linear-gradient(90deg,#1C2A4A,#2A3D6B)'};
   document.querySelector('.mob-head').style.background=g[t]; }
 document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 applyT(s.theme||'pink');
 
-/* навигация — делегирование кликов (надёжно) */
 function nav(n){ document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');}); var el=document.getElementById('p-'+n); if(el) el.classList.add('active');
-  document.querySelectorAll('.bn').forEach(function(b){ b.classList.toggle('active', b.dataset.go===n); }); render(); }
+  document.querySelectorAll('.bn').forEach(function(b){ b.classList.toggle('active',b.dataset.go===n); }); render(); }
 document.getElementById('bottomNav').addEventListener('click', function(e){ var b=e.target.closest('.bn'); if(b) nav(b.dataset.go); });
 document.getElementById('quickActions').addEventListener('click', function(e){ var b=e.target.closest('.qa'); if(b) nav(b.dataset.go); });
 
-/* действия (кнопки) — делегирование */
 function act(kind){
   if(kind==='incA'||kind==='incB'){ var el=document.getElementById(kind==='incA'?'inA':'inB'); var v=parseFloat(el.value); if(!isNaN(v)&&v>=0){ if(kind==='incA')s.incA=v; else s.incB=v; el.value=''; save(); render(); } return; }
   if(kind==='addCat'){ addCat(); return; }
   if(kind==='addExp'){ addExp(); return; }
   if(kind==='showQr'){ showQr(); return; }
   if(kind==='scan'){ startScan(); return; }
+  if(kind==='manual'){ showManual(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
+
+/* ===== РЕДАКТИРОВАНИЕ (ручка ✏️ возле дохода) ===== */
+document.querySelectorAll('.edit').forEach(function(e2){ e2.addEventListener('click', function(){ editIncome(e2.dataset.edit); }); });
+function editIncome(k){
+  var cur = k==='incA' ? (s.incA||0) : (s.incB||0);
+  var v=prompt('Новая сумма (₽):', cur);
+  if(v===null) return;
+  var nv=parseFloat(v);
+  if(isNaN(nv)||nv<0){ alert('Введи число'); return; }
+  if(k==='incA') s.incA=nv; else s.incB=nv;
+  save(); render();
+}
+
+/* ===== РЕДАКТИРОВАНИЕ траты в дневнике (✏️) ===== */
+function editExp(i){
+  var e=s.exp[i];
+  var v=prompt('Новая сумма для «'+e.cat+'» ('+e.day+' числа), ₽:', e.amt);
+  if(v===null) return;
+  var nv=parseFloat(v);
+  if(isNaN(nv)||nv<0){ alert('Введи число'); return; }
+  e.amt=nv; save(); render();
+}
+function delExp(i){ s.exp.splice(i,1); save(); render(); }
 
 function addCat(){ var n=document.getElementById('nCat').value.trim(),t=document.getElementById('nType').value,a=parseFloat(document.getElementById('nAmt').value); if(!n)return; if(isNaN(a)||a<0)a=0; var cl=['#E777A8','#EC7FB4','#F4A6C9','#F1B8D3','#D85A8F']; s.cats.push({n:n,p:a,c:cl[s.cats.length%cl.length],t:t}); document.getElementById('nCat').value=''; document.getElementById('nAmt').value=''; save(); render(); }
 function updPlan(n,v){ var c=s.cats.find(function(x){return x.n===n;}); if(c)c.p=parseFloat(v)||0; save(); render(); }
 function delCat(n){ if(n===MAND||n===SPEC)return; s.cats=s.cats.filter(function(x){return x.n!==n;}); s.exp=s.exp.filter(function(x){return x.cat!==n;}); save(); render(); }
 function makeId(){ return 't'+Date.now()+Math.random().toString(36).slice(2,7); }
 function addExp(){ var d=parseInt(document.getElementById('tDay').value),c=document.getElementById('tCat').value,a=parseFloat(document.getElementById('tAmt').value); if(!d||d<1||d>31||isNaN(a)||a<=0)return; if(document.getElementById('tMand').checked)c=MAND; else if(document.getElementById('tSpec').checked)c=SPEC; s.exp.push({id:makeId(),day:d,cat:c,amt:a,ts:Date.now()}); document.getElementById('tAmt').value=''; document.getElementById('tMand').checked=false; document.getElementById('tSpec').checked=false; save(); render(); }
-function delExp(i){ s.exp.splice(i,1); save(); render(); }
 function chip(t){ return t==='mand'?' <small>🧾</small>':(t==='spec'?' <small>🛍️</small>':''); }
 
-/* -------- QR: генерация (без внешних библиотек, лёгкий встроенный) -------- */
-function makeQR(data){
-  var size=29, cells=[]; for(var i=0;i<size*size;i++)cells[i]=0;
-  function c(x,y){ if(x>=0&&x<size&&y>=0&&y<size) return cells[y*size+x]; return 0; }
-  function set(x,y){ return false; } // заглушка: читаемый валидный QR нужна библиотека
-  return null;
-}
+/* ===== QR показ (локальная библиотека qrcode.min.js) ===== */
 function showQr(){
   stopScan();
   document.getElementById('scanArea').style.display='none';
   var area=document.getElementById('qrArea'); area.style.display='block';
   var payload=JSON.stringify({app:'uz',exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,amt:e.amt};})});
-  var code=btoa(unescape(encodeURIComponent(payload)));
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Твой код для передачи</div><textarea readonly style="width:100%;height:90px;font-family:monospace;font-size:9px;border:1px solid #F3C6E0;border-radius:8px;padding:8px;background:#fff;color:#4A2440;margin:10px 0">'+code+'</textarea><button class="btn-main" data-act="copyCode">Скопировать код</button><div style="font-size:11px;color:#9B6B8B;margin-top:8px">QR-картинка недоступна без интернета. Скопируй код и отправь партнёру, либо партнёр сканирует камерой.</div></div>';
-  document.querySelectorAll('[data-act="copyCode"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); copyCode(code); }); });
+  if(typeof qrcode!=='undefined'){
+    var qr=qrcode(0,'M'); qr.addData(payload); qr.make();
+    var n=qr.getModuleCount(), cell=5;
+    var cv=document.createElement('canvas'); cv.id='qrcanvas'; cv.width=n*cell; cv.height=n*cell;
+    var ctx=cv.getContext('2d');
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,n*cell,n*cell);
+    ctx.fillStyle='#4A2440';
+    for(var r=0;r<n;r++){ for(var c=0;c<n;c++){ if(qr.isDark(r,c)){ ctx.fillRect(c*cell,r*cell,cell,cell); } } }
+    area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Отсканируй меня</div></div>';
+    area.querySelector('.qr-holder').appendChild(cv);
+    area.innerHTML+='<div style="font-size:11px;color:#9B6B8B;text-align:center;margin-top:6px">Партнёр жмёт «Сканировать» и наводит камеру</div>';
+  } else {
+    var code=btoa(unescape(encodeURIComponent(payload)));
+    area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">QR-библиотека не загрузилась — используй код</div><textarea readonly class="manual">'+code+'</textarea><button class="btn-main" data-act="copyCode">Скопировать код</button></div>';
+    bindCopy(code);
+  }
 }
-function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй код вручную'); } document.body.removeChild(ta); }
+function bindCopy(code){ document.querySelectorAll('[data-act="copyCode"]').forEach(function(b){ b.addEventListener('click', function(){ copyCode(code); }); }); }
+function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
 
-/* -------- Камера: сканирование -------- */
+/* ===== КАМЕРА (локальная библиотека jsqr.min.js) ===== */
 var scanTimer=null, scanStream=null;
 function startScan(){
   document.getElementById('qrArea').style.display='none';
   var area=document.getElementById('scanArea'); area.style.display='block';
-  area.innerHTML='<div style="font-size:12px;color:#9B6B8B;margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-act="stopScan">Отмена</button>';
+  if(typeof jsQR==='undefined'){
+    showManual('Библиотека сканера не загрузилась. Введи код партнёра вручную:');
+    return;
+  }
+  area.innerHTML='<div style="font-size:12px;color:#9B6B8B;margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-act="stopScan">Отмена</button><button class="btn-sec" data-act="manual">Ввести вручную</button>';
   document.querySelectorAll('[data-act="stopScan"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); stopScan(); }); });
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-act="stopScan">Назад</button>'; return; }
+  document.querySelectorAll('[data-act="manual"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); stopScan(); showManual(); }); });
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-act="manual">Ввести вручную</button>'; return; }
   var video=document.getElementById('scanner');
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false})
     .then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },250); })
-    .catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div>'; });
+    .catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div><button class="btn-sec" data-act="manual">Ввести вручную</button>'; });
 }
 function tickScan(){
   var video=document.getElementById('scanner');
@@ -291,28 +329,28 @@ function tickScan(){
     var cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight;
     var ctx=cv.getContext('2d'); ctx.drawImage(video,0,0,cv.width,cv.height);
     var img=ctx.getImageData(0,0,cv.width,cv.height);
-    if(typeof jsQR!=='undefined'){ var code=jsQR(img.data,img.width,img.height); if(code&&code.data){ stopScan(); mergePayload(code.data); } }
-    else { stopScan(); document.getElementById('scanArea').innerHTML='<div class="empty">Распознавание QR недоступно (библиотека не загрузилась).<br>Попроси партнёра показать код и введи вручную.</div>'; }
+    var code=jsQR(img.data,img.width,img.height);
+    if(code&&code.data){ stopScan(); mergePayload(code.data); }
   }catch(e){}
 }
-function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование остановлено.</div>'; } }
+function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование завершено.</div>'; } }
+function showManual(msg){
+  document.getElementById('qrArea').style.display='none';
+  var area=document.getElementById('scanArea'); area.style.display='block';
+  area.innerHTML=(msg?'<div style="font-size:12px;color:#9B6B8B;margin-bottom:8px">'+msg+'</div>':'<div style="font-size:12px;color:#9B6B8B;margin-bottom:8px">Вставь код партнёра:</div>')+'<textarea id="manualCode" class="manual"></textarea><button class="btn-main" data-act="doManual">Объединить</button>';
+  document.querySelectorAll('[data-act="doManual"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }); });
+}
 function mergePayload(str){
   var area=document.getElementById('scanArea'); area.style.display='block';
   var data=null; try{ data=JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){}
-  if(!data||data.app!=='uz'||!data.exp){ area.innerHTML='<div class="empty">QR не распознан</div>'; return; }
+  if(!data||data.app!=='uz'||!data.exp){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-act="manual">Ввести ещё раз</button>'; return; }
   var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
   data.exp.forEach(function(e){ if(e.id&&!myIds[e.id]){ s.exp.push({id:e.id,day:e.day,cat:e.cat,amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
   save(); render();
-  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:#2E9B5F;font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:#9B6B8B">Добавлено трат: <b>'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
-}
-/* ручной ввод как страховка */
-function showManual(){
-  var area=document.getElementById('scanArea'); area.style.display='block';
-  area.innerHTML='<div class="empty" style="text-align:left">Вставь код партнёра:</div><textarea id="manualCode" style="width:100%;height:80px;font-family:monospace;font-size:9px;border:1px solid #F3C6E0;border-radius:8px;padding:8px;background:#fff;color:#4A2440;margin:8px 0"></textarea><button class="btn-main" data-act="doManual">Объединить</button>';
-  document.querySelectorAll('[data-act="doManual"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }); });
+  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:#2E9B5F;font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:#9B6B8B">Добавлено трат: <b style="color:#4A2440">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
 }
 
-/* render */
+/* ===== render ===== */
 function render(){
   document.getElementById('hBalance').textContent=fmt(income());
   document.getElementById('sIncome').textContent=fmt(income());
@@ -333,8 +371,10 @@ function render(){
   if(s.exp.length===0){ dl.innerHTML='<div class="empty">Пока нет трат ✨</div>'; }
   else{ s.exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=s.exp.indexOf(e), c=s.cats.find(function(x){return x.n===e.cat;}), cl=c?c.c:'#E777A8';
     var r=document.createElement('div'); r.className='day-item';
-    r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+chip(c&&c.t)+'</span><span class="s">'+fmt(e.amt)+'</span><button class="btn-danger">×</button>';
-    r.querySelector('button').onclick=function(){ delExp(i); }; dl.appendChild(r); }); }
+    r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+chip(c&&c.t)+'</span><span class="s">'+fmt(e.amt)+'</span><button class="btn-edit" title="Изменить сумму">✏️</button><button class="btn-danger" title="Удалить">×</button>';
+    r.querySelector('.btn-edit').onclick=function(){ editExp(i); };
+    r.querySelector('.btn-danger').onclick=function(){ delExp(i); };
+    dl.appendChild(r); }); }
   var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0, ua=0;
   s.cats.forEach(function(c){ var sp=spentCat(c.n), df=c.p-sp, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fmt(df); ua+=df; } else { st='перерасход '+fmt(-df); oa+=(-df); }
     var r=document.createElement('div'); r.className='row';
@@ -345,8 +385,6 @@ function render(){
   else if(planT===0){ sum.style.background='#FDF0F8'; sum.style.color='#9B6B8B'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
   else { sum.style.background='#EAFAF2'; sum.style.color='#2E9B5F'; sum.textContent='✅ В рамках бюджета. Экономия: '+fmt(ua); }
 }
-/* страховка: если jsQR не загрузился, показываем ручной ввод */
-setTimeout(function(){ if(typeof jsQR==='undefined' && typeof scrapeScan==='undefined'){ /* ничего не делаем, ручной ввод доступен через отдельный текст */ } }, 1500);
 render();
 </script>
 </body>
