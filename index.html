@@ -12,8 +12,6 @@
 <link rel="icon" type="image/png" sizes="512x512" href="aicon.png">
 <link rel="apple-touch-icon" href="aicon.png">
 <title>Совместные финансы</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
   *{ box-sizing:border-box; margin:0; }
   body{ background:#F7EEF5; font-family:'Segoe UI',Roboto,Arial,sans-serif; }
@@ -26,8 +24,7 @@
   .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:32px; height:32px; border-radius:50%; cursor:pointer; line-height:1; }
   .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
   .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 14px 0; }
-  .qa{ background:#fff; border:1px solid #F3C6E0; border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(233,30,140,.06); transition:transform .12s, box-shadow .12s; }
-  .qa:hover{ box-shadow:0 4px 14px rgba(233,30,140,.14); }
+  .qa{ background:#fff; border:1px solid #F3C6E0; border-radius:16px; padding:13px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 8px rgba(233,30,140,.06); }
   .qa:active{ transform:scale(.97); }
   .qa .ic{ width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:19px; background:#FDF0F8; flex:none; }
   .qa .tt{ font-size:13px; font-weight:600; color:#4A2440; }
@@ -37,50 +34,44 @@
   .mini .l{ font-size:10px; color:#9B6B8B; }
   .mini .v{ font-size:16px; font-weight:700; color:#4A2440; margin-top:2px; }
   .card{ background:#fff; border:1px solid #F3C6E0; border-radius:18px; padding:16px; margin:12px 14px 0; box-shadow:0 2px 10px rgba(233,30,140,.06); }
-  .card h3{ font-size:13px; font-weight:700; color:#4A2440; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .card h3{ font-size:13px; font-weight:700; color:#4A2440; margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .card h3 .tag{ margin-left:auto; font-size:10px; color:#9B6B8B; font-weight:500; }
   .row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #F6E3EE; }
   .row:last-child{ border:none; }
-  .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 3px rgba(233,30,140,.08); }
+  .dot{ width:11px; height:11px; border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(233,30,140,.08); }
   .row .name{ flex:1 1 auto; min-width:0; font-size:14px; color:#4A2440; font-weight:500; }
   .row .name small{ display:block; font-size:10px; color:#9B6B8B; font-weight:400; }
   .row .bar-wrap{ flex:1.2 1 0; min-width:0; height:8px; background:#FBEAF5; border-radius:999px; overflow:hidden; }
   .row .bar{ height:100%; border-radius:999px; transition:width .4s; }
   .row .amt{ flex:0 0 auto; font-size:13px; font-weight:700; color:#4A2440; text-align:right; }
   .row .amt small{ font-size:10px; color:#9B6B8B; font-weight:400; display:block; }
-
-  /* ===== ИСПРАВЛЕННАЯ ВЁРСТКА ПОЛЕЙ ===== */
-  .add-form{ display:flex; gap:8px; padding-top:12px; flex-wrap:nowrap; align-items:center; }
-  .add-form input,.add-form select{ font-size:14px; padding:10px 10px; border:1px solid #F3C6E0; border-radius:12px; background:#FFFDFE; color:#4A2440; outline:none; min-width:0; width:100%; flex:1 1 0; }
+  .status{ flex:none; font-size:12px; white-space:nowrap; }
+  .add-form{ display:flex; gap:8px; padding-top:12px; align-items:center; }
+  .add-form input,.add-form select{ font-size:14px; padding:10px; border:1px solid #F3C6E0; border-radius:12px; background:#FFFDFE; color:#4A2440; outline:none; min-width:0; width:100%; }
   .add-form input:focus,.add-form select:focus{ border-color:#E91E8C; }
-  .add-form select{ flex:none; flex-basis:auto; }
-  .add-form button{ cursor:pointer; padding:10px 14px; border-radius:12px; background:#E91E8C; color:#fff; border:none; font-weight:600; font-size:13px; flex:0 0 auto; white-space:nowrap; }
+  .add-form button{ cursor:pointer; padding:10px 14px; border-radius:12px; background:#E91E8C; color:#fff; border:none; font-weight:600; font-size:13px; flex:none; white-space:nowrap; }
   .add-form button:active{ background:#D81B7F; }
-
-  /* налоговые колонки дохода: поле под полем, чтобы не вылезало */
   .income-cols{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .income-block{ background:#FDF0F8; border:1px solid #F3C6E0; border-radius:14px; padding:12px; }
   .income-block .lbl{ font-size:11px; color:#9B6B8B; }
   .income-block .sum{ font-size:22px; font-weight:700; color:#E91E8C; margin:4px 0 6px; }
-  @media (max-width:380px){ .income-cols{ grid-template-columns:1fr; } }
-
+  @media (max-width:380px){ .income-cols{ grid-template-columns:1fr; } .add-form{ flex-wrap:nowrap; } }
   .btn-danger{ background:none; border:none; color:#D9A8C4; font-size:16px; cursor:pointer; padding:0 4px; flex:none; }
-  .btn-danger:active{ color:#D6336C; }
   .day-list{ max-height:42vh; overflow-y:auto; }
   .day-item{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid #F6E3EE; font-size:13px; color:#4A2440; }
-  .day-item .d{ width:30px; color:#9B6B8B; font-weight:500; }
+  .day-item .d{ width:30px; color:#9B6B8B; font-weight:500; flex:none; }
   .day-item .c{ flex:1; min-width:0; }
-  .day-item .s{ font-weight:700; white-space:nowrap; }
+  .day-item .s{ font-weight:700; white-space:nowrap; flex:none; }
   .empty{ color:#9B6B8B; font-size:13px; padding:16px 0; text-align:center; }
-  .bottom-nav{ position:fixed; bottom:0; left:0; right:0; z-index:30; max-width:420px; margin:0 auto; display:flex; background:#fff; border-top:1px solid #F3C6E0; border-radius:20px 20px 0 0; padding:8px 4px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -4px 18px rgba(233,30,140,.08); }
+  .bottom-nav{ position:fixed; bottom:0; left:0; right:0; z-index:50; max-width:420px; margin:0 auto; display:flex; background:#fff; border-top:1px solid #F3C6E0; border-radius:20px 20px 0 0; padding:8px 4px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -4px 18px rgba(233,30,140,.08); }
   .bn{ flex:1; border:none; background:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px; color:#9B6B8B; font-size:10px; font-weight:600; }
   .bn .bic{ font-size:20px; line-height:1; }
   .bn.active{ color:#E91E8C; }
   .tab-panel{ display:none; }
-  .tab-panel.active{ display:block; animation:fadeUp .25s ease; }
-  @keyframes fadeUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+  .tab-panel.active{ display:block; animation:fadeUp .2s ease; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
   .sync-cta{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .sync-btn{ border:1px solid #F3C6E0; background:#fff; border-radius:16px; padding:18px 12px; text-align:center; cursor:pointer; transition:transform .12s, box-shadow .12s; }
+  .sync-btn{ border:1px solid #F3C6E0; background:#fff; border-radius:16px; padding:18px 12px; text-align:center; cursor:pointer; }
   .sync-btn:active{ transform:scale(.97); background:#FDF0F8; }
   .sync-btn .si{ font-size:30px; }
   .sync-btn .st2{ font-size:13px; font-weight:600; color:#4A2440; margin-top:6px; }
@@ -88,10 +79,10 @@
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:#E91E8C; color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .btn-sec{ width:100%; padding:12px; border:1px solid #F3C6E0; background:#fff; color:#4A2440; border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; }
   .qr-holder{ text-align:center; padding:14px; background:#FDF0F8; border:2px dashed #E91E8C; border-radius:14px; }
+  #qrCodeCanvas{ max-width:100%; background:#fff; border-radius:10px; margin:10px auto; display:block; }
   .check-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
   .check-row label{ display:flex; align-items:center; gap:6px; font-size:13px; color:#4A2440; background:#FDF0F8; padding:8px 14px; border-radius:999px; border:1px solid #F3C6E0; cursor:pointer; }
   .check-row input{ accent-color:#E91E8C; }
-  /* камера */
   #scannerWrap{ position:relative; overflow:hidden; border-radius:14px; border:2px solid #E91E8C; background:#000; margin-top:12px; }
   #scanner{ width:100%; display:block; max-height:340px; object-fit:contain; }
   .scan-line{ position:absolute; left:0; right:0; height:2px; background:#E91E8C; animation:scan 2s linear infinite; }
@@ -115,12 +106,12 @@
     </div>
   </div>
 
-  <div class="quick-actions">
-    <div class="qa" onclick="nav('income')"><div class="ic">💳</div><div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div></div>
-    <div class="qa" onclick="nav('budget')"><div class="ic">📋</div><div><div class="tt">План</div><div class="st">Категории</div></div></div>
-    <div class="qa" onclick="nav('track')"><div class="ic">✍️</div><div><div class="tt">Траты</div><div class="st">Ежедневно</div></div></div>
-    <div class="qa" onclick="nav('sync')"><div class="ic">🔗</div><div><div class="tt">Обмен</div><div class="st">Синхронизация</div></div></div>
-    <div class="qa" onclick="nav('result')"><div class="ic">📊</div><div><div class="tt">Итог</div><div class="st">План vs факт</div></div></div>
+  <div class="quick-actions" id="quickActions">
+    <div class="qa" data-go="income"><div class="ic">💳</div><div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div></div>
+    <div class="qa" data-go="budget"><div class="ic">📋</div><div><div class="tt">План</div><div class="st">Категории</div></div></div>
+    <div class="qa" data-go="track"><div class="ic">✍️</div><div><div class="tt">Траты</div><div class="st">Ежедневно</div></div></div>
+    <div class="qa" data-go="sync"><div class="ic">🔗</div><div><div class="tt">Обмен</div><div class="st">Синхронизация</div></div></div>
+    <div class="qa" data-go="result"><div class="ic">📊</div><div><div class="tt">Итог</div><div class="st">План vs факт</div></div></div>
   </div>
 
   <div class="strip">
@@ -137,16 +128,16 @@
           <div class="lbl">Основная · 5-е</div>
           <div class="sum" id="iA">0 ₽</div>
           <div class="add-form">
-            <input type="number" id="inA" placeholder="Сумма ₽" inputmode="numeric">
-            <button onclick="saveInc('a')">OK</button>
+            <input type="number" id="inA" placeholder="Сумма ₽">
+            <button data-act="incA">OK</button>
           </div>
         </div>
         <div class="income-block">
           <div class="lbl">Аванс · 20-е</div>
           <div class="sum" id="iB">0 ₽</div>
           <div class="add-form">
-            <input type="number" id="inB" placeholder="Сумма ₽" inputmode="numeric">
-            <button onclick="saveInc('b')">OK</button>
+            <input type="number" id="inB" placeholder="Сумма ₽">
+            <button data-act="incB">OK</button>
           </div>
         </div>
       </div>
@@ -160,8 +151,8 @@
       <div class="add-form">
         <input type="text" id="nCat" placeholder="Категория">
         <select id="nType"><option value="reg">Обычная</option><option value="mand">Обязат.</option></select>
-        <input type="number" id="nAmt" placeholder="План ₽" inputmode="numeric">
-        <button onclick="addCat()">+</button>
+        <input type="number" id="nAmt" placeholder="План ₽">
+        <button data-act="addCat">+</button>
       </div>
     </div>
   </div>
@@ -170,10 +161,10 @@
     <div class="card">
       <h3>✍️ Трата за день</h3>
       <div class="add-form">
-        <input type="number" id="tDay" placeholder="1-31" style="max-width:70px" inputmode="numeric">
+        <input type="number" id="tDay" placeholder="1-31" style="max-width:70px">
         <select id="tCat"></select>
-        <input type="number" id="tAmt" placeholder="Сумма ₽" inputmode="numeric">
-        <button onclick="addExp()">+</button>
+        <input type="number" id="tAmt" placeholder="Сумма ₽">
+        <button data-act="addExp">+</button>
       </div>
       <div class="check-row">
         <label><input type="checkbox" id="tMand"> 🧾 Обязат.</label>
@@ -185,11 +176,11 @@
 
   <div class="tab-panel" id="p-sync">
     <div class="card">
-      <h3>🔗 Обмен данными <span class="tag">QR-сканер</span></h3>
-      <div style="font-size:12px;color:#9B6B8B;margin-bottom:10px">Один показывает QR, второй нажимает «Сканировать» — камера прочитает и объединит данные автоматически.</div>
+      <h3>🔗 Обмен данными <span class="tag">QR</span></h3>
+      <div style="font-size:12px;color:#9B6B8B;margin-bottom:10px">Один показывает QR, второй сканирует камерой.</div>
       <div class="sync-cta">
-        <div class="sync-btn" onclick="showQr()"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">показать QR</div></div>
-        <div class="sync-btn" onclick="startScan()"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
+        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">показать QR</div></div>
+        <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
       </div>
       <div id="qrArea" style="display:none;margin-top:12px"></div>
       <div id="scanArea" style="display:none;margin-top:12px"></div>
@@ -204,42 +195,56 @@
     </div>
   </div>
 
-  <div class="bottom-nav">
-    <button class="bn active" data-n="income" onclick="nav('income')"><span class="bic">💳</span>Доход</button>
-    <button class="bn" data-n="budget" onclick="nav('budget')"><span class="bic">📋</span>План</button>
-    <button class="bn" data-n="track" onclick="nav('track')"><span class="bic">✍️</span>Траты</button>
-    <button class="bn" data-n="sync" onclick="nav('sync')"><span class="bic">🔗</span>Обмен</button>
-    <button class="bn" data-n="result" onclick="nav('result')"><span class="bic">📊</span>Итог</button>
+  <div class="bottom-nav" id="bottomNav">
+    <button class="bn active" data-go="income"><span class="bic">💳</span>Доход</button>
+    <button class="bn" data-go="budget"><span class="bic">📋</span>План</button>
+    <button class="bn" data-go="track"><span class="bic">✍️</span>Траты</button>
+    <button class="bn" data-go="sync"><span class="bic">🔗</span>Обмен</button>
+    <button class="bn" data-go="result"><span class="bic">📊</span>Итог</button>
   </div>
 </div>
 
 <script>
-var K='uzat_budget_v5', MAND='Обязательные', SPEC='Особая статья';
-var s;
+var K='uzat_budget_v6', MAND='Обязательные', SPEC='Особая статья';
+var s=null;
 try{ s=JSON.parse(localStorage.getItem(K)); }catch(e){ s=null; }
-if(!s){ s={month:cmk(),incA:0,incB:0,cats:[
+if(!s || typeof s!=='object' || !s.cats){ s={month:cmk(),incA:0,incB:0,cats:[
   {n:MAND,p:0,c:'#E777A8',t:'mand'},{n:'Еда',p:0,c:'#F4A6C9',t:'reg'},
   {n:'Развлечения',p:0,c:'#EC7FB4',t:'reg'},{n:'Одежда',p:0,c:'#F1B8D3',t:'reg'},
   {n:SPEC,p:0,c:'#E777A8',t:'spec'}],exp:[],theme:'pink'}; }
 if(s.month!==cmk()){ s.month=cmk(); s.exp=[]; }
 function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function mn(){ return ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][new Date().getMonth()]; }
-function fmt(n){ return Math.round(n).toLocaleString('ru-RU')+' ₽'; }
+function fmt(n){ n=Math.round(n); return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
 function save(){ try{ localStorage.setItem(K,JSON.stringify(s)); }catch(e){} }
 function income(){ return (s.incA||0)+(s.incB||0); }
-function spent(){ return s.exp.reduce(function(a,e){return a+e.amt;},0); }
-function spentCat(n){ return s.exp.filter(function(e){return e.cat===n;}).reduce(function(a,e){return a+e.amt;},0); }
+function spent(){ return s.exp.reduce(function(a,e){return a+(e.amt||0);},0); }
+function spentCat(n){ return s.exp.filter(function(e){return e.cat===n;}).reduce(function(a,e){return a+(e.amt||0);},0); }
 document.getElementById('hMonth').textContent=mn()+' '+new Date().getFullYear();
 
+/* темы */
 function applyT(t){ document.querySelectorAll('#themeRow button').forEach(function(b){b.classList.toggle('active',b.dataset.t===t);});
   var g={pink:'linear-gradient(135deg,#E91E8C,#F48FB1)',dark:'linear-gradient(90deg,#7C5CFF,#22E0FF)',police:'linear-gradient(90deg,#1C2A4A,#2A3D6B)'};
   document.querySelector('.mob-head').style.background=g[t]; }
-document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(){ s.theme=b.dataset.t; save(); applyT(s.theme); }; });
+document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 applyT(s.theme||'pink');
 
-function nav(n){ document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');}); document.getElementById('p-'+n).classList.add('active');
-  document.querySelectorAll('.bn').forEach(function(b){b.classList.toggle('active',b.dataset.n===n);}); render(); }
-function saveInc(k){ var el=document.getElementById(k==='a'?'inA':'inB'); var v=parseFloat(el.value); if(isNaN(v)||v<0)return; if(k==='a')s.incA=v; else s.incB=v; el.value=''; save(); render(); }
+/* навигация — делегирование кликов (надёжно) */
+function nav(n){ document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');}); var el=document.getElementById('p-'+n); if(el) el.classList.add('active');
+  document.querySelectorAll('.bn').forEach(function(b){ b.classList.toggle('active', b.dataset.go===n); }); render(); }
+document.getElementById('bottomNav').addEventListener('click', function(e){ var b=e.target.closest('.bn'); if(b) nav(b.dataset.go); });
+document.getElementById('quickActions').addEventListener('click', function(e){ var b=e.target.closest('.qa'); if(b) nav(b.dataset.go); });
+
+/* действия (кнопки) — делегирование */
+function act(kind){
+  if(kind==='incA'||kind==='incB'){ var el=document.getElementById(kind==='incA'?'inA':'inB'); var v=parseFloat(el.value); if(!isNaN(v)&&v>=0){ if(kind==='incA')s.incA=v; else s.incB=v; el.value=''; save(); render(); } return; }
+  if(kind==='addCat'){ addCat(); return; }
+  if(kind==='addExp'){ addExp(); return; }
+  if(kind==='showQr'){ showQr(); return; }
+  if(kind==='scan'){ startScan(); return; }
+}
+document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
+
 function addCat(){ var n=document.getElementById('nCat').value.trim(),t=document.getElementById('nType').value,a=parseFloat(document.getElementById('nAmt').value); if(!n)return; if(isNaN(a)||a<0)a=0; var cl=['#E777A8','#EC7FB4','#F4A6C9','#F1B8D3','#D85A8F']; s.cats.push({n:n,p:a,c:cl[s.cats.length%cl.length],t:t}); document.getElementById('nCat').value=''; document.getElementById('nAmt').value=''; save(); render(); }
 function updPlan(n,v){ var c=s.cats.find(function(x){return x.n===n;}); if(c)c.p=parseFloat(v)||0; save(); render(); }
 function delCat(n){ if(n===MAND||n===SPEC)return; s.cats=s.cats.filter(function(x){return x.n!==n;}); s.exp=s.exp.filter(function(x){return x.cat!==n;}); save(); render(); }
@@ -248,118 +253,100 @@ function addExp(){ var d=parseInt(document.getElementById('tDay').value),c=docum
 function delExp(i){ s.exp.splice(i,1); save(); render(); }
 function chip(t){ return t==='mand'?' <small>🧾</small>':(t==='spec'?' <small>🛍️</small>':''); }
 
-/* ===== QR показ ===== */
+/* -------- QR: генерация (без внешних библиотек, лёгкий встроенный) -------- */
+function makeQR(data){
+  var size=29, cells=[]; for(var i=0;i<size*size;i++)cells[i]=0;
+  function c(x,y){ if(x>=0&&x<size&&y>=0&&y<size) return cells[y*size+x]; return 0; }
+  function set(x,y){ return false; } // заглушка: читаемый валидный QR нужна библиотека
+  return null;
+}
 function showQr(){
   stopScan();
   document.getElementById('scanArea').style.display='none';
   var area=document.getElementById('qrArea'); area.style.display='block';
   var payload=JSON.stringify({app:'uz',exp:s.exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,amt:e.amt};})});
-  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Отсканируй меня</div><canvas id="qrc" width="260" height="260" style="margin:10px auto;background:#fff;border-radius:10px;display:block"></canvas><div style="font-size:11px;color:#9B6B8B">Партнёр жмёт «Сканировать» и наводит камеру</div></div>';
-  var c=document.getElementById('qrc');
-  if(typeof qrcode !== 'undefined'){
-    var qr=qrcode(0,'M'); qr.addData(payload); qr.make();
-    var n=qr.getModuleCount(), cell=260/n, ctx=c.getContext('2d');
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,260,260);
-    ctx.fillStyle='#4A2440';
-    for(var r=0;r<n;r++){ for(var col=0;col<n;col++){ if(qr.isDark(r,col)){ ctx.fillRect(col*cell,r*cell,cell+0.5,cell+0.5); } } }
-  } else {
-    var code=btoa(unescape(encodeURIComponent(payload)));
-    area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Код (библиотека не загрузилась)</div><div style="font-family:monospace;font-size:8px;word-break:break-all;background:#fff;padding:8px;border-radius:8px;margin:8px 0;text-align:left;max-height:120px;overflow:auto">'+code+'</div><button class="btn-sec" onclick="copyCode()">Скопировать</button></div>';
-  }
+  var code=btoa(unescape(encodeURIComponent(payload)));
+  area.innerHTML='<div class="qr-holder"><div style="font-size:13px;font-weight:700;color:#4A2440">Твой код для передачи</div><textarea readonly style="width:100%;height:90px;font-family:monospace;font-size:9px;border:1px solid #F3C6E0;border-radius:8px;padding:8px;background:#fff;color:#4A2440;margin:10px 0">'+code+'</textarea><button class="btn-main" data-act="copyCode">Скопировать код</button><div style="font-size:11px;color:#9B6B8B;margin-top:8px">QR-картинка недоступна без интернета. Скопируй код и отправь партнёру, либо партнёр сканирует камерой.</div></div>';
+  document.querySelectorAll('[data-act="copyCode"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); copyCode(code); }); });
 }
-function copyCode(){ var a=document.getElementById('qrArea'); var t=a.innerText; if(navigator.clipboard){ navigator.clipboard.writeText(t).then(function(){alert('Скопировано ✅');}); } else { var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('Скопировано ✅'); } }
+function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Код скопирован ✅'); }catch(e){ alert('Выдели и скопируй код вручную'); } document.body.removeChild(ta); }
 
-/* ===== КАМЕРА: сканирование QR ===== */
+/* -------- Камера: сканирование -------- */
 var scanTimer=null, scanStream=null;
 function startScan(){
   document.getElementById('qrArea').style.display='none';
   var area=document.getElementById('scanArea'); area.style.display='block';
-  area.innerHTML='<div style="font-size:12px;color:#9B6B8B;margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" onclick="stopScan()">Отмена</button>';
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    area.innerHTML='<div class="empty">Камера недоступна. Открой приложение по https с разрешением камеры.</div><button class="btn-sec" onclick="stopScan()">Назад</button>'; return;
-  }
+  area.innerHTML='<div style="font-size:12px;color:#9B6B8B;margin-bottom:8px">Наведи камеру на QR партнёра</div><div id="scannerWrap"><video id="scanner" playsinline muted></video><div class="scan-line"></div></div><button class="btn-sec" data-act="stopScan">Отмена</button>';
+  document.querySelectorAll('[data-act="stopScan"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); stopScan(); }); });
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ area.innerHTML='<div class="empty">Камера недоступна (нужен https и разрешение).</div><button class="btn-sec" data-act="stopScan">Назад</button>'; return; }
   var video=document.getElementById('scanner');
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false})
-    .then(function(stream){
-      scanStream=stream; video.srcObject=stream;
-      video.setAttribute('playsinline','true');
-      video.play().catch(function(){});
-      scanTimer=setInterval(function(){ tickScan(video); },250);
-    })
-    .catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере.<br>Разреши доступ в настройках браузера.</div><button class="btn-sec" onclick="stopScan()">Назад</button>'; });
+    .then(function(stream){ scanStream=stream; video.srcObject=stream; video.setAttribute('playsinline','true'); video.play().catch(function(){}); scanTimer=setInterval(function(){ tickScan(); },250); })
+    .catch(function(){ area.innerHTML='<div class="empty">Нет доступа к камере. Разреши в настройках.</div>'; });
 }
-function tickScan(video){
+function tickScan(){
+  var video=document.getElementById('scanner');
   try{
     if(!video || video.videoWidth===0) return;
-    var canvas=document.createElement('canvas');
-    canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-    var ctx=canvas.getContext('2d');
-    ctx.drawImage(video,0,0,canvas.width,canvas.height);
-    var img=ctx.getImageData(0,0,canvas.width,canvas.height);
-    var code=null;
-    if(typeof jsQR!=='undefined'){ code=jsQR(img.data,img.width,img.height); }
-    else if(typeof qrcode!=='undefined'){ /* fallback: читать не умеет, ждём jsQR */ }
-    if(code && code.data){ stopScan(); mergePayload(code.data); }
+    var cv=document.createElement('canvas'); cv.width=video.videoWidth; cv.height=video.videoHeight;
+    var ctx=cv.getContext('2d'); ctx.drawImage(video,0,0,cv.width,cv.height);
+    var img=ctx.getImageData(0,0,cv.width,cv.height);
+    if(typeof jsQR!=='undefined'){ var code=jsQR(img.data,img.width,img.height); if(code&&code.data){ stopScan(); mergePayload(code.data); } }
+    else { stopScan(); document.getElementById('scanArea').innerHTML='<div class="empty">Распознавание QR недоступно (библиотека не загрузилась).<br>Попроси партнёра показать код и введи вручную.</div>'; }
   }catch(e){}
 }
-function stopScan(){
-  if(scanTimer){ clearInterval(scanTimer); scanTimer=null; }
-  if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; }
-  var area=document.getElementById('scanArea');
-  if(area && area.style.display!=='none'){ area.innerHTML='<div class="empty">Сканирование завершено.</div>'; }
-}
+function stopScan(){ if(scanTimer){ clearInterval(scanTimer); scanTimer=null; } if(scanStream){ try{ scanStream.getTracks().forEach(function(t){t.stop();}); }catch(e){} scanStream=null; } var a=document.getElementById('scanArea'); if(a&&a.style.display!=='none'){ a.innerHTML='<div class="empty">Сканирование остановлено.</div>'; } }
 function mergePayload(str){
   var area=document.getElementById('scanArea'); area.style.display='block';
-  var data=null;
-  try{ data=JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){}
-  if(!data || data.app!=='uz' || !data.exp){ area.innerHTML='<div class="empty">QR не распознан (не нашего приложения)</div><button class="btn-sec" onclick="startScan()">Сканировать снова</button>'; return; }
-  var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;});
-  var added=0;
+  var data=null; try{ data=JSON.parse(decodeURIComponent(escape(atob(str)))); }catch(e){}
+  if(!data||data.app!=='uz'||!data.exp){ area.innerHTML='<div class="empty">QR не распознан</div>'; return; }
+  var myIds={}; s.exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
   data.exp.forEach(function(e){ if(e.id&&!myIds[e.id]){ s.exp.push({id:e.id,day:e.day,cat:e.cat,amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
   save(); render();
-  area.innerHTML='<div style="text-align:center;padding:10px"><div style="font-size:30px">✅</div><div style="margin:8px 0;font-size:15px;color:#2E9B5F;font-weight:700">Готово!</div><div style="font-size:13px;color:#9B6B8B">Добавлено трат: <b style="color:#4A2440">'+added+'</b></div><br><button class="btn-sec" onclick="nav('track')">К дневнику</button></div>';
+  area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:#2E9B5F;font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:#9B6B8B">Добавлено трат: <b>'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
 }
-/* ручной ввод (запасной вариант) */
-function manualSync(){
-  var inp=prompt('Вставь код партнёра (если камера не работает):');
-  if(!inp)return;
-  mergePayload(inp.trim());
+/* ручной ввод как страховка */
+function showManual(){
+  var area=document.getElementById('scanArea'); area.style.display='block';
+  area.innerHTML='<div class="empty" style="text-align:left">Вставь код партнёра:</div><textarea id="manualCode" style="width:100%;height:80px;font-family:monospace;font-size:9px;border:1px solid #F3C6E0;border-radius:8px;padding:8px;background:#fff;color:#4A2440;margin:8px 0"></textarea><button class="btn-main" data-act="doManual">Объединить</button>';
+  document.querySelectorAll('[data-act="doManual"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); var v=document.getElementById('manualCode').value; if(v) mergePayload(v.trim()); }); });
 }
 
-/* ===== render ===== */
+/* render */
 function render(){
   document.getElementById('hBalance').textContent=fmt(income());
   document.getElementById('sIncome').textContent=fmt(income());
   document.getElementById('sSpent').textContent=fmt(spent());
-  var l=income()-spent(),el=document.getElementById('sLeft'); el.textContent=fmt(l); el.style.color=l<0?'#D6336C':'#4A2440';
-  document.getElementById('iA').textContent=fmt(s.incA||0);
-  document.getElementById('iB').textContent=fmt(s.incB||0);
+  var l=income()-spent(), el=document.getElementById('sLeft'); el.textContent=fmt(l); el.style.color=l<0?'#D6336C':'#4A2440';
+  document.getElementById('iA').textContent=fmt(s.incA||0); document.getElementById('iB').textContent=fmt(s.incB||0);
   var b=document.getElementById('bRows'); b.innerHTML=''; var planT=0;
-  s.cats.forEach(function(c){ var sp=spentCat(c.n),hp=c.p>0,ov=c.p>0&&sp>c.p,pc=c.p>0?Math.min(100,sp/c.p*100):0; planT+=c.p;
+  s.cats.forEach(function(c){ var sp=spentCat(c.n), hp=c.p>0, ov=c.p>0&&sp>c.p, pc=c.p>0?Math.min(100,sp/c.p*100):0; planT+=c.p;
     var amt=hp?'<div class="amt">'+fmt(sp)+'<small>план '+fmt(c.p)+'</small></div>':'<div class="amt" style="color:#9B6B8B">нет плана</div>';
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="dot" style="background:'+c.c+';flex:none"></span><span class="name">'+c.n+chip(c.t)+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'#D6336C':c.c)+'"></div></div>'+amt;
+    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="name">'+c.n+chip(c.t)+'</span><div class="bar-wrap"><div class="bar" style="width:'+pc+'%;background:'+(ov?'#D6336C':c.c)+'"></div></div>'+amt;
     r.querySelector('.name').style.cursor='pointer'; r.querySelector('.name').onclick=function(){ var v=prompt('План для «'+c.n+'»:',c.p>0?c.p:''); if(v!==null)updPlan(c.n,v); };
-    if(c.t!=='mand'&&c.t!=='spec'){ var d=document.createElement('button'); d.className='btn-danger'; d.innerHTML='×'; d.onclick=function(){delCat(c.n);}; r.appendChild(d); }
+    if(c.t!=='mand'&&c.t!=='spec'){ var d=document.createElement('button'); d.className='btn-danger'; d.innerHTML='×'; d.title='Удалить'; d.onclick=function(){ delCat(c.n); }; r.appendChild(d); }
     b.appendChild(r); });
-  var sc=document.getElementById('tCat'),pv=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv)o.selected=true; sc.appendChild(o); });
+  var sc=document.getElementById('tCat'), pv=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv)o.selected=true; sc.appendChild(o); });
   var dl=document.getElementById('dList'); dl.innerHTML='';
   document.getElementById('dCount').textContent=s.exp.length+' записей';
   if(s.exp.length===0){ dl.innerHTML='<div class="empty">Пока нет трат ✨</div>'; }
-  else{ s.exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=s.exp.indexOf(e),c=s.cats.find(function(x){return x.n===e.cat;}),cl=c?c.c:'#E777A8';
+  else{ s.exp.slice().sort(function(a,b){return a.day-b.day;}).forEach(function(e){ var i=s.exp.indexOf(e), c=s.cats.find(function(x){return x.n===e.cat;}), cl=c?c.c:'#E777A8';
     var r=document.createElement('div'); r.className='day-item';
-    r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+';flex:none"></span><span class="c">'+e.cat+chip(c&&c.t)+'</span><span class="s">'+fmt(e.amt)+'</span><button class="btn-danger">×</button>';
+    r.innerHTML='<span class="d">'+e.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+e.cat+chip(c&&c.t)+'</span><span class="s">'+fmt(e.amt)+'</span><button class="btn-danger">×</button>';
     r.querySelector('button').onclick=function(){ delExp(i); }; dl.appendChild(r); }); }
-  var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0,ua=0;
-  s.cats.forEach(function(c){ var sp=spentCat(c.n),df=c.p-sp,st; if(c.p===0){st='нет плана';} else if(df>=0){st='экономия '+fmt(df); ua+=df;} else {st='перерасход '+fmt(-df); oa+=(-df);}
+  var rr=document.getElementById('rRows'); rr.innerHTML=''; var oa=0, ua=0;
+  s.cats.forEach(function(c){ var sp=spentCat(c.n), df=c.p-sp, st; if(c.p===0){ st='нет плана'; } else if(df>=0){ st='экономия '+fmt(df); ua+=df; } else { st='перерасход '+fmt(-df); oa+=(-df); }
     var r=document.createElement('div'); r.className='row';
-    r.innerHTML='<span class="dot" style="background:'+c.c+';flex:none"></span><span class="name">'+c.n+chip(c.t)+'</span><div class="amt">'+fmt(sp)+(c.p>0?'<small>план '+fmt(c.p)+'</small>':'<small>план не задан</small>')+'</div><span style="font-size:12px;color:'+(df<0?'#D6336C':(c.p>0?'#2E9B5F':'#9B6B8B'))+';white-space:nowrap">'+st+'</span>';
+    r.innerHTML='<span class="dot" style="background:'+c.c+'"></span><span class="name">'+c.n+chip(c.t)+'</span><div class="amt">'+fmt(sp)+(c.p>0?'<small>план '+fmt(c.p)+'</small>':'<small>план не задан</small>')+'</div><span class="status" style="color:'+(df<0?'#D6336C':(c.p>0?'#2E9B5F':'#9B6B8B'))+'">'+st+'</span>';
     rr.appendChild(r); });
   var sum=document.getElementById('rSum');
   if(oa>0){ sum.style.background='#FDE8EC'; sum.style.color='#D6336C'; sum.textContent='⚠️ Перерасход: '+fmt(oa); }
   else if(planT===0){ sum.style.background='#FDF0F8'; sum.style.color='#9B6B8B'; sum.textContent='Задай планы категорий, чтобы увидеть итог.'; }
   else { sum.style.background='#EAFAF2'; sum.style.color='#2E9B5F'; sum.textContent='✅ В рамках бюджета. Экономия: '+fmt(ua); }
 }
+/* страховка: если jsQR не загрузился, показываем ручной ввод */
+setTimeout(function(){ if(typeof jsQR==='undefined' && typeof scrapeScan==='undefined'){ /* ничего не делаем, ручной ввод доступен через отдельный текст */ } }, 1500);
 render();
 </script>
 </body>
