@@ -14,7 +14,7 @@
 <title>Совместные финансы</title>
 <style>
   *{ box-sizing:border-box; margin:0; }
-  body{ margin:0; font-family:'Segoe UI',Roboto,Arial,sans-serif; transition:background .3s; }
+  body{ margin:0; font-family:'Segoe UI',Roboto,Arial,sans-serif; transition:background .3s; -webkit-tap-highlight-color:transparent; }
   .phone{ max-width:420px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:92px; }
   .bg-deco{ position:fixed; inset:0; z-index:-2; pointer-events:none; transition:opacity .3s; }
   .bg-pink{ background:linear-gradient(160deg,#ffe3f1 0%,#fff6fb 45%,#ffd9ec 100%); }
@@ -70,6 +70,11 @@
   .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin:12px 14px 0; box-shadow:0 4px 14px rgba(0,0,0,.06); }
   .card h3{ font-size:13px; font-weight:700; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-left:10px; border-left:3px solid var(--accent); border-radius:2px; }
   .card h3 .tag{ margin-left:auto; font-size:10px; color:var(--text2); font-weight:500; }
+  .tag{ font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px; background:var(--soft); color:var(--text2); }
+  .tag.info{ color:var(--accent); animation:pulseTag 1.4s ease-in-out infinite; }
+  .tag.ok{ color:var(--ok); }
+  .tag.err{ color:var(--warn); }
+  @keyframes pulseTag{ 0%,100%{opacity:1;} 50%{opacity:.45;} }
   .cat-block{ border-radius:14px; padding:10px 12px; margin-bottom:10px; border:1px solid var(--line); }
   .btg{ background:var(--soft); border:1px solid var(--line); color:var(--accent); font-size:12px; width:24px; height:24px; border-radius:8px; cursor:pointer; flex:none; line-height:1; transition:background .15s, color .15s; }
   .btg:active{ background:var(--track); }
@@ -98,7 +103,6 @@
   .add-form select{ flex:none; width:auto; max-width:110px; }
   .add-form button{ cursor:pointer; padding:8px 12px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; font-weight:600; font-size:12px; flex:none; white-space:nowrap; }
   .add-form button:active{ filter:brightness(.92); }
-  /* ===== ТРАТА ЗА ДЕНЬ ===== */
   .exp-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   @media (max-width:380px){ .exp-grid{ grid-template-columns:1fr; } }
   .exp-field{ display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
@@ -115,7 +119,6 @@
   .exp-amt{ font-size:18px; text-align:right; letter-spacing:.3px; padding:14px 16px !important; }
   .exp-preview{ font-size:12px; color:var(--ok); text-align:right; min-height:15px; margin-top:2px; font-weight:700; }
   .exp-form .btn-main{ margin-top:4px; }
-  /* ===== ДОХОД ===== */
   .income-cols{ display:flex; flex-direction:column; gap:12px; }
   .income-block{ background:linear-gradient(135deg,var(--soft),rgba(233,30,140,.05)); border:1.5px solid var(--line); border-radius:18px; padding:16px 16px 14px; position:relative; }
   .income-block .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text2); font-weight:700; }
@@ -181,7 +184,10 @@
   .plan-line .bar-wrap{ flex:1; height:8px; background:var(--track); border-radius:999px; overflow:hidden; }
   .plan-line .bar{ width:100%; height:100%; border-radius:999px; overflow:hidden; }
   .plan-txt{ flex:none; font-size:11px; font-weight:700; color:var(--text2); white-space:nowrap; }
-  /* ===== ОТЧЁТ: тёмный дашборд ===== */
+  .bt-block{ background:var(--soft); border:1px dashed var(--line); border-radius:14px; padding:12px; margin-top:10px; }
+  .bt-block h4{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .bt-block p{ font-size:11px; color:var(--text2); line-height:1.45; margin-bottom:10px; }
+  .bt-block .btn-sec{ margin-top:0; }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
   #reportPopup.open{ display:flex; }
   #reportPopup .rp-box2{ background:#0D1117; width:100%; max-width:420px; max-height:92vh; border-radius:22px 22px 0 0; display:flex; flex-direction:column; overflow:hidden; border:1px solid #21262D; }
@@ -372,9 +378,16 @@
         <input type="text" id="peerIdIn" placeholder="ID партнёра" maxlength="8">
         <button data-act="connectId">Подключить</button>
       </div>
+      <button class="btn-sec" data-act="pingPartner">🔍 Проверить связь</button>
       <button class="btn-sec" data-act="disconnect">Отключиться</button>
       <div style="font-size:11px;color:var(--text2);margin-top:10px;line-height:1.5">
         Пока оба устройства открыты — все изменения (траты, доходы, планы) передаются в реальном времени.
+        Если не подключается — проверьте, что оба онлайн, и попробуйте через 5–10 секунд.
+      </div>
+      <div class="bt-block">
+        <h4>📶 Bluetooth (beta)</h4>
+        <p>Прямое соединение по Bluetooth через Web Bluetooth API. На iPhone Safari он не поддерживается — используйте P2P-связь выше или офлайн-коды ниже.</p>
+        <button class="btn-sec" data-act="tryBt">🔵 Попробовать Bluetooth</button>
       </div>
     </div>
     <div class="card">
@@ -590,6 +603,8 @@ function act(kind){
   if(kind==='copyId'){ copyCode(DEV_ID); return; }
   if(kind==='connectId'){ connectToPartner(document.getElementById('peerIdIn').value); return; }
   if(kind==='disconnect'){ disconnectPeer(); return; }
+  if(kind==='pingPartner'){ pingPartner(); return; }
+  if(kind==='tryBt'){ tryBluetoothSync(); return; }
   if(kind==='report'){ openReport(); return; }
   if(kind==='closeReport'){ closeReport(); return; }
   if(kind==='xlsxReport'){ downloadXlsxReport(); return; }
@@ -735,25 +750,58 @@ function importExp(data){ var area=document.getElementById('scanArea'); var myId
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
+
+/* ================= P2P ПО ID (с TURN/STUN + реконнектом) ================= */
 var ID_KEY='uzat_device_id';
 var PEER_PREFIX='uzfin-';
 function genId(){ var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r=''; for(var i=0;i<6;i++) r+=a[Math.floor(Math.random()*a.length)]; return r; }
 function loadDevId(){ var v=null; try{ v=localStorage.getItem(ID_KEY); }catch(e){} if(!v || !/^[A-Z0-9]{4,8}$/.test(v)){ v=genId(); try{ localStorage.setItem(ID_KEY,v); }catch(e){} } return v; }
 var DEV_ID=loadDevId();
 var peer=null, conn=null, peerRetry=0;
-var PEER_SRCS=['https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js','https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js'];
+var connectAttempts=0, connectTimeout=null, pingTimeout=null;
+var PEER_SRCS=[
+  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
+  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
+  'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js'
+];
+var PEER_CONFIG={
+  iceServers:[
+    { urls:'stun:stun.l.google.com:19302' },
+    { urls:'stun:stun1.l.google.com:19302' },
+    { urls:'stun:global.stun.twilio.com:3478' },
+    { urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject' },
+    { urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject' },
+    { urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject' }
+  ],
+  sdpSemantics:'unified-plan'
+};
 function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
-function setSyncStatus(txt, cls){ var el=document.getElementById('syncStatus'); if(!el) return; el.textContent=txt; el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':'var(--text2)'); }
+function setSyncStatus(txt, cls){
+  var el=document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent=txt;
+  el.className='tag '+(cls||'');
+  el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
+}
 function refreshMyId(){ var el=document.getElementById('myIdVal'); if(el) el.textContent=DEV_ID; }
 refreshMyId();
+
 function initPeer(cb){
   cb=cb||function(){};
   if(peer && !peer.destroyed){ cb(true); return; }
   ensurePeer(function(ok){
     if(!ok){ setSyncStatus('нет связи с сервером','err'); cb(false); return; }
-    try{ peer=new Peer(PEER_PREFIX+DEV_ID,{debug:0}); }
-    catch(e){ setSyncStatus('ошибка','err'); cb(false); return; }
-    peer.on('open', function(){ peerRetry=0; setSyncStatus('готов к подключению','ok'); cb(true); });
+    try{
+      peer = new Peer(PEER_PREFIX+DEV_ID, {
+        debug: 1,
+        config: PEER_CONFIG
+      });
+    } catch(e){
+      setSyncStatus('ошибка инициализации','err');
+      cb(false); return;
+    }
+    var opened=false;
+    peer.on('open', function(){ opened=true; peerRetry=0; setSyncStatus('готов к подключению','ok'); cb(true); });
     peer.on('connection', function(c){
       if(conn && conn.open){ try{ c.close(); }catch(e){} return; }
       conn=c; bindConn('host');
@@ -766,51 +814,162 @@ function initPeer(cb){
         peer=null; DEV_ID=genId();
         try{ localStorage.setItem(ID_KEY,DEV_ID); }catch(e){}
         refreshMyId();
-        setTimeout(function(){ initPeer(cb); },400);
+        setTimeout(function(){ initPeer(cb); }, 500);
         return;
       }
       if(t==='peer-unavailable'){ setSyncStatus('ID не найден','err'); }
-      else { setSyncStatus('ошибка связи','err'); }
-      cb(false);
+      else if(t==='network' || t==='server-error'){ setSyncStatus('сеть недоступна','err'); }
+      else if(t==='browser-incompatible'){ setSyncStatus('браузер не поддерживает','err'); }
+      else { setSyncStatus('ошибка: '+(t||'связи'),'err'); }
+      if(!opened) cb(false);
     });
+    setTimeout(function(){ if(!opened){ setSyncStatus('сервер молчит','err'); cb(false); } }, 12000);
   });
 }
+
 function bindConn(role){
+  if(!conn) return;
   conn.on('open', function(){
+    if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
     setSyncStatus(role==='host'?'партнёр подключён ✓':'подключено ✓','ok');
+    connectAttempts=0;
     broadcast();
   });
   conn.on('data', function(msg){
-    if(msg && msg.t==='state' && msg.data){
+    if(!msg) return;
+    if(msg.t==='ping'){
+      try{ conn.send({t:'pong', ts: msg.ts}); }catch(e){}
+      setSyncStatus('пинг получен ✓','ok');
+      return;
+    }
+    if(msg.t==='pong'){
+      setSyncStatus('связь работает ✓','ok');
+      return;
+    }
+    if(msg.t==='state' && msg.data){
       var ch=mergeRemote(msg.data);
       if(ch){ save(); render(); }
     }
   });
-  conn.on('close', function(){ setSyncStatus('отключено',''); conn=null; });
-  conn.on('error', function(){ setSyncStatus('ошибка связи','err'); });
+  conn.on('close', function(){
+    setSyncStatus('отключено','err');
+    conn=null;
+    if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+    // Автопереподключение если был установлен партнёр
+    if(s.partnerId && s.partnerId!==DEV_ID){
+      setTimeout(function(){
+        if(!conn || !conn.open){
+          if(peer && !peer.destroyed && !peer.disconnected){
+            attemptConnect(s.partnerId);
+          }
+        }
+      }, 3000);
+    }
+  });
+  conn.on('error', function(err){
+    console.error('Data conn error', err);
+    setSyncStatus('ошибка связи','err');
+  });
 }
-function broadcast(){
-  if(!conn || !conn.open) return;
-  try{ conn.send({t:'state', data:{cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth}}); }catch(e){}
+
+function attemptConnect(id){
+  if(!peer || peer.destroyed){
+    setSyncStatus('сервер не готов','err');
+    return;
+  }
+  if(connectAttempts >= 3){
+    setSyncStatus('не удалось (3 попытки)','err');
+    return;
+  }
+  connectAttempts++;
+  setSyncStatus('подключение… ('+connectAttempts+'/3)','info');
+  try{
+    conn = peer.connect(PEER_PREFIX+id, { reliable: true, serialization:'json' });
+  } catch(e){
+    setSyncStatus('ошибка соединения','err');
+    return;
+  }
+  bindConn('guest');
+  if(connectTimeout) clearTimeout(connectTimeout);
+  connectTimeout = setTimeout(function(){
+    if(conn && !conn.open){
+      try{ conn.close(); }catch(e){}
+      conn=null;
+      if(connectAttempts < 3){
+        setTimeout(function(){ attemptConnect(id); }, 1200);
+      } else {
+        setSyncStatus('партнёр не отвечает','err');
+      }
+    }
+  }, 8000);
 }
+
 function connectToPartner(raw){
   var id=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(id.length<4){ alert('Введите ID партнёра'); return; }
   if(id===DEV_ID){ alert('Это ваш собственный ID'); return; }
+  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+  connectAttempts=0;
+  setSyncStatus('инициализация…','info');
   initPeer(function(ok){
-    if(!ok) return;
-    setSyncStatus('подключение…','');
-    try{ conn=peer.connect(PEER_PREFIX+id,{reliable:true}); }
-    catch(e){ setSyncStatus('ошибка','err'); return; }
-    bindConn('guest');
+    if(!ok){ setSyncStatus('не удалось инициализировать','err'); return; }
+    attemptConnect(id);
     s.partnerId=id; saveLocal();
   });
 }
+
+function pingPartner(){
+  if(!conn || !conn.open){
+    alert('Сначала подключитесь к партнёру по ID');
+    return;
+  }
+  try{
+    conn.send({t:'ping', ts: Date.now()});
+    setSyncStatus('пинг отправлен…','info');
+    if(pingTimeout) clearTimeout(pingTimeout);
+    pingTimeout = setTimeout(function(){
+      setSyncStatus('нет ответа на пинг','err');
+    }, 5000);
+    // Ответ придёт в conn.on('data') и перезапишет статус
+    var oldOnData = conn._events && conn._events.data;
+    setTimeout(function(){
+      if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; }
+    }, 5200);
+  } catch(e){
+    setSyncStatus('ошибка отправки','err');
+  }
+}
+
 function disconnectPeer(){
+  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+  connectAttempts=0;
   if(conn){ try{ conn.close(); }catch(e){} conn=null; }
   if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
+  s.partnerId=''; saveLocal();
   setSyncStatus('не подключено','');
 }
+
+function tryBluetoothSync(){
+  if(!navigator.bluetooth){
+    alert('Bluetooth недоступен в этом браузере.\n\nНа iPhone Safari не поддерживает Web Bluetooth. Используйте P2P-связь по ID или офлайн-коды ниже.');
+    return;
+  }
+  navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+    .then(function(device){
+      alert('Bluetooth-устройство выбрано: ' + (device.name || 'без имени') + '\n\nВнимание: эта версия не передаёт данные по Bluetooth — используйте P2P-связь по ID или офлайн-коды.');
+    })
+    .catch(function(err){
+      if(err.name !== 'NotFoundError'){
+        alert('Bluetooth: ' + (err.message || err.name));
+      }
+    });
+}
+
+function broadcast(){
+  if(!conn || !conn.open) return;
+  try{ conn.send({t:'state', data:{cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth}}); }catch(e){}
+}
+
 function mergeRemote(rem){
   if(!rem||typeof rem!=='object') return false;
   var changed=false;
@@ -857,7 +1016,24 @@ function mergeRemote(rem){
   }
   return changed;
 }
+
 setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner(s.partnerId); } }, 2500);
+
+/* ================= ЗАКРЫТИЕ ОКОН НА IPHONE ================= */
+(function(){
+  function closeOnBackdrop(e){
+    ['plannedPopup','resetPopup','reportPopup'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el && el.classList.contains('open') && e.target===el){
+        el.classList.remove('open');
+      }
+    });
+  }
+  document.body.addEventListener('pointerdown', closeOnBackdrop, { passive: true });
+  document.body.addEventListener('touchstart', closeOnBackdrop, { passive: true });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeOnBackdrop({target:document.body}); } });
+})();
+
 function render(){
   document.getElementById('hGreet').textContent = greetingMsg();
   var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1];
@@ -1084,7 +1260,6 @@ function buildReport(){
   h+='<tr><td><b>Итого</b></td><td><b>'+fm(total)+'</b></td><td>100%</td>'+(showPlan?'<td><b>'+fm(planT)+'</b></td><td></td>':'')+'</tr></table>';
   body.innerHTML=h;
 }
-/* ================= XLSX: тёмный дашборд ================= */
 var EXCELJS_SRCS=[
   'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
   'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js',
@@ -1160,22 +1335,10 @@ function buildAndDownloadXlsx(range, list, income){
   wb.creator = 'Совместные финансы';
   wb.created = new Date();
   var T = {
-    bg: 'FF0E1117',
-    panel: 'FF161A23',
-    panel2: 'FF1A1F2A',
-    header: 'FF21262F',
-    border: 'FF2A2F3A',
-    border2: 'FF353A45',
-    text: 'FFE6E8EC',
-    text2: 'FF8E939C',
-    text3: 'FF5A5F68',
-    green: 'FF73BF69',
-    red: 'FFF2495C',
-    blue: 'FF5794F2',
-    orange: 'FFFF9830',
-    purple: 'FFB877D9',
-    yellow: 'FFFADE2A',
-    pink: 'FFE91E8C'
+    bg: 'FF0E1117', panel: 'FF161A23', panel2: 'FF1A1F2A', header: 'FF21262F',
+    border: 'FF2A2F3A', border2: 'FF353A45', text: 'FFE6E8EC', text2: 'FF8E939C',
+    text3: 'FF5A5F68', green: 'FF73BF69', red: 'FFF2495C', blue: 'FF5794F2',
+    orange: 'FFFF9830', purple: 'FFB877D9', yellow: 'FFFADE2A', pink: 'FFE91E8C'
   };
   var total = 0; list.forEach(function(it){ total += (it.e.amt||0); });
   var days = Math.round((range.to - range.from) / 86400000) + 1; if (days < 1) days = 1;
@@ -1200,15 +1363,8 @@ function buildAndDownloadXlsx(range, list, income){
     incRows.push({k: k, a: mm.incA||0, b: mm.incB||0, o: o, t: tot});
   });
   incRows.sort(function(x, y){ return x.k < y.k ? -1 : 1; });
-  /* ============= 1. DASHBOARD ============= */
-  var ws = wb.addWorksheet('Дашборд', {
-    properties: {tabColor: {argb: T.pink}},
-    views: [{showGridLines: false}]
-  });
-  ws.columns = [
-    {width: 2}, {width: 22}, {width: 16}, {width: 14},
-    {width: 22}, {width: 16}, {width: 14}, {width: 2}
-  ];
+  var ws = wb.addWorksheet('Дашборд', { properties: {tabColor: {argb: T.pink}}, views: [{showGridLines: false}] });
+  ws.columns = [{width: 2}, {width: 22}, {width: 16}, {width: 14}, {width: 22}, {width: 16}, {width: 14}, {width: 2}];
   fillDark(ws, 120, 8, T.bg);
   ws.mergeCells('B2:G2');
   var title = ws.getCell('B2');
@@ -1287,24 +1443,8 @@ function buildAndDownloadXlsx(range, list, income){
     dc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
   if (catArr.length > 0){
-    ws.addConditionalFormatting({
-      ref: 'C15:C' + (14 + catArr.length),
-      rules: [{
-        type: 'dataBar',
-        minLength: 0, maxLength: 100,
-        color: {argb: T.pink},
-        cfvo: [{type: 'num', value: 0}, {type: 'max'}]
-      }]
-    });
-    ws.addConditionalFormatting({
-      ref: 'D15:D' + (14 + catArr.length),
-      rules: [{
-        type: 'dataBar',
-        minLength: 0, maxLength: 100,
-        color: {argb: T.blue},
-        cfvo: [{type: 'num', value: 0}, {type: 'max'}]
-      }]
-    });
+    ws.addConditionalFormatting({ ref: 'C15:C' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.pink}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
+    ws.addConditionalFormatting({ ref: 'D15:D' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.blue}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
   var tRow = 15 + catArr.length;
   ws.getRow(tRow).height = 26;
@@ -1320,10 +1460,7 @@ function buildAndDownloadXlsx(range, list, income){
     if (i === 2) cell.numFmt = '0.0%';
     if (i === 4) cell.numFmt = '+#,##0.00;-#,##0.00;—';
     cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0};
-    cell.border = {
-      top: {style: 'medium', color: {argb: T.border2}},
-      bottom: {style: 'medium', color: {argb: T.border2}}
-    };
+    cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
   });
   ws.getRow(tRow + 1).height = 12;
   var secRow = tRow + 2;
@@ -1368,24 +1505,10 @@ function buildAndDownloadXlsx(range, list, income){
     pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
   if (ser.arr.length > 0){
-    ws.addConditionalFormatting({
-      ref: 'C' + (thRow + 1) + ':C' + (thRow + ser.arr.length),
-      rules: [{
-        type: 'dataBar',
-        minLength: 0, maxLength: 100,
-        color: {argb: T.purple},
-        cfvo: [{type: 'num', value: 0}, {type: 'max'}]
-      }]
-    });
+    ws.addConditionalFormatting({ ref: 'C' + (thRow + 1) + ':C' + (thRow + ser.arr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.purple}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
-  /* ============= 2. КАТЕГОРИИ ============= */
-  var wsC = wb.addWorksheet('Категории', {
-    properties: {tabColor: {argb: T.blue}},
-    views: [{showGridLines: false}]
-  });
-  wsC.columns = [
-    {width: 30}, {width: 16}, {width: 16}, {width: 18}, {width: 12}
-  ];
+  var wsC = wb.addWorksheet('Категории', { properties: {tabColor: {argb: T.blue}}, views: [{showGridLines: false}] });
+  wsC.columns = [{width: 30}, {width: 16}, {width: 16}, {width: 18}, {width: 12}];
   fillDark(wsC, 120, 5, T.bg);
   var hC = ['Категория', 'План ₽', 'Факт ₽', 'Отклонение ₽', 'Доля'];
   ['A','B','C','D','E'].forEach(function(col, i){
@@ -1430,11 +1553,7 @@ function buildAndDownloadXlsx(range, list, income){
     if (j === 4) cell.numFmt = '0.0%';
   });
   wsC.getRow(totC).height = 26;
-  /* ============= 3. ДОХОДЫ ============= */
-  var wsI = wb.addWorksheet('Доходы', {
-    properties: {tabColor: {argb: T.green}},
-    views: [{showGridLines: false}]
-  });
+  var wsI = wb.addWorksheet('Доходы', { properties: {tabColor: {argb: T.green}}, views: [{showGridLines: false}] });
   wsI.columns = [{width: 16}, {width: 18}, {width: 18}, {width: 16}, {width: 18}];
   fillDark(wsI, 120, 5, T.bg);
   var hI = ['Месяц', 'ЗП (5-е) ₽', 'ЗП (20-е) ₽', 'Другое ₽', 'Итого ₽'];
@@ -1489,11 +1608,7 @@ function buildAndDownloadXlsx(range, list, income){
     });
     wsI.getRow(totI).height = 26;
   }
-  /* ============= 4. ВСЕ ТРАТЫ ============= */
-  var wsE = wb.addWorksheet('Все траты', {
-    properties: {tabColor: {argb: T.red}},
-    views: [{showGridLines: false}]
-  });
+  var wsE = wb.addWorksheet('Все траты', { properties: {tabColor: {argb: T.red}}, views: [{showGridLines: false}] });
   wsE.columns = [{width: 14}, {width: 24}, {width: 22}, {width: 16}];
   fillDark(wsE, 1500, 4, T.bg);
   var hE = ['Дата', 'Категория', 'Подкатегория', 'Сумма ₽'];
