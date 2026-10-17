@@ -188,6 +188,8 @@
   .bt-block h4{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
   .bt-block p{ font-size:11px; color:var(--text2); line-height:1.45; margin-bottom:10px; }
   .bt-block .btn-sec{ margin-top:0; }
+  .diag{ font-size:11px; color:var(--text2); background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-top:10px; line-height:1.5; }
+  .diag code{ background:var(--card); padding:1px 5px; border-radius:5px; font-size:10px; color:var(--accent); font-weight:700; }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
   #reportPopup.open{ display:flex; }
   #reportPopup .rp-box2{ background:#0D1117; width:100%; max-width:420px; max-height:92vh; border-radius:22px 22px 0 0; display:flex; flex-direction:column; overflow:hidden; border:1px solid #21262D; }
@@ -380,9 +382,10 @@
       </div>
       <button class="btn-sec" data-act="pingPartner">🔍 Проверить связь</button>
       <button class="btn-sec" data-act="disconnect">Отключиться</button>
-      <div style="font-size:11px;color:var(--text2);margin-top:10px;line-height:1.5">
-        Пока оба устройства открыты — все изменения (траты, доходы, планы) передаются в реальном времени.
-        Если не подключается — проверьте, что оба онлайн, и попробуйте через 5–10 секунд.
+      <div class="diag">
+        <b>Если не подключается:</b> оба устройства онлайн, оба открыли приложение.
+        Если у одного из вас включён VPN — попробуйте его выключить: VPN часто блокирует WebRTC.
+        Если сети совсем разные (Wi-Fi + мобильный) — первое подключение может занять до 20 секунд, идёт через TURN-релей.
       </div>
       <div class="bt-block">
         <h4>📶 Bluetooth (beta)</h4>
@@ -418,7 +421,7 @@
   <div class="pp-box">
     <div class="pp-emoji">📅</div>
     <h3>Запланированная трата</h3>
-    <p id="plannedMsg">Эта трата запланирована на будущую дату. До её наступления сумма не списывается со счёта и не попадает в отчёты. Если не удалить её до наступления дня — она станет обычной тратой и будет учтена.</p>
+    <p id="plannedMsg">Эта трата запланирована на будущую дату. До её наступления сумма не списывается со счёта и не попадает в отчёты.</p>
     <button class="pp-ok">Понятно</button>
   </div>
 </div>
@@ -426,7 +429,7 @@
   <div class="rp-box">
     <h3 style="font-size:16px;font-weight:700;color:#4A2440;margin-bottom:10px">🗑 Полный сброс данных</h3>
     <div style="font-size:13px;color:#9B6B8B;margin-bottom:14px;line-height:1.5">
-      Будут удалены ВСЕ данные: категории, планы, доходы, траты, все месяцы и настройки.<br><b style="color:#D6336C">Действие необратимо!</b>
+      Будут удалены ВСЕ данные.<br><b style="color:#D6336C">Действие необратимо!</b>
     </div>
     <div id="parSetup" style="display:none">
       <div style="font-size:12px;color:#9B6B8B;margin-bottom:6px">Задайте пароль для сброса:</div>
@@ -702,7 +705,7 @@ document.querySelectorAll('[data-act="resetCancel"]').forEach(function(b){ b.add
 document.querySelectorAll('[data-act="resetOk"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); doReset(); }); });
 function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},null,2); var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='finance-backup-'+s.curMonth+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000); alert('Резервная копия сохранена ✅'); }
 function importBackup(){ document.getElementById('restoreFile').click(); }
-document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); initDateInput(); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
+document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); initDateInput(); initPeerInput(); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
 function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
 var JSQR_SRCS=['jsqr.min.js','https://unpkg.com/jsqr@1.4.0/dist/jsQR.js','https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'];
 function ensureJSQR(ready){ if(typeof window.jsQR==='function'){ ready(true); return; } var i=0; function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++],function(ok){ if(ok&&typeof window.jsQR==='function'){ ready(true); } else { next(); } }); } next(); }
@@ -751,31 +754,41 @@ function importExp(data){ var area=document.getElementById('scanArea'); var myId
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
 
-/* ================= P2P ПО ID (с TURN/STUN + реконнектом) ================= */
+/* ================= P2P ПО ID (с TURN/STUN + устойчивым реконнектом) ================= */
 var ID_KEY='uzat_device_id';
 var PEER_PREFIX='uzfin-';
 function genId(){ var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r=''; for(var i=0;i<6;i++) r+=a[Math.floor(Math.random()*a.length)]; return r; }
 function loadDevId(){ var v=null; try{ v=localStorage.getItem(ID_KEY); }catch(e){} if(!v || !/^[A-Z0-9]{4,8}$/.test(v)){ v=genId(); try{ localStorage.setItem(ID_KEY,v); }catch(e){} } return v; }
 var DEV_ID=loadDevId();
 var peer=null, conn=null, peerRetry=0;
-var connectAttempts=0, connectTimeout=null, pingTimeout=null;
+var connectAttempts=0, connectTimeout=null, pingTimeout=null, reconnectTimer=null;
+
 var PEER_SRCS=[
   'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js'
 ];
+
 var PEER_CONFIG={
   iceServers:[
     { urls:'stun:stun.l.google.com:19302' },
     { urls:'stun:stun1.l.google.com:19302' },
+    { urls:'stun:stun2.l.google.com:19302' },
+    { urls:'stun:stun3.l.google.com:19302' },
+    { urls:'stun:stun.cloudflare.com:3478' },
     { urls:'stun:global.stun.twilio.com:3478' },
     { urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject' },
     { urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject' },
-    { urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject' }
+    { urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject' },
+    { urls:'turn:openrelay.metered.ca:80?transport=tcp', username:'openrelayproject', credential:'openrelayproject' }
   ],
-  sdpSemantics:'unified-plan'
+  iceCandidatePoolSize:10,
+  bundlePolicy:'max-bundle',
+  rtcpMuxPolicy:'require'
 };
+
 function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
+
 function setSyncStatus(txt, cls){
   var el=document.getElementById('syncStatus');
   if(!el) return;
@@ -783,47 +796,99 @@ function setSyncStatus(txt, cls){
   el.className='tag '+(cls||'');
   el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
 }
+
 function refreshMyId(){ var el=document.getElementById('myIdVal'); if(el) el.textContent=DEV_ID; }
 refreshMyId();
 
+function initPeerInput(){
+  var inp=document.getElementById('peerIdIn');
+  if(inp && !inp.value && s.partnerId && s.partnerId!==DEV_ID){
+    inp.value=s.partnerId;
+  }
+}
+
 function initPeer(cb){
   cb=cb||function(){};
-  if(peer && !peer.destroyed){ cb(true); return; }
+  if(peer && !peer.destroyed && peer.open){ cb(true); return; }
+  if(peer && peer.destroyed){ peer=null; }
+  if(peer && peer.disconnected && !peer.destroyed){
+    setSyncStatus('переподключение к серверу…','info');
+    try{ peer.reconnect(); }catch(e){}
+    var waited=0;
+    (function recheck(){
+      if(peer && peer.open && !peer.disconnected){ cb(true); return; }
+      if(waited>=6000){ try{ peer.destroy(); }catch(e){} peer=null; initPeer(cb); return; }
+      waited+=400; setTimeout(recheck, 400);
+    })();
+    return;
+  }
+  if(peer && !peer.destroyed && !peer.open && !peer.disconnected){
+    var waitCount=0;
+    (function waitOpen(){
+      if(peer && peer.open){ cb(true); return; }
+      if(peer && peer.destroyed){ peer=null; initPeer(cb); return; }
+      if(waitCount++>40){ try{ peer.destroy(); }catch(e){} peer=null; initPeer(cb); return; }
+      setTimeout(waitOpen, 300);
+    })();
+    return;
+  }
   ensurePeer(function(ok){
     if(!ok){ setSyncStatus('нет связи с сервером','err'); cb(false); return; }
     try{
-      peer = new Peer(PEER_PREFIX+DEV_ID, {
-        debug: 1,
-        config: PEER_CONFIG
-      });
+      peer=new Peer(PEER_PREFIX+DEV_ID, { debug:1, config:PEER_CONFIG });
     } catch(e){
       setSyncStatus('ошибка инициализации','err');
       cb(false); return;
     }
     var opened=false;
-    peer.on('open', function(){ opened=true; peerRetry=0; setSyncStatus('готов к подключению','ok'); cb(true); });
+    peer.on('open', function(){
+      opened=true;
+      peerRetry=0;
+      setSyncStatus('готов к подключению','ok');
+      cb(true);
+    });
     peer.on('connection', function(c){
       if(conn && conn.open){ try{ c.close(); }catch(e){} return; }
-      conn=c; bindConn('host');
+      conn=c;
+      bindConn('host');
+    });
+    peer.on('disconnected', function(){
+      setSyncStatus('нет связи с сервером, переподключаюсь…','info');
+      setTimeout(function(){
+        if(peer && !peer.destroyed && peer.disconnected){
+          try{ peer.reconnect(); }catch(e){}
+        }
+      }, 1500);
+    });
+    peer.on('close', function(){
+      peer=null;
+      if(s.partnerId && s.partnerId!==DEV_ID){
+        if(reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer=setTimeout(function(){
+          if(!conn || !conn.open){ connectToPartner(s.partnerId); }
+        }, 2000);
+      }
     });
     peer.on('error', function(err){
-      var t=err&&err.type;
-      if(t==='unavailable-id' && peerRetry<3){
+      var t=err && err.type;
+      if(t==='unavailable-id' && peerRetry<8){
         peerRetry++;
         try{ peer.destroy(); }catch(e){}
-        peer=null; DEV_ID=genId();
-        try{ localStorage.setItem(ID_KEY,DEV_ID); }catch(e){}
-        refreshMyId();
-        setTimeout(function(){ initPeer(cb); }, 500);
+        peer=null;
+        setSyncStatus('ожидание сервера… ('+peerRetry+'/8)','info');
+        setTimeout(function(){ initPeer(cb); }, 1200*peerRetry);
         return;
       }
       if(t==='peer-unavailable'){ setSyncStatus('ID не найден','err'); }
       else if(t==='network' || t==='server-error'){ setSyncStatus('сеть недоступна','err'); }
       else if(t==='browser-incompatible'){ setSyncStatus('браузер не поддерживает','err'); }
+      else if(t==='webrtc'){ setSyncStatus('ошибка WebRTC','err'); }
       else { setSyncStatus('ошибка: '+(t||'связи'),'err'); }
       if(!opened) cb(false);
     });
-    setTimeout(function(){ if(!opened){ setSyncStatus('сервер молчит','err'); cb(false); } }, 12000);
+    setTimeout(function(){
+      if(!opened && (!peer || !peer.open)){ setSyncStatus('сервер не отвечает','err'); cb(false); }
+    }, 15000);
   });
 }
 
@@ -831,19 +896,20 @@ function bindConn(role){
   if(!conn) return;
   conn.on('open', function(){
     if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-    setSyncStatus(role==='host'?'партнёр подключён ✓':'подключено ✓','ok');
+    var partnerId=String(conn.peer||'').replace(PEER_PREFIX,'');
+    setSyncStatus((role==='host'?'✓ подключён ':'✓ подключено ')+partnerId,'ok');
     connectAttempts=0;
     broadcast();
   });
   conn.on('data', function(msg){
     if(!msg) return;
     if(msg.t==='ping'){
-      try{ conn.send({t:'pong', ts: msg.ts}); }catch(e){}
-      setSyncStatus('пинг получен ✓','ok');
+      try{ conn.send({t:'pong', ts:msg.ts}); }catch(e){}
       return;
     }
     if(msg.t==='pong'){
-      setSyncStatus('связь работает ✓','ok');
+      setSyncStatus('✓ связь работает','ok');
+      if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; }
       return;
     }
     if(msg.t==='state' && msg.data){
@@ -852,17 +918,13 @@ function bindConn(role){
     }
   });
   conn.on('close', function(){
-    setSyncStatus('отключено','err');
+    setSyncStatus('отключено, переподключаюсь…','info');
     conn=null;
     if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-    // Автопереподключение если был установлен партнёр
     if(s.partnerId && s.partnerId!==DEV_ID){
-      setTimeout(function(){
-        if(!conn || !conn.open){
-          if(peer && !peer.destroyed && !peer.disconnected){
-            attemptConnect(s.partnerId);
-          }
-        }
+      if(reconnectTimer) clearTimeout(reconnectTimer);
+      reconnectTimer=setTimeout(function(){
+        if(!conn || !conn.open){ attemptConnect(s.partnerId); }
       }, 3000);
     }
   });
@@ -873,35 +935,32 @@ function bindConn(role){
 }
 
 function attemptConnect(id){
-  if(!peer || peer.destroyed){
-    setSyncStatus('сервер не готов','err');
+  if(!peer || peer.destroyed || !peer.open){
+    initPeer(function(ok){
+      if(ok) attemptConnect(id);
+      else setSyncStatus('сервер не готов','err');
+    });
     return;
   }
-  if(connectAttempts >= 3){
-    setSyncStatus('не удалось (3 попытки)','err');
-    return;
-  }
+  if(connectAttempts>=5){ setSyncStatus('не удалось (5 попыток)','err'); connectAttempts=0; return; }
   connectAttempts++;
-  setSyncStatus('подключение… ('+connectAttempts+'/3)','info');
+  setSyncStatus('подключение… ('+connectAttempts+'/5)','info');
   try{
-    conn = peer.connect(PEER_PREFIX+id, { reliable: true, serialization:'json' });
+    conn=peer.connect(PEER_PREFIX+id, { reliable:true });
   } catch(e){
     setSyncStatus('ошибка соединения','err');
     return;
   }
   bindConn('guest');
   if(connectTimeout) clearTimeout(connectTimeout);
-  connectTimeout = setTimeout(function(){
+  connectTimeout=setTimeout(function(){
     if(conn && !conn.open){
       try{ conn.close(); }catch(e){}
       conn=null;
-      if(connectAttempts < 3){
-        setTimeout(function(){ attemptConnect(id); }, 1200);
-      } else {
-        setSyncStatus('партнёр не отвечает','err');
-      }
+      if(connectAttempts<5) setTimeout(function(){ attemptConnect(id); }, 1500);
+      else { setSyncStatus('партнёр не отвечает','err'); connectAttempts=0; }
     }
-  }, 8000);
+  }, 12000);
 }
 
 function connectToPartner(raw){
@@ -909,32 +968,26 @@ function connectToPartner(raw){
   if(id.length<4){ alert('Введите ID партнёра'); return; }
   if(id===DEV_ID){ alert('Это ваш собственный ID'); return; }
   if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
   connectAttempts=0;
+  s.partnerId=id;
+  saveLocal();
+  var inp=document.getElementById('peerIdIn');
+  if(inp) inp.value=id;
   setSyncStatus('инициализация…','info');
   initPeer(function(ok){
     if(!ok){ setSyncStatus('не удалось инициализировать','err'); return; }
     attemptConnect(id);
-    s.partnerId=id; saveLocal();
   });
 }
 
 function pingPartner(){
-  if(!conn || !conn.open){
-    alert('Сначала подключитесь к партнёру по ID');
-    return;
-  }
+  if(!conn || !conn.open){ alert('Сначала подключитесь к партнёру по ID'); return; }
   try{
-    conn.send({t:'ping', ts: Date.now()});
+    conn.send({t:'ping', ts:Date.now()});
     setSyncStatus('пинг отправлен…','info');
     if(pingTimeout) clearTimeout(pingTimeout);
-    pingTimeout = setTimeout(function(){
-      setSyncStatus('нет ответа на пинг','err');
-    }, 5000);
-    // Ответ придёт в conn.on('data') и перезапишет статус
-    var oldOnData = conn._events && conn._events.data;
-    setTimeout(function(){
-      if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; }
-    }, 5200);
+    pingTimeout=setTimeout(function(){ setSyncStatus('нет ответа на пинг','err'); }, 5000);
   } catch(e){
     setSyncStatus('ошибка отправки','err');
   }
@@ -942,10 +995,15 @@ function pingPartner(){
 
 function disconnectPeer(){
   if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
+  if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; }
   connectAttempts=0;
   if(conn){ try{ conn.close(); }catch(e){} conn=null; }
   if(peer){ try{ peer.destroy(); }catch(e){} peer=null; }
-  s.partnerId=''; saveLocal();
+  s.partnerId='';
+  saveLocal();
+  var inp=document.getElementById('peerIdIn');
+  if(inp) inp.value='';
   setSyncStatus('не подключено','');
 }
 
@@ -954,14 +1012,12 @@ function tryBluetoothSync(){
     alert('Bluetooth недоступен в этом браузере.\n\nНа iPhone Safari не поддерживает Web Bluetooth. Используйте P2P-связь по ID или офлайн-коды ниже.');
     return;
   }
-  navigator.bluetooth.requestDevice({ acceptAllDevices: true })
+  navigator.bluetooth.requestDevice({ acceptAllDevices:true })
     .then(function(device){
-      alert('Bluetooth-устройство выбрано: ' + (device.name || 'без имени') + '\n\nВнимание: эта версия не передаёт данные по Bluetooth — используйте P2P-связь по ID или офлайн-коды.');
+      alert('Bluetooth-устройство выбрано: '+(device.name||'без имени')+'\n\nЭта версия не передаёт данные по Bluetooth — используйте P2P или офлайн-коды.');
     })
     .catch(function(err){
-      if(err.name !== 'NotFoundError'){
-        alert('Bluetooth: ' + (err.message || err.name));
-      }
+      if(err.name!=='NotFoundError'){ alert('Bluetooth: '+(err.message||err.name)); }
     });
 }
 
@@ -1017,20 +1073,18 @@ function mergeRemote(rem){
   return changed;
 }
 
-setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner(s.partnerId); } }, 2500);
+setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner(s.partnerId); } }, 2000);
 
 /* ================= ЗАКРЫТИЕ ОКОН НА IPHONE ================= */
 (function(){
   function closeOnBackdrop(e){
     ['plannedPopup','resetPopup','reportPopup'].forEach(function(id){
       var el=document.getElementById(id);
-      if(el && el.classList.contains('open') && e.target===el){
-        el.classList.remove('open');
-      }
+      if(el && el.classList.contains('open') && e.target===el){ el.classList.remove('open'); }
     });
   }
-  document.body.addEventListener('pointerdown', closeOnBackdrop, { passive: true });
-  document.body.addEventListener('touchstart', closeOnBackdrop, { passive: true });
+  document.body.addEventListener('pointerdown', closeOnBackdrop, { passive:true });
+  document.body.addEventListener('touchstart', closeOnBackdrop, { passive:true });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeOnBackdrop({target:document.body}); } });
 })();
 
@@ -1086,7 +1140,7 @@ function renderBudget(){
   s.cats.forEach(function(c){
     var spc=spentCat(c.n), pc=c.p>0?Math.min(100,spc/c.p*100):(spc>0?100:0), ov=c.p>0&&spc>c.p;
     planT+=(c.p||0); spentT+=spc;
-    var collapsed = ui.expanded[c.n]===true;
+    var collapsed=ui.expanded[c.n]===true;
     var block=document.createElement('div'); block.className='cat-block'; block.style.background=hexA(c.c,0.07);
     var r=document.createElement('div'); r.className='row';
     var tog=document.createElement('button'); tog.className='btg'; tog.textContent=collapsed?'▸':'▾'; tog.title='Свернуть / развернуть';
@@ -1270,9 +1324,7 @@ function ensureExcelJS(cb){
   var i=0;
   (function next(){
     if(i>=EXCELJS_SRCS.length){ cb(false); return; }
-    loadScript(EXCELJS_SRCS[i++], function(ok){
-      if(ok && window.ExcelJS) cb(true); else next();
-    });
+    loadScript(EXCELJS_SRCS[i++], function(ok){ if(ok && window.ExcelJS) cb(true); else next(); });
   })();
 }
 function fmtDate(d){ return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear(); }
@@ -1311,11 +1363,7 @@ function drawKpi(ws, topRow, leftCol, rightCol, kpi, T){
   ws.getRow(topRow+2).height = 18;
 }
 function fillDark(ws, rows, cols, color){
-  for (var r = 1; r <= rows; r++){
-    for (var c = 1; c <= cols; c++){
-      ws.getCell(r, c).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: color}};
-    }
-  }
+  for (var r = 1; r <= rows; r++){ for (var c = 1; c <= cols; c++){ ws.getCell(r, c).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: color}}; } }
 }
 function downloadXlsxReport(){
   var btn = document.querySelector('[data-act="xlsxReport"]');
@@ -1325,8 +1373,7 @@ function downloadXlsxReport(){
   var inc = incomeIn(r.from, r.to);
   ensureExcelJS(function(ok){
     if (!ok){ alert('Не удалось загрузить библиотеку XLSX. Проверьте интернет.'); if(btn) btn.disabled = false; return; }
-    try { buildAndDownloadXlsx(r, list, inc); }
-    catch(e){ console.error(e); alert('Ошибка: ' + e.message); }
+    try { buildAndDownloadXlsx(r, list, inc); } catch(e){ console.error(e); alert('Ошибка: ' + e.message); }
     if (btn) btn.disabled = false;
   });
 }
@@ -1334,31 +1381,21 @@ function buildAndDownloadXlsx(range, list, income){
   var wb = new ExcelJS.Workbook();
   wb.creator = 'Совместные финансы';
   wb.created = new Date();
-  var T = {
-    bg: 'FF0E1117', panel: 'FF161A23', panel2: 'FF1A1F2A', header: 'FF21262F',
-    border: 'FF2A2F3A', border2: 'FF353A45', text: 'FFE6E8EC', text2: 'FF8E939C',
-    text3: 'FF5A5F68', green: 'FF73BF69', red: 'FFF2495C', blue: 'FF5794F2',
-    orange: 'FFFF9830', purple: 'FFB877D9', yellow: 'FFFADE2A', pink: 'FFE91E8C'
-  };
+  var T = { bg:'FF0E1117', panel:'FF161A23', panel2:'FF1A1F2A', header:'FF21262F', border:'FF2A2F3A', border2:'FF353A45', text:'FFE6E8EC', text2:'FF8E939C', text3:'FF5A5F68', green:'FF73BF69', red:'FFF2495C', blue:'FF5794F2', orange:'FFFF9830', purple:'FFB877D9', yellow:'FFFADE2A', pink:'FFE91E8C' };
   var total = 0; list.forEach(function(it){ total += (it.e.amt||0); });
   var days = Math.round((range.to - range.from) / 86400000) + 1; if (days < 1) days = 1;
   var diff = income - total;
   var plannedTot = plannedTotalInRange(range.from, range.to);
   var byCat = {};
   list.forEach(function(it){ byCat[it.e.cat] = (byCat[it.e.cat]||0) + (it.e.amt||0); });
-  var catArr = Object.keys(byCat).map(function(n){
-    var c = s.cats.find(function(x){ return x.n === n; });
-    return {n: n, v: byCat[n], p: c ? (c.p||0) : 0};
-  }).sort(function(a, b){ return b.v - a.v; });
+  var catArr = Object.keys(byCat).map(function(n){ var c = s.cats.find(function(x){ return x.n === n; }); return {n: n, v: byCat[n], p: c ? (c.p||0) : 0}; }).sort(function(a, b){ return b.v - a.v; });
   var ser = seriesFor(range.from, range.to, list);
   var incRows = [];
   Object.keys(s.months).forEach(function(k){
     var p = k.split('-'), y = +p[0], m = +p[1];
     var mStart = new Date(y, m-1, 1), mEnd = new Date(y, m, 0, 23, 59, 59);
     if (mEnd < range.from || mStart > range.to) return;
-    var mm = s.months[k];
-    var o = sumOther(mm);
-    var tot = (mm.incA||0)+(mm.incB||0)+o;
+    var mm = s.months[k]; var o = sumOther(mm); var tot = (mm.incA||0)+(mm.incB||0)+o;
     if (tot <= 0 && !(mm.exp && mm.exp.length)) return;
     incRows.push({k: k, a: mm.incA||0, b: mm.incB||0, o: o, t: tot});
   });
@@ -1367,142 +1404,53 @@ function buildAndDownloadXlsx(range, list, income){
   ws.columns = [{width: 2}, {width: 22}, {width: 16}, {width: 14}, {width: 22}, {width: 16}, {width: 14}, {width: 2}];
   fillDark(ws, 120, 8, T.bg);
   ws.mergeCells('B2:G2');
-  var title = ws.getCell('B2');
-  title.value = 'ФИНАНСОВЫЙ ДАШБОРД';
-  title.font = {size: 20, bold: true, color: {argb: T.text}, name: 'Calibri'};
-  title.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  title.border = {bottom: {style: 'thick', color: {argb: T.pink}}};
+  var title = ws.getCell('B2'); title.value = 'ФИНАНСОВЫЙ ДАШБОРД'; title.font = {size: 20, bold: true, color: {argb: T.text}, name: 'Calibri'}; title.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; title.border = {bottom: {style: 'thick', color: {argb: T.pink}}};
   ws.getRow(2).height = 52;
   ws.mergeCells('B3:G3');
-  var subtitle = ws.getCell('B3');
-  subtitle.value = fmtDate(range.from) + '  —  ' + fmtDate(range.to) + '   ·   ' + reportPeriodLabel() + '   ·   ' + days + ' дн.' + (plannedTot > 0 ? '   ·   запланировано: ' + Math.round(plannedTot) + ' ₽' : '');
-  subtitle.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
-  subtitle.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  ws.getRow(3).height = 24;
-  ws.getRow(4).height = 8;
+  var subtitle = ws.getCell('B3'); subtitle.value = fmtDate(range.from) + '  —  ' + fmtDate(range.to) + '   ·   ' + reportPeriodLabel() + '   ·   ' + days + ' дн.' + (plannedTot > 0 ? '   ·   запланировано: ' + Math.round(plannedTot) + ' ₽' : ''); subtitle.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; subtitle.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
+  ws.getRow(3).height = 24; ws.getRow(4).height = 8;
   var kpis = [
     {label: 'ПОТРАЧЕНО', value: total, sub: 'за ' + reportPeriodLabel().toLowerCase(), color: T.red},
     {label: 'ДОХОД', value: income, sub: 'за период', color: T.green},
     {label: (diff >= 0 ? 'ОСТАТОК' : 'ДЕФИЦИТ'), value: Math.abs(diff), sub: diff >= 0 ? 'свободно' : 'не хватает', color: diff >= 0 ? T.blue : T.red},
     {label: 'В СРЕДНЕМ', value: total / days, sub: 'за день', color: T.orange}
   ];
-  drawKpi(ws, 5, 2, 4, kpis[0], T);
-  drawKpi(ws, 5, 5, 7, kpis[1], T);
-  drawKpi(ws, 9, 2, 4, kpis[2], T);
-  drawKpi(ws, 9, 5, 7, kpis[3], T);
+  drawKpi(ws, 5, 2, 4, kpis[0], T); drawKpi(ws, 5, 5, 7, kpis[1], T); drawKpi(ws, 9, 2, 4, kpis[2], T); drawKpi(ws, 9, 5, 7, kpis[3], T);
   ws.getRow(12).height = 12;
-  ws.mergeCells('B13:G13');
-  var sec1 = ws.getCell('B13');
-  sec1.value = 'РАСХОДЫ ПО КАТЕГОРИЯМ';
-  sec1.font = {size: 13, bold: true, color: {argb: T.text}, name: 'Calibri'};
-  sec1.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  sec1.border = {left: {style: 'thick', color: {argb: T.blue}}};
-  ws.getRow(13).height = 34;
+  ws.mergeCells('B13:G13'); var sec1 = ws.getCell('B13'); sec1.value = 'РАСХОДЫ ПО КАТЕГОРИЯМ'; sec1.font = {size: 13, bold: true, color: {argb: T.text}, name: 'Calibri'}; sec1.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; sec1.border = {left: {style: 'thick', color: {argb: T.blue}}}; ws.getRow(13).height = 34;
   var h1 = ['Категория', 'Сумма', '%', 'План', 'Отклонение'];
-  ['B','C','D','E','F'].forEach(function(col, i){
-    var cell = ws.getCell(col + '14');
-    cell.value = h1[i];
-    cell.font = {size: 9, bold: true, color: {argb: T.text2}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}};
-    cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0};
-    cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
-  });
+  ['B','C','D','E','F'].forEach(function(col, i){ var cell = ws.getCell(col + '14'); cell.value = h1[i]; cell.font = {size: 9, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
   ws.getRow(14).height = 26;
   catArr.forEach(function(c, i){
-    var row = 15 + i;
-    ws.getRow(row).height = 22;
-    var nc = ws.getCell('B' + row);
-    nc.value = c.n;
-    nc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
-    nc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-    nc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    var vc = ws.getCell('C' + row);
-    vc.value = c.v;
-    vc.numFmt = '#,##0.00';
-    vc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
-    vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
-    vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    var pc = ws.getCell('D' + row);
-    pc.value = total > 0 ? c.v / total : 0;
-    pc.numFmt = '0.0%';
-    pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
-    pc.alignment = {horizontal: 'center', vertical: 'middle'};
-    pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    var plc = ws.getCell('E' + row);
-    plc.value = c.p || 0;
-    plc.numFmt = '#,##0.00';
-    plc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
-    plc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
-    plc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    var dc = ws.getCell('F' + row);
-    var dv = c.p - c.v;
-    dc.value = dv;
-    dc.numFmt = '+#,##0.00;-#,##0.00;—';
-    dc.font = {size: 10, bold: true, color: {argb: dv >= 0 ? T.green : T.red}, name: 'Calibri'};
-    dc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
-    dc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var row = 15 + i; ws.getRow(row).height = 22;
+    var nc = ws.getCell('B' + row); nc.value = c.n; nc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'}; nc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; nc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var vc = ws.getCell('C' + row); vc.value = c.v; vc.numFmt = '#,##0.00'; vc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'}; vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var pc = ws.getCell('D' + row); pc.value = total > 0 ? c.v / total : 0; pc.numFmt = '0.0%'; pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; pc.alignment = {horizontal: 'center', vertical: 'middle'}; pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var plc = ws.getCell('E' + row); plc.value = c.p || 0; plc.numFmt = '#,##0.00'; plc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; plc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; plc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var dc = ws.getCell('F' + row); var dv = c.p - c.v; dc.value = dv; dc.numFmt = '+#,##0.00;-#,##0.00;—'; dc.font = {size: 10, bold: true, color: {argb: dv >= 0 ? T.green : T.red}, name: 'Calibri'}; dc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; dc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
   if (catArr.length > 0){
     ws.addConditionalFormatting({ ref: 'C15:C' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.pink}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
     ws.addConditionalFormatting({ ref: 'D15:D' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.blue}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
-  var tRow = 15 + catArr.length;
-  ws.getRow(tRow).height = 26;
+  var tRow = 15 + catArr.length; ws.getRow(tRow).height = 26;
   var planTotal = catArr.reduce(function(a,c){ return a + c.p; }, 0);
   var devTotal = catArr.reduce(function(a,c){ return a + (c.p - c.v); }, 0);
   var totVals = ['ИТОГО', total, 1, planTotal, devTotal];
-  ['B','C','D','E','F'].forEach(function(col, i){
-    var cell = ws.getCell(col + tRow);
-    cell.value = totVals[i];
-    cell.font = {size: 11, bold: true, color: {argb: i === 4 ? (devTotal >= 0 ? T.green : T.red) : T.text}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}};
-    if (i === 1 || i === 3) cell.numFmt = '#,##0.00';
-    if (i === 2) cell.numFmt = '0.0%';
-    if (i === 4) cell.numFmt = '+#,##0.00;-#,##0.00;—';
-    cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0};
-    cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
-  });
+  ['B','C','D','E','F'].forEach(function(col, i){ var cell = ws.getCell(col + tRow); cell.value = totVals[i]; cell.font = {size: 11, bold: true, color: {argb: i === 4 ? (devTotal >= 0 ? T.green : T.red) : T.text}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}}; if (i === 1 || i === 3) cell.numFmt = '#,##0.00'; if (i === 2) cell.numFmt = '0.0%'; if (i === 4) cell.numFmt = '+#,##0.00;-#,##0.00;—'; cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}}; });
   ws.getRow(tRow + 1).height = 12;
   var secRow = tRow + 2;
-  ws.mergeCells('B' + secRow + ':G' + secRow);
-  var sec2 = ws.getCell('B' + secRow);
-  sec2.value = 'ДИНАМИКА';
-  sec2.font = {size: 13, bold: true, color: {argb: T.text}, name: 'Calibri'};
-  sec2.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  sec2.border = {left: {style: 'thick', color: {argb: T.purple}}};
-  ws.getRow(secRow).height = 34;
+  ws.mergeCells('B' + secRow + ':G' + secRow); var sec2 = ws.getCell('B' + secRow); sec2.value = 'ДИНАМИКА'; sec2.font = {size: 13, bold: true, color: {argb: T.text}, name: 'Calibri'}; sec2.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; sec2.border = {left: {style: 'thick', color: {argb: T.purple}}}; ws.getRow(secRow).height = 34;
   var thRow = secRow + 1;
   var thLabels = [ser.type === 'day' ? 'День' : 'Месяц', 'Сумма', '% от макс'];
-  ['B','C','D'].forEach(function(col, i){
-    var cell = ws.getCell(col + thRow);
-    cell.value = thLabels[i];
-    cell.font = {size: 9, bold: true, color: {argb: T.text2}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}};
-    cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0};
-    cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
-  });
+  ['B','C','D'].forEach(function(col, i){ var cell = ws.getCell(col + thRow); cell.value = thLabels[i]; cell.font = {size: 9, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
   ws.getRow(thRow).height = 26;
   var maxM = 0; ser.arr.forEach(function(x){ if (x.v > maxM) maxM = x.v; });
   ser.arr.forEach(function(x, i){
-    var row = thRow + 1 + i;
-    ws.getRow(row).height = 20;
-    var lc = ws.getCell('B' + row);
-    lc.value = x.label;
-    lc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
-    lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-    lc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    var vc = ws.getCell('C' + row);
-    vc.value = x.v;
-    vc.numFmt = '#,##0.00';
-    vc.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
-    vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
-    vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    var pc = ws.getCell('D' + row);
-    pc.value = maxM > 0 ? x.v / maxM : 0;
-    pc.numFmt = '0%';
-    pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
-    pc.alignment = {horizontal: 'center', vertical: 'middle'};
-    pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var row = thRow + 1 + i; ws.getRow(row).height = 20;
+    var lc = ws.getCell('B' + row); lc.value = x.label; lc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'}; lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; lc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var vc = ws.getCell('C' + row); vc.value = x.v; vc.numFmt = '#,##0.00'; vc.font = {size: 10, color: {argb: T.text}, name: 'Calibri'}; vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var pc = ws.getCell('D' + row); pc.value = maxM > 0 ? x.v / maxM : 0; pc.numFmt = '0%'; pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; pc.alignment = {horizontal: 'center', vertical: 'middle'}; pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
   if (ser.arr.length > 0){
     ws.addConditionalFormatting({ ref: 'C' + (thRow + 1) + ':C' + (thRow + ser.arr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.purple}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
@@ -1511,22 +1459,12 @@ function buildAndDownloadXlsx(range, list, income){
   wsC.columns = [{width: 30}, {width: 16}, {width: 16}, {width: 18}, {width: 12}];
   fillDark(wsC, 120, 5, T.bg);
   var hC = ['Категория', 'План ₽', 'Факт ₽', 'Отклонение ₽', 'Доля'];
-  ['A','B','C','D','E'].forEach(function(col, i){
-    var cell = wsC.getCell(col + '1');
-    cell.value = hC[i];
-    cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}};
-    cell.alignment = {horizontal: i === 0 ? 'left' : 'right', vertical: 'middle', indent: i === 0 ? 1 : 0};
-    cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
-  });
+  ['A','B','C','D','E'].forEach(function(col, i){ var cell = wsC.getCell(col + '1'); cell.value = hC[i]; cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'right', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
   wsC.getRow(1).height = 26;
   catArr.forEach(function(c, i){
-    var row = 2 + i;
-    var dv = c.p - c.v;
-    var vals = [c.n, c.p, c.v, dv, total > 0 ? c.v / total : 0];
+    var row = 2 + i; var dv = c.p - c.v; var vals = [c.n, c.p, c.v, dv, total > 0 ? c.v / total : 0];
     ['A','B','C','D','E'].forEach(function(col, j){
-      var cell = wsC.getCell(col + row);
-      cell.value = vals[j];
+      var cell = wsC.getCell(col + row); cell.value = vals[j];
       cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}};
       cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1};
       cell.border = {bottom: {style: 'thin', color: {argb: T.border}}};
@@ -1543,12 +1481,7 @@ function buildAndDownloadXlsx(range, list, income){
   var totDev = catArr.reduce(function(a,c){return a+(c.p-c.v);},0);
   var totCVals = ['ИТОГО', totPlan, total, totDev, 1];
   ['A','B','C','D','E'].forEach(function(col, j){
-    var cell = wsC.getCell(col + totC);
-    cell.value = totCVals[j];
-    cell.font = {size: 11, bold: true, color: {argb: j === 3 ? (totDev >= 0 ? T.green : T.red) : T.text}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}};
-    cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1};
-    cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
+    var cell = wsC.getCell(col + totC); cell.value = totCVals[j]; cell.font = {size: 11, bold: true, color: {argb: j === 3 ? (totDev >= 0 ? T.green : T.red) : T.text}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}}; cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1}; cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
     if (j === 1 || j === 2 || j === 3) cell.numFmt = j === 3 ? '+#,##0.00;-#,##0.00;—' : '#,##0.00" ₽"';
     if (j === 4) cell.numFmt = '0.0%';
   });
@@ -1557,33 +1490,15 @@ function buildAndDownloadXlsx(range, list, income){
   wsI.columns = [{width: 16}, {width: 18}, {width: 18}, {width: 16}, {width: 18}];
   fillDark(wsI, 120, 5, T.bg);
   var hI = ['Месяц', 'ЗП (5-е) ₽', 'ЗП (20-е) ₽', 'Другое ₽', 'Итого ₽'];
-  ['A','B','C','D','E'].forEach(function(col, i){
-    var cell = wsI.getCell(col + '1');
-    cell.value = hI[i];
-    cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}};
-    cell.alignment = {horizontal: i === 0 ? 'left' : 'right', vertical: 'middle', indent: i === 0 ? 1 : 0};
-    cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
-  });
+  ['A','B','C','D','E'].forEach(function(col, i){ var cell = wsI.getCell(col + '1'); cell.value = hI[i]; cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'right', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
   wsI.getRow(1).height = 26;
   if (incRows.length === 0){
-    wsI.mergeCells('A2:E2');
-    var emptyI = wsI.getCell('A2');
-    emptyI.value = 'Нет данных о доходах за период';
-    emptyI.font = {size: 11, italic: true, color: {argb: T.text3}, name: 'Calibri'};
-    emptyI.alignment = {horizontal: 'center', vertical: 'middle'};
-    wsI.getRow(2).height = 40;
+    wsI.mergeCells('A2:E2'); var emptyI = wsI.getCell('A2'); emptyI.value = 'Нет данных о доходах за период'; emptyI.font = {size: 11, italic: true, color: {argb: T.text3}, name: 'Calibri'}; emptyI.alignment = {horizontal: 'center', vertical: 'middle'}; wsI.getRow(2).height = 40;
   } else {
     incRows.forEach(function(it, i){
-      var row = 2 + i;
-      var p = it.k.split('-');
-      var vals = [SHORT[+p[1]-1] + ' ' + p[0], it.a, it.b, it.o, it.t];
+      var row = 2 + i; var p = it.k.split('-'); var vals = [SHORT[+p[1]-1] + ' ' + p[0], it.a, it.b, it.o, it.t];
       ['A','B','C','D','E'].forEach(function(col, j){
-        var cell = wsI.getCell(col + row);
-        cell.value = vals[j];
-        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}};
-        cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1};
-        cell.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+        var cell = wsI.getCell(col + row); cell.value = vals[j]; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}}; cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1}; cell.border = {bottom: {style: 'thin', color: {argb: T.border}}};
         if (j === 0) cell.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
         else if (j === 4) cell.font = {size: 10, bold: true, color: {argb: T.green}, name: 'Calibri'};
         else cell.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
@@ -1598,12 +1513,7 @@ function buildAndDownloadXlsx(range, list, income){
     var totT = incRows.reduce(function(a,c){return a+c.t;},0);
     var totIVals = ['ИТОГО', totA, totB, totO, totT];
     ['A','B','C','D','E'].forEach(function(col, j){
-      var cell = wsI.getCell(col + totI);
-      cell.value = totIVals[j];
-      cell.font = {size: 11, bold: true, color: {argb: j === 4 ? T.green : T.text}, name: 'Calibri'};
-      cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}};
-      cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1};
-      cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
+      var cell = wsI.getCell(col + totI); cell.value = totIVals[j]; cell.font = {size: 11, bold: true, color: {argb: j === 4 ? T.green : T.text}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}}; cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1}; cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
       if (j > 0) cell.numFmt = '#,##0.00" ₽"';
     });
     wsI.getRow(totI).height = 26;
@@ -1612,35 +1522,16 @@ function buildAndDownloadXlsx(range, list, income){
   wsE.columns = [{width: 14}, {width: 24}, {width: 22}, {width: 16}];
   fillDark(wsE, 1500, 4, T.bg);
   var hE = ['Дата', 'Категория', 'Подкатегория', 'Сумма ₽'];
-  ['A','B','C','D'].forEach(function(col, i){
-    var cell = wsE.getCell(col + '1');
-    cell.value = hE[i];
-    cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'};
-    cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}};
-    cell.alignment = {horizontal: i === 0 ? 'left' : (i === 3 ? 'right' : 'left'), vertical: 'middle', indent: 1};
-    cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
-  });
+  ['A','B','C','D'].forEach(function(col, i){ var cell = wsE.getCell(col + '1'); cell.value = hE[i]; cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : (i === 3 ? 'right' : 'left'), vertical: 'middle', indent: 1}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
   wsE.getRow(1).height = 26;
   if (list.length === 0){
-    wsE.mergeCells('A2:D2');
-    var emptyE = wsE.getCell('A2');
-    emptyE.value = 'Нет трат за период';
-    emptyE.font = {size: 11, italic: true, color: {argb: T.text3}, name: 'Calibri'};
-    emptyE.alignment = {horizontal: 'center', vertical: 'middle'};
-    wsE.getRow(2).height = 40;
+    wsE.mergeCells('A2:D2'); var emptyE = wsE.getCell('A2'); emptyE.value = 'Нет трат за период'; emptyE.font = {size: 11, italic: true, color: {argb: T.text3}, name: 'Calibri'}; emptyE.alignment = {horizontal: 'center', vertical: 'middle'}; wsE.getRow(2).height = 40;
   } else {
     var sortedList = list.slice().sort(function(a, b){ return a.date - b.date; });
     sortedList.forEach(function(it, i){
-      var row = 2 + i;
-      var e = it.e;
-      var vals = [fmtDate(it.date), e.cat || '', e.sub || '—', e.amt || 0];
+      var row = 2 + i; var e = it.e; var vals = [fmtDate(it.date), e.cat || '', e.sub || '—', e.amt || 0];
       ['A','B','C','D'].forEach(function(col, j){
-        var cell = wsE.getCell(col + row);
-        cell.value = vals[j];
-        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}};
-        cell.alignment = {horizontal: j === 3 ? 'right' : 'left', vertical: 'middle', indent: 1};
-        cell.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-        cell.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
+        var cell = wsE.getCell(col + row); cell.value = vals[j]; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}}; cell.alignment = {horizontal: j === 3 ? 'right' : 'left', vertical: 'middle', indent: 1}; cell.border = {bottom: {style: 'thin', color: {argb: T.border}}}; cell.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
         if (j === 3) cell.numFmt = '#,##0.00" ₽"';
       });
       wsE.getRow(row).height = 20;
@@ -1658,8 +1549,10 @@ function buildAndDownloadXlsx(range, list, income){
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1200);
   });
 }
+
 applyT(s.theme||'pink');
 initDateInput();
+initPeerInput();
 render();
 </script>
 </body>
