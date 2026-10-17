@@ -188,6 +188,9 @@
   .bt-block h4{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
   .bt-block p{ font-size:11px; color:var(--text2); line-height:1.45; margin-bottom:10px; }
   .bt-block .btn-sec{ margin-top:0; }
+  .bt-block .exp-field{ margin-bottom:8px; }
+  .bt-block input{ font-size:13px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); outline:none; width:100%; font-weight:600; }
+  .bt-block input:focus{ border-color:var(--accent); }
   .diag{ font-size:11px; color:var(--text2); background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-top:10px; line-height:1.5; }
   .diag code{ background:var(--card); padding:1px 5px; border-radius:5px; font-size:10px; color:var(--accent); font-weight:700; }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
@@ -392,13 +395,24 @@
     <div class="card">
       <h3>📶 Bluetooth <span class="tag" id="btStatus">не подключено</span></h3>
       <div class="bt-block">
-        <h4>Обмен по BLE</h4>
-        <p>В Safari на iPhone Bluetooth работает через приложение <b>beacio</b> из App Store (iOS 26.2+).
-        Установите его, включите расширение в Safari — и кнопка ниже заработает.
-        В Chrome/Edge на Android и десктопе работает сразу.</p>
+        <h4>Фильтр устройств</h4>
+        <p>Если в списке «Unknown Device» — введите имя или UUID сервиса из BLE Scanner / nRF Connect. Показываться будут только подходящие устройства.</p>
+        <label class="exp-field">
+          <span class="exp-lbl">Имя или префикс</span>
+          <input type="text" id="btFilterName" placeholder="MyDevice" autocomplete="off">
+        </label>
+        <label class="exp-field">
+          <span class="exp-lbl">UUID сервиса (необязательно)</span>
+          <input type="text" id="btFilterService" placeholder="0x180F или 0000180F-0000-1000-8000-00805F9B34FB" autocomplete="off">
+        </label>
         <button class="btn-sec" id="btConnectBtn" data-act="btConnect" style="margin-top:0">🔵 Подключиться по Bluetooth</button>
         <button class="btn-sec" id="btSendBtn" data-act="btSend">📤 Отправить траты по Bluetooth</button>
         <button class="btn-sec" id="btInstallBtn" data-act="btInstall">📲 Установить beacio</button>
+      </div>
+      <div class="diag" style="margin-top:10px">
+        <b>Что за код под именем в BLE Scanner?</b><br>
+        • <b>UUID сервиса</b> вида <code>0000XXXX-...</code> или <code>0xXXXX</code> — вставьте в поле «UUID сервиса».<br>
+        • <b>MAC-адрес</b> <code>XX:XX:XX:...</code> — фильтровать нельзя, но UUID сервиса у устройства тоже есть.
       </div>
     </div>
     <div class="card">
@@ -619,7 +633,7 @@ function act(kind){
   if(kind==='pingPartner'){ pingPartner(); return; }
   if(kind==='btConnect'){ btConnect(); return; }
   if(kind==='btSend'){ btSend(); return; }
-  if(kind==='btInstall'){ showBeacioBanner(); return; }
+  if(kind==='btInstall'){ BeacioBridge.showInstallBanner(); return; }
   if(kind==='report'){ openReport(); return; }
   if(kind==='closeReport'){ closeReport(); return; }
   if(kind==='xlsxReport'){ downloadXlsxReport(); return; }
@@ -759,7 +773,7 @@ function importExp(data){ var area=document.getElementById('scanArea'); var myId
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
 
-/* ================= BEACIO BRIDGE (локальный beacio.js) ================= */
+/* ================= BEACIO BRIDGE ================= */
 var BeacioBridge = (function(){
   'use strict';
   var IOS_SAFARI = /iPhone|iPad|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
@@ -825,6 +839,45 @@ var BeacioBridge = (function(){
   };
 })();
 
+/* ================= НАСТРОЙКИ BLUETOOTH-ФИЛЬТРА ================= */
+var BT_SETTINGS_KEY = 'bt_filter_settings';
+function getBtSettings(){
+  var def = { namePrefix:'', services:'' };
+  try{
+    var raw = localStorage.getItem(BT_SETTINGS_KEY);
+    if(raw){ var p = JSON.parse(raw); return { namePrefix: p.namePrefix||'', services: p.services||'' }; }
+  }catch(e){}
+  return def;
+}
+function saveBtSettings(v){
+  try{ localStorage.setItem(BT_SETTINGS_KEY, JSON.stringify(v)); }catch(e){}
+}
+function initBtInputs(){
+  var st = getBtSettings();
+  var iName = document.getElementById('btFilterName');
+  var iSrv = document.getElementById('btFilterService');
+  if(iName) iName.value = st.namePrefix;
+  if(iSrv) iSrv.value = st.services;
+}
+function readBtInputs(){
+  var iName = document.getElementById('btFilterName');
+  var iSrv = document.getElementById('btFilterService');
+  var st = { namePrefix: iName ? iName.value.trim() : '', services: iSrv ? iSrv.value.trim() : '' };
+  saveBtSettings(st);
+  return st;
+}
+function normalizeUuid(u){
+  u = String(u||'').trim().toUpperCase();
+  if(!u) return '';
+  if(/^0X[0-9A-F]{4}$/.test(u)) u = u.slice(2);
+  if(/^[0-9A-F]{4}$/.test(u)) return '0000'+u.toLowerCase()+'-0000-1000-8000-00805f9b34fb';
+  return u.toLowerCase();
+}
+function parseBtServices(s){
+  if(!s) return [];
+  return s.split(/[,\s]+/).filter(Boolean).map(normalizeUuid);
+}
+
 /* ================= BLUETOOTH ================= */
 var btDevice=null, btChar=null;
 function setBtStatus(txt, cls){
@@ -845,13 +898,32 @@ function btConnect(){
   });
 }
 function runBluetoothConnect(){
-  var SERVICE_UUID='0000abcd-0000-1000-8000-00805f9b34fb';
-  var CHAR_UUID='0000abce-0000-1000-8000-00805f9b34fb';
-  setBtStatus('поиск устройств…','info');
-  navigator.bluetooth.requestDevice({ acceptAllDevices:true, optionalServices:[SERVICE_UUID] })
+  var st = readBtInputs();
+  var filters = [];
+  if(st.namePrefix) filters.push({ namePrefix: st.namePrefix });
+  var uuids = parseBtServices(st.services);
+  if(uuids.length) filters.push({ services: uuids });
+
+  var SERVICE_UUID = '0000abcd-0000-1000-8000-00805f9b34fb';
+  var CHAR_UUID = '0000abce-0000-1000-8000-00805f9b34fb';
+
+  var optional = [SERVICE_UUID];
+  if(uuids.length) optional = optional.concat(uuids);
+
+  var options;
+  if(filters.length){
+    options = { filters: filters, optionalServices: optional };
+    setBtStatus('фильтр: '+(st.namePrefix||'')+(st.namePrefix&&uuids.length?' + ':'')+(uuids.length?uuids.join(', '):''),'info');
+  } else {
+    options = { acceptAllDevices: true, optionalServices: optional };
+    setBtStatus('поиск всех устройств…','info');
+  }
+
+  navigator.bluetooth.requestDevice(options)
     .then(function(dev){
       btDevice = dev;
-      setBtStatus('подключение к '+(dev.name||'BLE')+'…','info');
+      var label = dev.name || dev.id || 'BLE';
+      setBtStatus('подключение к '+label+'…','info');
       return dev.gatt.connect();
     })
     .then(function(server){
@@ -1562,6 +1634,7 @@ function buildAndDownloadXlsx(range, list, income){
 applyT(s.theme||'pink');
 initDateInput();
 initPeerInput();
+initBtInputs();
 render();
 </script>
 </body>
