@@ -387,16 +387,17 @@
       <button class="btn-sec" data-act="pingPartner">🔍 Проверить связь</button>
       <button class="btn-sec" data-act="disconnect">Отключиться</button>
       <div class="diag">
-        <b>Если не подключается:</b> оба устройства онлайн, оба открыли приложение, VPN выключен.
-        При неудаче нажмите «Подключить» ещё раз — приложение попробует сначала прямое
-        соединение, затем через TURN-релей (до 15–20 секунд).
+        <b>Как работает:</b> оба в сети, оба открыли приложение. При неудаче нажмите «Подключить» ещё раз —
+        будет попытка напрямую, затем через TURN-релей (до 15–20 сек).
       </div>
     </div>
     <div class="card">
       <h3>📶 Bluetooth <span class="tag" id="btStatus">не подключено</span></h3>
       <div class="bt-block">
-        <h4>Фильтр устройств</h4>
-        <p>Если в списке «Unknown Device» — введите имя или UUID сервиса из BLE Scanner / nRF Connect. Показываться будут только подходящие устройства.</p>
+        <h4>Для внешнего BLE-устройства</h4>
+        <p>Прямой обмен «телефон ⇄ телефон» по Bluetooth из браузера невозможен (браузер не умеет быть BLE-сервером).
+           Этот блок — для внешнего устройства (часы, ESP32) с GATT-сервисом. Для телефонов используйте
+           «Связь по ID», QR или код ниже.</p>
         <label class="exp-field">
           <span class="exp-lbl">Имя или префикс</span>
           <input type="text" id="btFilterName" placeholder="MyDevice" autocomplete="off">
@@ -406,22 +407,25 @@
           <input type="text" id="btFilterService" placeholder="0x180F или 0000180F-0000-1000-8000-00805F9B34FB" autocomplete="off">
         </label>
         <button class="btn-sec" id="btConnectBtn" data-act="btConnect" style="margin-top:0">🔵 Подключиться по Bluetooth</button>
-        <button class="btn-sec" id="btSendBtn" data-act="btSend">📤 Отправить траты по Bluetooth</button>
+        <button class="btn-sec" id="btSendBtn" data-act="btSend">📤 Отправить всё по Bluetooth</button>
         <button class="btn-sec" id="btInstallBtn" data-act="btInstall">📲 Установить beacio</button>
       </div>
       <div class="diag" style="margin-top:10px">
-        <b>Что за код под именем в BLE Scanner?</b><br>
-        • <b>UUID сервиса</b> вида <code>0000XXXX-...</code> или <code>0xXXXX</code> — вставьте в поле «UUID сервиса».<br>
-        • <b>MAC-адрес</b> <code>XX:XX:XX:...</code> — фильтровать нельзя, но UUID сервиса у устройства тоже есть.
+        <b>Что за код под именем в BLE Scanner?</b> UUID сервиса вида <code>0000XXXX-.../0xXXXX</code> —
+        вставьте в поле «UUID сервиса».
       </div>
     </div>
     <div class="card">
-      <h3>🔗 Обмен кодом <span class="tag">офлайн</span></h3>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Разовый обмен, если нет сети или ID не подошёл.</div>
+      <h3>🧾 Передача кодами <span class="tag">офлайн</span></h3>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
+        Полный перенос всех данных (траты, планы, доходы, все месяцы). Скопируй код и отправь партнёру,
+        он вставит в «Ввести код вручную». Либо сними QR-код камерой.
+      </div>
       <div class="sync-cta">
-        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">траты</div></div>
+        <div class="sync-btn" data-act="showQr"><div class="si">📤</div><div class="st2">Мой код</div><div class="ss">траты (месяц)</div></div>
+        <div class="sync-btn" data-act="shareAll"><div class="si">🧾</div><div class="st2">Передать всё</div><div class="ss">траты+планы+доход</div></div>
         <div class="sync-btn" data-act="scan"><div class="si">📷</div><div class="st2">Сканировать</div><div class="ss">камера</div></div>
-        <div class="sync-btn" data-act="sharePlans"><div class="si">📋</div><div class="st2">Поделиться планами</div><div class="ss">категории/планы</div></div>
+        <div class="sync-btn" data-act="sharePlans"><div class="si">📋</div><div class="st2">Поделиться планами</div><div class="ss">категории</div></div>
         <div class="sync-btn" data-act="manual"><div class="si">⌨️</div><div class="st2">Ввести код</div><div class="ss">вручную</div></div>
         <div class="sync-btn" data-act="export"><div class="si">💾</div><div class="st2">Сохранить копию</div><div class="ss">скачать файл</div></div>
         <div class="sync-btn" data-act="import"><div class="si">📂</div><div class="st2">Восстановить</div><div class="ss">из файла</div></div>
@@ -621,6 +625,7 @@ function act(kind){
   if(kind==='addCat'){ addCat(); return; }
   if(kind==='addExp'){ addExp(); return; }
   if(kind==='showQr'){ showQr(); return; }
+  if(kind==='shareAll'){ showAllQr(); return; }
   if(kind==='scan'){ startScan(); return; }
   if(kind==='manual'){ showManual(); return; }
   if(kind==='sharePlans'){ sharePlans(); return; }
@@ -732,15 +737,17 @@ function b64enc(x){ return btoa(unescape(encodeURIComponent(x))); }
 function b64dec(x){ return decodeURIComponent(escape(atob(x))); }
 function expPayload(){ return JSON.stringify({app:'uz',type:'exp',month:s.curMonth,incA:mo().incA||0,incB:mo().incB||0,exp:mo().exp.map(function(e){return {id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt};}),other:(mo().other||[]).map(function(o){return {id:o.id,type:o.type,amt:o.amt};})}); }
 function planPayload(){ return JSON.stringify({app:'uz',type:'plan',v:1,cats:s.cats}); }
-function buildPayload(){ return qrMode==='plan'?planPayload():expPayload(); }
+function fullPayload(){ return JSON.stringify({app:'uz',type:'full',v:1,data:{cats:s.cats,months:s.months,deleted:s.deleted,curMonth:s.curMonth}}); }
+function buildPayload(){ if(qrMode==='plan') return planPayload(); if(qrMode==='full') return fullPayload(); return expPayload(); }
 function showCode(payload,label){
   var a=document.getElementById('qrArea');
   var code=b64enc(payload);
   a.innerHTML='<div class="qr-holder"><div style="font-size:14px;font-weight:700">'+(label||'Обмен данными')+'</div><div style="font-size:11px;color:var(--text2);margin:6px 0">Скопируй код и отправь партнёру.</div><textarea readonly class="manual">'+code+'</textarea><button class="btn-main" data-copy="1">Скопировать код</button></div>';
   var b=a.querySelector('[data-copy="1"]'); b.onclick=function(){ copyCode(code); };
 }
-function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR) return; lastQR=p; showCode(buildPayload(), qrMode==='plan'?'Поделитесь планами':''); }
+function renderQR_now(){ if(!qrVisible) return; var p=b64enc(buildPayload()); if(p===lastQR) return; lastQR=p; showCode(buildPayload(), qrMode==='plan'?'Поделитесь планами':(qrMode==='full'?'Всё — траты+планы+доход':'')); }
 function showQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='exp'; qrVisible=true; var a=document.getElementById('qrArea'); a.style.display='block'; renderQR_now(); }
+function showAllQr(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='full'; qrVisible=true; var a=document.getElementById('qrArea'); a.style.display='block'; renderQR_now(); }
 function sharePlans(){ stopScan(); document.getElementById('scanArea').style.display='none'; qrMode='plan'; qrVisible=true; var a=document.getElementById('qrArea'); a.style.display='block'; renderQR_now(); }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Скопировано ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
 var scanTimer=null, scanStream=null;
@@ -757,7 +764,23 @@ function showManual(msg){ document.getElementById('qrArea').style.display='none'
 function parseData(raw){ var data=null; try{ data=JSON.parse(b64dec(raw)); }catch(e){ data=null; } if(!data){ try{ data=JSON.parse(raw); }catch(e){ data=null; } } return data; }
 function mergePayload(str){ var area=document.getElementById('scanArea'); area.style.display='block'; var data=parseData(str);
   if(!data||data.app!=='uz'){ area.innerHTML='<div class="empty">Код не распознан</div><button class="btn-sec" data-r="1">Попробовать ещё</button>'; var b=area.querySelector('[data-r="1"]'); if(b)b.onclick=function(){ showManual(); }; return; }
-  if(data.type==='plan'){ importPlan(data); return; } importExp(data); }
+  if(data.type==='plan'){ importPlan(data); return; }
+  if(data.type==='full'){ importFull(data); return; }
+  importExp(data); }
+function importFull(data){
+  var area=document.getElementById('scanArea');
+  var rd=(data&&data.data)||{};
+  var before=JSON.stringify(s);
+  var changed=mergeRemote({cats:rd.cats||[], months:rd.months||{}, deleted:rd.deleted||[]});
+  if(!changed){
+    area.innerHTML='<div class="qr-holder"><div style="font-size:30px">🔄</div><div style="font-size:15px;color:var(--text2);font-weight:700;margin:8px 0">Всё уже актуально</div><button class="btn-main" data-go="sync">Ок</button></div>';
+  } else {
+    save(); render();
+    area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Все данные объединены!</div><div style="font-size:13px;color:var(--text2)">Траты, планы и доходы — у вас.</div><br><button class="btn-main" data-go="sync">Ок</button></div>';
+  }
+  qrVisible=false;
+  var gb=area.querySelector('[data-go="sync"]'); if(gb) gb.onclick=function(){ nav('sync'); };
+}
 function importPlan(data){ var area=document.getElementById('scanArea'); var added=0, upd=0;
   (data.cats||[]).forEach(function(ic){ var ex=s.cats.find(function(c){return c.n===ic.n;});
     if(ex){ ex.p=ic.p||0; ex.c=ic.c||ex.c; ex.subs=(ic.subs||[]).map(function(x){return {n:x.n,p:x.p||0};}); upd++; }
@@ -765,14 +788,13 @@ function importPlan(data){ var area=document.getElementById('scanArea'); var add
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Планы импортированы!</div><div style="font-size:13px;color:var(--text2)">Новых: <b style="color:var(--text)">'+added+'</b>, обновлено: <b style="color:var(--text)">'+upd+'</b></div><br><button class="btn-main" data-go="budget">К плану</button></div>';
   var gb=area.querySelector('[data-go="budget"]'); if(gb) gb.onclick=function(){ nav('budget'); }; }
-function importExp(data){ var area=document.getElementById('scanArea'); var myIds={}; mo().exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
-  (data.exp||[]).forEach(function(e){ if(e.id&&!myIds[e.id]&&s.deleted.indexOf(e.id)<0){ mo().exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
-  if(data.incA!==undefined && data.incB!==undefined){ var m=mo(); if(!m.incA)m.incA=data.incA; if(!m.incB)m.incB=data.incB; }
-  if(data.other && data.other.length){ var m2=mo(); m2.other=m2.other||[]; var oids={}; m2.other.forEach(function(o){ oids[o.id]=true; }); data.other.forEach(function(o){ if(o.id && !oids[o.id]){ m2.other.push({id:o.id,type:o.type||'other',amt:o.amt||0}); oids[o.id]=true; } }); }
+function importExp(data){ var area=document.getElementById('scanArea'); var mkey=data.month||s.curMonth; var m=getMonth(mkey); var myIds={}; m.exp.forEach(function(e){myIds[e.id]=true;}); var added=0;
+  (data.exp||[]).forEach(function(e){ if(e.id&&!myIds[e.id]&&s.deleted.indexOf(e.id)<0){ m.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,ts:Date.now()}); myIds[e.id]=true; added++; } });
+  if(data.incA!==undefined && data.incB!==undefined){ if(!m.incA)m.incA=data.incA; if(!m.incB)m.incB=data.incB; }
+  if(data.other && data.other.length){ m.other=m.other||[]; var oids={}; m.other.forEach(function(o){ oids[o.id]=true; }); data.other.forEach(function(o){ if(o.id && !oids[o.id]){ m.other.push({id:o.id,type:o.type||'other',amt:o.amt||0}); oids[o.id]=true; } }); }
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
-
 /* ================= BEACIO BRIDGE ================= */
 var BeacioBridge = (function(){
   'use strict';
@@ -780,7 +802,6 @@ var BeacioBridge = (function(){
   var CDN_BEACIO_SRC = 'https://beacio.com/beacio.js';
   var beacioLoaded = false;
   var bannerShown = false;
-
   function showInstallBanner(){
     if(document.getElementById('beacio-banner') || bannerShown) return;
     bannerShown = true;
@@ -790,7 +811,7 @@ var BeacioBridge = (function(){
       '<div style="font-size:22px;flex:none">📶</div>' +
       '<div style="flex:1;min-width:0">' +
         '<b>Bluetooth в Safari</b><br>' +
-        'Для Bluetooth на iPhone установите бесплатное приложение <b>beacio</b> из App Store (iOS 26.2+) и включите его расширение в Safari. После этого Bluetooth заработает прямо здесь.' +
+        'Для Bluetooth на iPhone установите бесплатное приложение <b>beacio</b> из App Store (iOS 26.2+) и включите его расширение в Safari.' +
         '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
           '<a href="https://apps.apple.com/ru/app/beacio/id6761301368" target="_blank" rel="noopener" style="padding:9px 14px;background:#E91E8C;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:12px">beacio в App Store</a>' +
           '<button type="button" id="beacio-dismiss" style="padding:9px 14px;background:#FDF0F8;border:1px solid #F3C6E0;border-radius:10px;font-weight:600;font-size:12px;color:#4A2440">Позже</button>' +
@@ -800,7 +821,6 @@ var BeacioBridge = (function(){
     var close = b.querySelector('#beacio-dismiss');
     if(close){ close.onclick = function(){ b.remove(); bannerShown = false; try{ localStorage.setItem('bt_banner_dismissed','1'); }catch(e){} }; }
   }
-
   function tryLoad(src, cb){
     var sc = document.createElement('script');
     sc.src = src;
@@ -808,7 +828,6 @@ var BeacioBridge = (function(){
     sc.onerror = function(){ cb(false); };
     document.head.appendChild(sc);
   }
-
   function ensureReady(cb){
     if(typeof navigator!=='undefined' && navigator.bluetooth){ cb(true); return; }
     if(beacioLoaded){ cb(true); return; }
@@ -817,20 +836,17 @@ var BeacioBridge = (function(){
       cb(false);
     });
   }
-
   function autoShowBanner(){
     if(!IOS_SAFARI) return;
     if(typeof navigator!=='undefined' && navigator.bluetooth) return;
     try{ if(localStorage.getItem('bt_banner_dismissed')==='1') return; }catch(e){}
     setTimeout(showInstallBanner, 1500);
   }
-
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded', autoShowBanner);
   } else {
     autoShowBanner();
   }
-
   return {
     isIOSSafari: function(){ return IOS_SAFARI; },
     ensureReady: ensureReady,
@@ -838,7 +854,6 @@ var BeacioBridge = (function(){
     hasBluetooth: function(){ return typeof navigator!=='undefined' && !!navigator.bluetooth; }
   };
 })();
-
 /* ================= НАСТРОЙКИ BLUETOOTH-ФИЛЬТРА ================= */
 var BT_SETTINGS_KEY = 'bt_filter_settings';
 function getBtSettings(){
@@ -877,15 +892,24 @@ function parseBtServices(s){
   if(!s) return [];
   return s.split(/[,\s]+/).filter(Boolean).map(normalizeUuid);
 }
-
-/* ================= BLUETOOTH ================= */
+/* ================= BLUETOOTH (для внешнего BLE-устройства) ================= */
 var btDevice=null, btChar=null;
+var btRxBuf=[], btRxTimer=null;
 function setBtStatus(txt, cls){
   var el=document.getElementById('btStatus');
   if(!el) return;
   el.textContent=txt;
   el.className='tag '+(cls||'');
   el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
+}
+function handleBtMessage(obj){
+  if(!obj || obj.app!=='uz') return;
+  if(obj.payload){
+    // до вызова mergePayload сбрасываем буфер
+    btRxBuf=[]; if(btRxTimer){ clearTimeout(btRxTimer); btRxTimer=null; }
+    mergePayload(obj.payload);
+    setBtStatus('✓ данные получены','ok');
+  }
 }
 function btConnect(){
   BeacioBridge.ensureReady(function(ok){
@@ -903,13 +927,10 @@ function runBluetoothConnect(){
   if(st.namePrefix) filters.push({ namePrefix: st.namePrefix });
   var uuids = parseBtServices(st.services);
   if(uuids.length) filters.push({ services: uuids });
-
   var SERVICE_UUID = '0000abcd-0000-1000-8000-00805f9b34fb';
   var CHAR_UUID = '0000abce-0000-1000-8000-00805f9b34fb';
-
   var optional = [SERVICE_UUID];
   if(uuids.length) optional = optional.concat(uuids);
-
   var options;
   if(filters.length){
     options = { filters: filters, optionalServices: optional };
@@ -918,7 +939,6 @@ function runBluetoothConnect(){
     options = { acceptAllDevices: true, optionalServices: optional };
     setBtStatus('поиск всех устройств…','info');
   }
-
   navigator.bluetooth.requestDevice(options)
     .then(function(dev){
       btDevice = dev;
@@ -935,11 +955,26 @@ function runBluetoothConnect(){
         btChar = ch;
         setBtStatus('✓ Bluetooth подключён','ok');
         ch.addEventListener('characteristicvaluechanged', function(ev){
-          var v = new TextDecoder().decode(ev.target.value);
+          var d = ev.target.value;
+          // собираем чанки в буфер, парсим по паузе
           try{
-            var data = JSON.parse(v);
-            if(data && data.app==='uz' && data.payload){ mergePayload(data.payload); setBtStatus('✓ данные получены','ok'); }
-          }catch(e){}
+            var bytes = d instanceof ArrayBuffer ? new Uint8Array(d) : new Uint8Array(d.buffer||d);
+            btRxBuf.push(Uint8Array.from(bytes));
+          }catch(e){ return; }
+          if(btRxTimer) clearTimeout(btRxTimer);
+          btRxTimer = setTimeout(function(){
+            btRxTimer=null;
+            try{
+              var len=0, i;
+              for(i=0;i<btRxBuf.length;i++) len+=btRxBuf[i].length;
+              var joined=new Uint8Array(len), off=0;
+              for(i=0;i<btRxBuf.length;i++){ joined.set(btRxBuf[i], off); off+=btRxBuf[i].length; }
+              var str=new TextDecoder().decode(joined);
+              var obj=JSON.parse(str);
+              btRxBuf=[];
+              handleBtMessage(obj);
+            }catch(e){ btRxBuf=[]; }
+          }, 300);
         });
         return ch.startNotifications().catch(function(){});
       });
@@ -952,7 +987,7 @@ function runBluetoothConnect(){
 function btSend(){
   if(!btChar){ alert('Сначала подключитесь по Bluetooth'); return; }
   try{
-    var json = JSON.stringify({ app:'uz', payload:expPayload() });
+    var json = JSON.stringify({ app:'uz', full:true, payload:fullPayload() });
     var bytes = new TextEncoder().encode(json);
     var p = Promise.resolve();
     for(var i=0;i<bytes.length;i+=180){
@@ -961,11 +996,10 @@ function btSend(){
              .then(function(){ return new Promise(function(r){ setTimeout(r,30); }); });
       })(bytes.slice(i, i+180));
     }
-    p.then(function(){ setBtStatus('✓ данные отправлены','ok'); })
+    p.then(function(){ setBtStatus('✓ всё отправлено','ok'); })
      .catch(function(e){ setBtStatus('ошибка: '+(e.message||e.name),'err'); });
   } catch(e){ setBtStatus('ошибка: '+e.message,'err'); }
 }
-
 /* ================= P2P ПО ID ================= */
 var ID_KEY='uzat_device_id';
 var PEER_PREFIX='uzfin-';
@@ -974,7 +1008,6 @@ function loadDevId(){ var v=null; try{ v=localStorage.getItem(ID_KEY); }catch(e)
 var DEV_ID=loadDevId();
 var peer=null, conn=null, peerRetry=0;
 var connectAttempts=0, connectTimeout=null, pingTimeout=null, reconnectTimer=null;
-
 var PEER_SRCS=[
   'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
@@ -1004,7 +1037,6 @@ var PEER_CONFIG_RELAY = {
   iceTransportPolicy: 'relay'
 };
 var currentPolicy = 'all';
-
 function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
 function setSyncStatus(txt, cls){
   var el=document.getElementById('syncStatus');
@@ -1206,7 +1238,6 @@ function mergeRemote(rem){
   return changed;
 }
 setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner(s.partnerId); } }, 2000);
-
 /* ================= ЗАКРЫТИЕ ОКОН НА IPHONE ================= */
 (function(){
   function closeOnBackdrop(e){
@@ -1219,7 +1250,6 @@ setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner
   document.body.addEventListener('touchstart', closeOnBackdrop, { passive:true });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeOnBackdrop({target:document.body}); } });
 })();
-
 /* ================= RENDER ================= */
 function render(){
   document.getElementById('hGreet').textContent = greetingMsg();
@@ -1630,7 +1660,6 @@ function buildAndDownloadXlsx(range, list, income){
     setTimeout(function(){ URL.revokeObjectURL(url); },1200);
   });
 }
-
 applyT(s.theme||'pink');
 initDateInput();
 initPeerInput();
