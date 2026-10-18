@@ -713,9 +713,9 @@ function act(kind){
   if(kind==='pdfReport'){ downloadPdfReport(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
-/* ================= СИНХРОНИЗАЦИЯ ЧЕРЕЗ VM (код = комната) ================= */
+/* ================= СИНХРОНИЗАЦИЯ ЧЕРЕЗ VM (код = комната, сервер = источник истины) ================= */
 var CODE_KEY='uzat_room_code';
-var SERVER='./';  // статика и API на одном сервере; для корня сайта '/' тоже ок
+var SERVER='./';
 function getRoomCode(){ var c=null; try{ c=localStorage.getItem(CODE_KEY); }catch(e){} return c?c.toUpperCase():''; }
 function setRoomCode(c){ c=(c||'').replace(/[^A-Z0-9]/g,'').toUpperCase().slice(0,6);
   if(c.length===6){ try{ localStorage.setItem(CODE_KEY,c); }catch(e){} }
@@ -733,8 +733,13 @@ function serverLoad(cb){
   fetch(SERVER+'api/load?code='+encodeURIComponent(c))
     .then(function(r){return r.json();})
     .then(function(res){
-      if(res && res.ok && res.data){ saveLocal(); var ch=mergeRemote(res.data); if(ch){ saveLocal(); render(); } }
-      cb(true);
+      if(res && res.ok && res.data){
+        var d=normalize(res.data);
+        if(d){ s=d; saveLocal(); applyT(s.theme||'pink'); buildAccentRow(); buildThemePicker(); render(); }
+        cb(true);
+      } else {
+        cb(false);
+      }
     })
     .catch(function(){ cb(false); });
 }
@@ -744,7 +749,9 @@ function setRoomCodeFromInput(){
   if(!c){ alert('Код пары — 6 символов (заглавные A-Z, цифры 2-9)'); return; }
   inp.value=c;
   var el=document.getElementById('roomCodeVal'); if(el) el.textContent=c;
-  serverLoad(function(){ setRoomStatus('в комнате','ok'); }); render();
+  s=normalize(defState());            // новая группа = стартуем чисто, потом(если есть) зальются данные с сервера
+  saveLocal(); render();
+  serverLoad(function(){ setRoomStatus('в комнате','ok'); });
 }
 function setRoomStatus(txt, cls){
   var el=document.getElementById('roomStatus'); if(!el) return;
@@ -753,61 +760,6 @@ function setRoomStatus(txt, cls){
   el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':'var(--text2)');
 }
 function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Скопировано ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
-function mergeRemote(rem){
-  if(!rem||typeof rem!=='object') return false;
-  var changed=false;
-  (rem.deleted||[]).forEach(function(id){ if(id && s.deleted.indexOf(id)<0){ s.deleted.push(id); changed=true; } });
-  if(s.deleted.length>400) s.deleted=s.deleted.slice(-400);
-  (rem.cats||[]).forEach(function(rc){
-    if(!rc||!rc.n) return;
-    var lc=s.cats.find(function(c){return c.n===rc.n;});
-    if(!lc){ s.cats.push({n:rc.n,p:rc.p||0,c:rc.c||'#F06292',subs:(rc.subs||[]).map(function(x){return {n:x.n,p:x.p||0};})}); changed=true; }
-    else{
-      if((rc.p||0)>(lc.p||0)){ lc.p=rc.p; changed=true; }
-      if(!lc.subs) lc.subs=[];
-      (rc.subs||[]).forEach(function(rs){
-        var ls=lc.subs.find(function(x){return x.n===rs.n;});
-        if(!ls){ lc.subs.push({n:rs.n,p:rs.p||0}); changed=true; }
-        else if((rs.p||0)>(ls.p||0)){ ls.p=rs.p; changed=true; }
-      });
-    }
-  });
-  if(rem.templates && rem.templates.length){
-    var tTpl={}; s.templates.forEach(function(t){ tTpl[t.id]=true; });
-    rem.templates.forEach(function(t){ if(t.id && !tTpl[t.id]){ s.templates.push(t); tTpl[t.id]=true; changed=true; } });
-  }
-  if(rem.planned && rem.planned.length){
-    var tPl={}; s.planned.forEach(function(p){ tPl[p.id]=true; });
-    rem.planned.forEach(function(p){ if(p.id && !tPl[p.id]){ s.planned.push(p); tPl[p.id]=true; changed=true; } });
-  }
-  if(rem.settings && rem.settings.accent && rem.settings.accent!==s.settings.accent){
-    s.settings.accent=rem.settings.accent; changed=true;
-  }
-  Object.keys(rem.months||{}).forEach(function(k){
-    var rm=rem.months[k]; if(!rm) return;
-    if(!(rm.incA||rm.incB||(rm.exp&&rm.exp.length)||(rm.other&&rm.other.length))) return;
-    var lm=getMonth(k);
-    if((rm.incA||0)>(lm.incA||0)){ lm.incA=rm.incA; changed=true; }
-    if((rm.incB||0)>(lm.incB||0)){ lm.incB=rm.incB; changed=true; }
-    if(rm.other && rm.other.length){ lm.other=lm.other||[]; var oids={}; lm.other.forEach(function(o){ oids[o.id]=true; }); rm.other.forEach(function(o){ if(o.id && !oids[o.id]){ lm.other.push({id:o.id,type:o.type||'other',amt:o.amt||0}); oids[o.id]=true; changed=true; } }); }
-    var ids={}; lm.exp.forEach(function(e){ ids[e.id]=true; });
-    (rm.exp||[]).forEach(function(e){
-      if(!e.id || ids[e.id]) return;
-      if(s.deleted.indexOf(e.id)>=0) return;
-      lm.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,tpl:e.tpl||'',ts:e.ts||Date.now()});
-      ids[e.id]=true; changed=true;
-    });
-  });
-  if(s.deleted.length){
-    Object.keys(s.months).forEach(function(k){
-      var m2=s.months[k]; if(!m2||!m2.exp) return;
-      var before=m2.exp.length;
-      m2.exp=m2.exp.filter(function(e){ return s.deleted.indexOf(e.id)<0; });
-      if(m2.exp.length!==before) changed=true;
-    });
-  }
-  return changed;
-}
 (function(){
   var cIn=document.getElementById('pairCodeIn');
   if(cIn) cIn.addEventListener('input', function(){ this.value=this.value.toUpperCase(); });
@@ -820,7 +772,7 @@ function closeReloadPopup(){ var p=document.getElementById('reloadPopup'); if(p)
 function doReloadPage(){ location.reload(); }
 function autoPollSync(){
   var el=document.activeElement;
-  if(el && (el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA')) return; // не мешаем вводу
+  if(el && (el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA')) return;
   if(getRoomCode()) serverLoad();
 }
 setInterval(autoPollSync, 3000);
@@ -835,13 +787,13 @@ setInterval(autoPollSync, 3000);
     ind.style.opacity=Math.min(1, y/THRESHOLD);
   }
   window.addEventListener('touchstart', function(e){
-    if(window.scrollY>0) return;              // только когда мы на самом верху
+    if(window.scrollY>0) return;
     startY=e.touches[0].clientY; pulling=true;
   }, {passive:true});
   window.addEventListener('touchmove', function(e){
     if(!pulling || startY===null) return;
     var dy=e.touches[0].clientY-startY;
-    if(dy<0){ setY(0); return; }              // свайп вверх — игнор
+    if(dy<0){ setY(0); return; }
     e.preventDefault();
     setY(Math.min(dy, MAX));
   }, {passive:false});
