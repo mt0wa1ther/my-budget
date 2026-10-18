@@ -40,10 +40,6 @@
   .month-pill{ background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.45); color:#fff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:999px; cursor:pointer; letter-spacing:.3px; }
   .month-pill:active{ background:rgba(255,255,255,.35); }
   .carry{ font-size:11px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .theme-row{ display:flex; gap:6px; flex:none; }
-  .theme-row button{ border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.18); color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; cursor:pointer; line-height:1; transition:transform .15s, background .2s; }
-  .theme-row button:active{ transform:scale(.9); }
-  .theme-row button.active{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.2); }
   .month-pop{ position:absolute; top:150px; left:10px; right:10px; z-index:60; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.3); }
   .month-pop .pop-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
   .month-pop .pop-head button{ background:var(--soft); border:1px solid var(--line); color:var(--text); font-size:16px; width:32px; height:32px; border-radius:10px; cursor:pointer; }
@@ -169,7 +165,7 @@
   .sb-toggle .st{ flex:1 1 auto; min-width:0; font-size:12px; font-weight:600; color:var(--text); }
   .sb-toggle .ar{ font-size:13px; color:var(--accent); flex:none; transition:transform .2s; }
   .sb-toggle.open .ar{ transform:rotate(180deg); }
-  #srvCard, #codesCard{ display:none; }
+  #codesCard{ display:none; }
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; letter-spacing:.3px; box-shadow:0 6px 16px rgba(0,0,0,.14); transition:filter .2s, transform .12s; }
   .btn-main:active{ filter:brightness(.94); transform:scale(.99); }
   .btn-sec{ width:100%; padding:11px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; transition:background .2s, transform .12s; }
@@ -180,10 +176,6 @@
   .scan-line{ position:absolute; left:0; right:0; height:2px; background:var(--accent); animation:scan 2s linear infinite; }
   @keyframes scan{ 0%{ top:10%; } 100%{ top:90%; } }
   textarea.manual{ width:100%; height:80px; font-family:monospace; font-size:9px; border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--card); color:var(--text); margin:8px 0; }
-  .id-card{ background:var(--soft); border:1px dashed var(--accent); border-radius:14px; padding:12px; text-align:center; }
-  .id-lbl{ font-size:11px; color:var(--text2); }
-  .id-val{ font-size:26px; font-weight:800; letter-spacing:5px; color:var(--accent); margin:4px 0 10px; font-family:'Courier New',monospace; }
-  #peerIdIn{ text-transform:uppercase; text-align:center; letter-spacing:3px; font-weight:700; font-size:15px; }
   .plan-inp{ width:96px; flex:none; font-size:13px; padding:7px 8px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); text-align:right; outline:none; font-weight:700; }
   .plan-inp:focus{ border-color:var(--accent); }
   .plan-inp.sm{ width:82px; font-size:12px; padding:5px 7px; }
@@ -198,6 +190,10 @@
   .accent-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
   .accent-dot{ width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; flex:none; }
   .accent-dot.active{ border-color:var(--text); }
+  .theme-picker{ display:flex; gap:8px; margin-top:6px; }
+  .theme-picker button{ flex:1; padding:14px 4px; min-height:52px; border:1.5px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:700; font-size:13px; cursor:pointer; transition:transform .12s, border-color .2s, background .2s; }
+  .theme-picker button.active{ border-color:var(--accent); background:var(--soft); box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  .theme-picker button:active{ transform:scale(.96); }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
   #reportPopup.open{ display:flex; }
   #reportPopup .rp-box2{ background:#0D1117; width:100%; max-width:420px; max-height:92vh; border-radius:22px 22px 0 0; display:flex; flex-direction:column; overflow:hidden; border:1px solid #21262D; }
@@ -265,16 +261,15 @@
   .pform input[type="number"]::-webkit-outer-spin-button,.pform input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .pform .btn-add{ grid-column:1 / -1; width:100%; margin-top:2px; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .pform .btn-add:active{ filter:brightness(.92); }
-/* ===== СОПРЯЖЕНИЕ ПО КОДУ ===== */
-#pairPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:250; display:none; align-items:center; justify-content:center; padding:16px; }
-#pairPopup.open{ display:flex; }
-#pairPopup .pp-box{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px; max-width:340px; width:100%; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.35); }
-#pairPopup .pair-code{ font-size:32px; font-weight:800; letter-spacing:6px; color:var(--accent); font-family:'Courier New',monospace; margin:12px 0 4px; }
-#pairPopup .pair-hint{ font-size:12px; color:var(--text2); line-height:1.5; margin:6px 0 12px; }
-#pairPopup .pair-actions{ display:flex; gap:8px; margin-top:12px; }
-#pairPopup .pair-actions button{ flex:1; }
-.pair-code-inp{ letter-spacing:3px; text-align:center; font-weight:700; }
-#pairInfo{ font-size:11px; color:var(--text2); margin-top:8px; }
+  .pair-code-inp{ letter-spacing:3px; text-align:center; font-weight:700; text-transform:uppercase; }
+  #pairInfo{ font-size:11px; color:var(--text2); margin-top:8px; }
+  #pairPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:250; display:none; align-items:center; justify-content:center; padding:16px; }
+  #pairPopup.open{ display:flex; }
+  #pairPopup .pp-box{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px; max-width:340px; width:100%; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  #pairPopup .pair-code{ font-size:24px; font-weight:800; letter-spacing:3px; color:var(--accent); font-family:'Courier New',monospace; margin:12px 0 4px; word-break:break-all; }
+  #pairPopup .pair-hint{ font-size:12px; color:var(--text2); line-height:1.5; margin:6px 0 12px; }
+  #pairPopup .pair-actions{ display:flex; gap:8px; margin-top:12px; }
+  #pairPopup .pair-actions button{ flex:1; }
 </style>
 </head>
 <body>
@@ -286,11 +281,6 @@
   <div class="mob-head">
     <div class="head-top">
       <div class="greet" id="hGreet">Добрый день</div>
-      <div class="theme-row" id="themeRow">
-        <button data-t="pink" class="active">🌸</button>
-        <button data-t="moon">🌙</button>
-        <button data-t="auto">🌗</button>
-      </div>
     </div>
     <div class="bal-lbl">Свободно на сегодня</div>
     <div class="balance" id="hBalance">0 ₽</div>
@@ -309,7 +299,7 @@
     <div class="qa" data-go="budget"><div class="ic">📋</div><div class="tt">План</div><div class="st">Категории</div></div>
     <div class="qa" data-go="result"><div class="ic">📊</div><div class="tt">Итог</div><div class="st">План vs факт</div></div>
     <div class="qa" data-go="income"><div class="ic">💳</div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div>
-    <div class="qa" data-go="sync"><div class="ic">🔗</div><div class="tt">Обмен</div><div class="st">по ID</div></div>
+    <div class="qa" data-go="sync"><div class="ic">🔗</div><div class="tt">Обмен</div><div class="st">по коду</div></div>
     <div class="qa" data-act="reset"><div class="ic">🗑</div><div class="tt">Сброс</div><div class="st">с паролем</div></div>
     <div class="qa wide" data-act="report"><div class="ic">📈</div><div class="tt">Отчёт с графиками</div></div>
   </div>
@@ -427,56 +417,36 @@
       <h3>🎨 Настройки <span class="tag">акцент</span></h3>
       <div class="lbl" style="font-size:11px;color:var(--text2)">Цвет акцента (кнопки, графики, иконки)</div>
       <div class="accent-row" id="accentRow"></div>
+      <div style="margin-top:14px">
+        <div class="lbl" style="font-size:11px;color:var(--text2);margin-bottom:8px">Тема оформления</div>
+        <div class="theme-picker" id="themePicker">
+          <button data-t="pink" class="active">🌸 Цветочная</button>
+          <button data-t="moon">🌙 Лунная</button>
+          <button data-t="auto">🌗 Авто</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="tab-panel" id="p-sync">
     <div class="card">
-      <h3>📡 Связь по ID <span class="tag" id="syncStatus">не подключено</span></h3>
-      <div class="id-card">
-        <div class="id-lbl">Мой ID — поделись им с партнёром</div>
-        <div class="id-val" id="myIdVal">······</div>
-        <button class="btn-main" data-act="copyId">Скопировать ID</button>
+      <h3>🔑 Сопряжение по коду <span class="tag" id="syncStatus">не подключено</span></h3>
+      <div class="diag" style="margin-top:0">
+        Устройство А: <b>«Получить код»</b> → появится код из 12 символов.<br>
+        Устройство Б: введи этот код полностью в поле ниже → <b>«Подключить»</b>.<br>
+        После подтверждения данные синхронизируются автоматически; при повторном подключении код не нужен.
       </div>
-      <div class="add-form" style="padding-top:10px">
-        <input type="text" id="peerIdIn" placeholder="ID партнёра" maxlength="8">
-        <button data-act="connectId">Подключить</button>
-      </div>
+      <button class="btn-main" data-act="startPair" style="margin-top:10px">🔑 Получить код</button>
       <div class="add-form" style="padding-top:6px">
-        <input type="text" id="pairCodeIn" class="pair-code-inp" placeholder="Код сопряжения партнёра" maxlength="8" autocomplete="off">
+        <input type="text" id="pairCodeIn" class="pair-code-inp" placeholder="Код партнёра (12 символов)" maxlength="12" autocomplete="off">
+        <button data-act="connectPair">Подключить</button>
       </div>
-      <button class="btn-main" data-act="startPair" style="margin-top:10px">🔑 Начать сопряжение по коду</button>
       <button class="btn-sec" data-act="clearPairs">⛔ Сбросить сопряжения</button>
       <div id="pairInfo"></div>
-      <button class="btn-sec" data-act="pingPartner">🔍 Проверить связь</button>
-      <button class="btn-sec" data-act="disconnect">Отключиться</button>
-      <div class="diag">
-        <b>Как работает:</b> оба устройства должны использовать один и тот же сервер (CDN по умолчанию или свой из блока ниже).
-      </div>
     </div>
     <div class="sync-cta" style="padding:14px 14px 0">
-      <div class="sb-toggle" id="btnSrv" onclick="toggleBlock('srvCard','btnSrv')">
-        <span class="si">🌐</span><span class="st">Свой сервер</span><span class="ar">▾</span>
-      </div>
       <div class="sb-toggle" id="btnCodes" onclick="toggleBlock('codesCard','btnCodes')">
         <span class="si">🧾</span><span class="st">Передача кодами</span><span class="ar">▾</span>
       </div>
-    </div>
-    <div class="card" id="srvCard">
-      <h3>🌐 Свой сервер <span class="tag" id="srvStatus">CDN по умолчанию</span></h3>
-      <div class="diag">
-        Введи данные твоего сервера PeerJS (IP/домен, порт, путь, ключ). Если там запущен peerjs — связь по ID пойдёт через него,
-        и о сервисе знаете только вы двое. На обоих устройствах — одинаковые параметры.
-      </div>
-      <div class="add-form" style="padding-top:10px;flex-wrap:wrap">
-        <input type="text" id="srvHost" placeholder="IP или домен" autocomplete="off">
-        <input type="text" id="srvPort" placeholder="9090" autocomplete="off" inputmode="numeric" style="max-width:86px">
-      </div>
-      <div class="add-form" style="padding-top:6px;flex-wrap:wrap">
-        <input type="text" id="srvPath" placeholder="/myapp" autocomplete="off">
-        <input type="text" id="srvKey" placeholder="ключ" autocomplete="off">
-      </div>
-      <button class="btn-main" data-act="srvSave" style="margin-top:10px">Сохранить сервер</button>
-      <button class="btn-sec" data-act="srvClear">Сбросить (CDN по умолчанию)</button>
     </div>
     <div class="card" id="codesCard">
       <h3>🧾 Передача кодами <span class="tag">офлайн</span></h3>
@@ -737,10 +707,9 @@ function applyT(t){
   var app=document.getElementById('app'); var root=document.documentElement;
   for(var kk in css){ app.style.setProperty('--'+kk,css[kk]); root.style.setProperty('--'+kk,css[kk]); }
   document.body.style.background=th.bg;
-  document.querySelectorAll('#themeRow button').forEach(function(b){ b.classList.toggle('active',b.dataset.t===s.theme); });
+  if(typeof buildThemePicker==='function') buildThemePicker();
   var pink=(t==='pink'); document.getElementById('bgPink').style.opacity=pink?1:0; document.getElementById('flowers').style.opacity=pink?1:0; document.getElementById('bgMoon').style.opacity=pink?0:1; document.getElementById('stars').style.opacity=pink?0:1;
 }
-document.querySelectorAll('#themeRow button').forEach(function(b){ b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); s.theme=b.dataset.t; save(); applyT(s.theme); }; });
 function buildAccentRow(){
   var r=document.getElementById('accentRow'); if(!r) return;
   r.innerHTML='';
@@ -750,6 +719,10 @@ function buildAccentRow(){
     d.onclick=function(){ s.settings.accent=c; save(); buildAccentRow(); applyT(s.theme); };
     r.appendChild(d);
   });
+}
+function buildThemePicker(){
+  var r=document.getElementById('themePicker'); if(!r) return;
+  r.querySelectorAll('button').forEach(function(b){ b.classList.toggle('active', b.dataset.t===s.theme); });
 }
 function toggleMonthPop(){ var p=document.getElementById('monthPop'); p.style.display=p.style.display==='block'?'none':'block'; if(p.style.display==='block') buildPopGrid(); }
 function popYear(d){ ui.popYear+=d; buildPopGrid(); }
@@ -777,10 +750,9 @@ function act(kind){
   if(kind==='export'){ exportBackup(); return; }
   if(kind==='import'){ importBackup(); return; }
   if(kind==='reset'){ openReset(); return; }
-  if(kind==='copyId'){ copyCode(DEV_ID); return; }
-  if(kind==='connectId'){ connectToPartner(document.getElementById('peerIdIn').value); return; }
-  if(kind==='disconnect'){ disconnectPeer(); return; }
-  if(kind==='pingPartner'){ pingPartner(); return; }
+  if(kind==='startPair'){ startPair(); return; }
+  if(kind==='connectPair'){ connectPair(); return; }
+  if(kind==='clearPairs'){ clearPairs(); return; }
   if(kind==='report'){ openReport(); return; }
   if(kind==='closeReport'){ closeReport(); return; }
   if(kind==='xlsxReport'){ downloadXlsxReport(); return; }
@@ -1006,7 +978,7 @@ document.querySelectorAll('[data-act="resetCancel"]').forEach(function(b){ b.add
 document.querySelectorAll('[data-act="resetOk"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); doReset(); }); });
 function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},null,2); var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='finance-backup-'+s.curMonth+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000); alert('Резервная копия сохранена ✅'); }
 function importBackup(){ document.getElementById('restoreFile').click(); }
-document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); initDateInput(); initPeerInput(); initSrvInputs(); buildAccentRow(); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
+document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); initDateInput(); buildAccentRow(); buildThemePicker(); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
 function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
 var JSQR_SRCS=['jsqr.min.js','https://unpkg.com/jsqr@1.4.0/dist/jsQR.js','https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'];
 function ensureJSQR(ready){ if(typeof window.jsQR==='function'){ ready(true); return; } var i=0; function next(){ if(i>=JSQR_SRCS.length){ ready(false); return; } loadScript(JSQR_SRCS[i++],function(ok){ if(ok&&typeof window.jsQR==='function'){ ready(true); } else { next(); } }); } next(); }
@@ -1052,6 +1024,7 @@ function importFull(data){
     area.innerHTML='<div class="qr-holder"><div style="font-size:30px">🔄</div><div style="font-size:15px;color:var(--text2);font-weight:700;margin:8px 0">Всё уже актуально</div><button class="btn-main" data-go="sync">Ок</button></div>';
   } else {
     save(); render();
+    applyT(s.theme||'pink'); buildAccentRow(); initDateInput(); buildThemePicker();
     area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Все данные объединены!</div><div style="font-size:13px;color:var(--text2)">Траты, планы, шаблоны и планер — у вас.</div><br><button class="btn-main" data-go="sync">Ок</button></div>';
   }
   qrVisible=false;
@@ -1071,149 +1044,6 @@ function importExp(data){ var area=document.getElementById('scanArea'); var mkey
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
-/* ================= СВОЙ СЕРВЕР ================= */
-var SRV_KEY='uzat_sync_server';
-function srvLoad(){
-  var def={host:'',port:0,path:'',key:''};
-  try{ var raw=localStorage.getItem(SRV_KEY); if(raw){ var p=JSON.parse(raw); return {host:p.host||'',port:+p.port||0,path:p.path||'',key:p.key||''}; } }catch(e){}
-  return def;
-}
-function srvSave(v){ try{ localStorage.setItem(SRV_KEY, JSON.stringify(v)); }catch(e){} }
-function srvClearAll(){ try{ localStorage.removeItem(SRV_KEY); }catch(e){} }
-function initSrvInputs(){
-  var v=srvLoad();
-  var h=document.getElementById('srvHost'), p=document.getElementById('srvPort'),
-      pa=document.getElementById('srvPath'), k=document.getElementById('srvKey');
-  if(h) h.value=v.host||'';
-  if(p) p.value=v.port||'';
-  if(pa) pa.value=v.path||'/myapp';
-  if(k) k.value=v.key||'';
-  var st=document.getElementById('srvStatus');
-  if(st) st.textContent = v.host ? (v.host+':'+(v.port||9090)+' ✔') : 'CDN по умолчанию';
-}
-function srvFromInputs(){
-  var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  return { host:g('srvHost'), port:+g('srvPort')||0, path:g('srvPath')||'/', key:g('srvKey') };
-}
-/* ================= P2P ПО ID ================= */
-var ID_KEY='uzat_device_id';
-var PEER_PREFIX='uzfin-';
-function genId(){ var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r=''; for(var i=0;i<6;i++) r+=a[Math.floor(Math.random()*a.length)]; return r; }
-function loadDevId(){ var v=null; try{ v=localStorage.getItem(ID_KEY); }catch(e){} if(!v || !/^[A-Z0-9]{4,8}$/.test(v)){ v=genId(); try{ localStorage.setItem(ID_KEY,v); }catch(e){} } return v; }
-var DEV_ID=loadDevId();
-var peer=null, conn=null, peerRetry=0;
-var connectAttempts=0, connectTimeout=null, pingTimeout=null, reconnectTimer=null;
-var AUTO_LIMIT=7, autoAttempts=0;
-function autoReset(){ autoAttempts=0; }
-function autoCanProceed(){
-  if(autoAttempts>=AUTO_LIMIT){
-    setSyncStatus('автоподключение приостановлено (лимит '+AUTO_LIMIT+')','err');
-    return false;
-  }
-  return true;
-}
-var PEER_SRCS=[
-  'peerjs.min.js',
-  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
-  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
-  'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
-];
-var PEER_CONFIG_DIRECT = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
-    { urls: 'stun:global.stun.twilio.com:3478' },
-    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:relay1.expressturn.com:3478', username: 'ef3df9125a5e19e57dfa', credential: '5CrLr6QZg3aTz7k1' }
-  ],
-  iceCandidatePoolSize: 10, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require', iceTransportPolicy: 'all'
-};
-var PEER_CONFIG_RELAY = {
-  iceServers: [
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:relay1.expressturn.com:3478', username: 'ef3df9125a5e19e57dfa', credential: '5CrLr6QZg3aTz7k1' }
-  ],
-  iceTransportPolicy: 'relay'
-};
-var currentPolicy = 'all';
-function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ setSyncStatus('не удалось загрузить связь (CDN/файл недоступен)','err'); cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
-function setSyncStatus(txt, cls){
-  var el=document.getElementById('syncStatus');
-  if(!el) return;
-  el.textContent=txt;
-  el.className='tag '+(cls||'');
-  el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
-}
-function refreshMyId(){ var el=document.getElementById('myIdVal'); if(el) el.textContent=DEV_ID; }
-refreshMyId();
-function initPeerInput(){ var inp=document.getElementById('peerIdIn'); if(inp && !inp.value && s.partnerId && s.partnerId!==DEV_ID){ inp.value=s.partnerId; } }
-function destroyPeer(){ if(peer){ try{ peer.destroy(); }catch(e){} peer=null; } }
-function initPeer(cb, policy){
-  cb=cb||function(){};
-  policy=policy||'all';
-  if(policy!==currentPolicy){ destroyPeer(); }
-  currentPolicy=policy;
-  if(peer && !peer.destroyed && peer.open){ cb(true); return; }
-  if(peer && !peer.destroyed && peer.disconnected){
-    setSyncStatus('переподключение к серверу…','info');
-    try{ peer.reconnect(); }catch(e){}
-    var waited=0;
-    (function recheck(){
-      if(peer && peer.open && !peer.disconnected){ cb(true); return; }
-      if(waited>=8000){ destroyPeer(); initPeer(cb, policy); return; }
-      waited+=500; setTimeout(recheck, 500);
-    })();
-    return;
-  }
-  ensurePeer(function(ok){
-    if(!ok){ setSyncStatus('нет связи с сервером — используй код/файл','err'); cb(false); return; }
-    var cfg = policy==='relay' ? PEER_CONFIG_RELAY : PEER_CONFIG_DIRECT;
-    var pOpts={ debug:1, config:cfg };
-    var srv=srvLoad();
-    if(srv && srv.host){
-      var pageHttps = (location.protocol==='https:' || location.protocol==='wss:');
-      pOpts.host=srv.host;
-      pOpts.port=srv.port || (pageHttps?443:80);
-      pOpts.path=srv.path || '/';
-      if(srv.key) pOpts.key=srv.key;
-      pOpts.secure=pageHttps;
-      setSyncStatus('подключение к '+srv.host+':'+(srv.port||9090)+'…','info');
-    }
-    try{ peer=new Peer(PEER_PREFIX+DEV_ID, pOpts); }
-    catch(e){ setSyncStatus('ошибка инициализации','err'); cb(false); return; }
-    var opened=false;
-    peer.on('open', function(){ opened=true; peerRetry=0; setSyncStatus(policy==='relay'?'готов (через релей)':'готов к подключению','ok'); cb(true); });
-    peer.on('connection', function(c){ if(conn && conn.open){ try{ c.close(); }catch(e){} return; } conn=c; bindConn('host'); });
-    peer.on('disconnected', function(){
-      setSyncStatus('нет связи с сервером, переподключаюсь…','info');
-      setTimeout(function(){ if(peer && !peer.destroyed && peer.disconnected){ try{ peer.reconnect(); }catch(e){} } }, 1500);
-    });
-    peer.on('close', function(){
-      peer=null;
-      if(s.partnerId && s.partnerId!==DEV_ID){
-        if(reconnectTimer) clearTimeout(reconnectTimer);
-        reconnectTimer=setTimeout(function(){ if(!conn || !conn.open){ attemptConnect(s.partnerId); } }, 2000);
-      }
-    });
-    peer.on('error', function(err){
-      var t=err&&err.type;
-      if(t==='unavailable-id' && peerRetry<6){ peerRetry++; destroyPeer(); setSyncStatus('ожидание сервера… ('+peerRetry+'/6)','info'); setTimeout(function(){ initPeer(cb, policy); }, 1500*peerRetry); return; }
-      if(t==='peer-unavailable'){ setSyncStatus('ID не найден','err'); }
-      else if(t==='network' || t==='server-error'){ setSyncStatus('сеть недоступна — используй код/файл','err'); }
-      else if(t==='browser-incompatible'){ setSyncStatus('браузер не поддерживает','err'); }
-      else { setSyncStatus('ошибка: '+(t||'связи'),'err'); }
-      if(!opened) cb(false);
-    });
-    setTimeout(function(){ if(!opened && (!peer || !peer.open)){ setSyncStatus('сервер не отвечает — используй код/файл','err'); cb(false); } }, 15000);
-  });
-}
 /* ================= 🔑 СОПРЯЖЕНИЕ ПО КОДУ (авторизация) ================= */
 var PAIR_KEY='uzat_pairing';
 var connAuthorized=false;
@@ -1244,25 +1074,29 @@ function failConn(reason){
   try{ if(conn){ conn.close(); } }catch(e){}
   conn=null;
 }
+function genVerifyCode(){
+  var alpha='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var idx=new Uint8Array(6); crypto.getRandomValues(idx);
+  var c='';
+  for(var i=0;i<6;i++) c+=alpha.charAt(idx[i] % alpha.length);
+  return c;
+}
 function startPair(){
   if(!window.crypto || !window.crypto.getRandomValues){ alert('Браузер не поддерживает безопасную генерацию кода'); return; }
   var p=pairData();
-  var alpha='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var idx=new Uint8Array(6); crypto.getRandomValues(idx);
-  var code='';
-  for(var i=0;i<6;i++) code+=alpha.charAt(idx[i] % alpha.length);
-  p.code=code; p.exp=Date.now()+10*60*1000; p.attempts=0;
+  p.code=genVerifyCode();
+  p.exp=Date.now()+10*60*1000; p.attempts=0;
   savePair(p);
-  showPairPopup(code);
+  showPairPopup(DEV_ID + p.code);
   refreshPairInfo();
 }
-function showPairPopup(code){
+function showPairPopup(combined){
   var pop=document.getElementById('pairPopup');
   var val=document.getElementById('pairCodeVal');
   var hint=document.getElementById('pairHint');
-  if(!pop || !val){ alert('Код сопряжения: '+code); return; }
-  val.textContent = code.split('').join(' ');
-  if(hint) hint.textContent='Отправь партнёру свой ID: '+DEV_ID+' и этот код. Он введёт оба значения у себя.';
+  if(!pop || !val){ alert('Код сопряжения: '+combined); return; }
+  val.textContent = combined.slice(0,6)+'  '+combined.slice(6);
+  if(hint) hint.textContent='Отправь партнёру этот код полностью (12 символов, заглавные). Он введёт его в поле «Код партнёра» у себя.';
   pop.classList.add('open');
 }
 function closePairPopup(){ var pop=document.getElementById('pairPopup'); if(pop) pop.classList.remove('open'); }
@@ -1274,17 +1108,35 @@ function refreshPairInfo(){
   el.innerHTML='Сопряжено устройств: <b>'+p.allow.length+'</b>'+(act?' · код активен, осталось <b>'+mins+' мин</b>':'');
 }
 function clearPairs(){
-  if(!confirm('Удалить все сопряжения? Партнёры не смогут подключаться автоматически.')) return;
+  if(!confirm('Удалить все сопряжения? Партнёры не смогут подключаться.')) return;
   var p=pairData(); p.allow=[]; p.code=''; p.exp=0; p.attempts=0; savePair(p);
   connAuthorized=false; pendingPairCode='';
   if(conn){ try{ conn.close(); }catch(e){} conn=null; }
   refreshPairInfo();
   alert('Сопряжения сброшены ✅');
 }
+function connectPair(){
+  var inp=document.getElementById('pairCodeIn');
+  var raw=inp?String(inp.value||'').replace(/[^A-Z0-9]/g,'').toUpperCase():'';
+  if(raw.length<10){ alert('Введите полный код сопряжения (12 символов)'); return; }
+  var hostId=raw.slice(0,6), code=raw.slice(6);
+  if(hostId===DEV_ID){ alert('Это ваш собственный код сопряжения'); return; }
+  pendingPairCode=code;
+  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
+  connectAttempts=0; autoReset();
+  s.partnerId=hostId; saveLocal();
+  setSyncStatus('инициализация…','info');
+  destroyPeer();
+  initPeer(function(ok){
+    if(!ok){ setSyncStatus('не удалось инициализировать — используй «Передачу кодами»','err'); return; }
+    attemptConnect(hostId,'all');
+  },'all');
+}
 function handleData(role, msg){
   if(!msg) return;
   if(msg.t==='ping'){ try{ conn.send({t:'pong', ts:msg.ts}); }catch(e){} return; }
-  if(msg.t==='pong'){ setSyncStatus('✓ связь работает','ok'); if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; } return; }
+  if(msg.t==='pong'){ setSyncStatus('✓ связь работает','ok'); return; }
   if(msg.t==='hello'){
     if(role==='host') hostAcceptHello(msg);
     return;
@@ -1321,7 +1173,7 @@ function hostAcceptHello(msg){
   }
   var p=pairData();
   if(!p.code){
-    failConn('нет активного кода сопряжения — начните его на своём устройстве');
+    failConn('нет активного кода сопряжения — нажми «Получить код»');
     return;
   }
   var given=String((msg&&msg.code)||'').replace(/[^A-Z0-9]/g,'').toUpperCase();
@@ -1377,50 +1229,164 @@ function broadcast(){
   if(!conn || !conn.open || !connAuthorized) return;
   try{ conn.send({t:'state', data:{cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth, templates:s.templates, planned:s.planned, settings:s.settings}}); }catch(e){}
 }
-function connectToPartner(raw){
-  var id=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if(id.length<4){ alert('Введите ID партнёра'); return; }
-  if(id===DEV_ID){ alert('Это ваш собственный ID'); return; }
-  var cEl=document.getElementById('pairCodeIn');
-  pendingPairCode = cEl ? String(cEl.value||'').replace(/[^A-Z0-9]/g,'').toUpperCase() : '';
-  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
-  connectAttempts=0; autoReset();
-  s.partnerId=id; saveLocal();
-  var inp=document.getElementById('peerIdIn'); if(inp) inp.value=id;
-  setSyncStatus('инициализация…','info');
-  destroyPeer();
-  initPeer(function(ok){
-    if(!ok){ setSyncStatus('не удалось инициализировать — используй код/файл','err'); return; }
-    attemptConnect(id,'all');
-  },'all');
-}
 function disconnectPeer(){
   if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
   if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
-  if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; }
   connectAttempts=0;
   connAuthorized=false; pendingPairCode='';
   if(conn){ try{ conn.close(); }catch(e){} conn=null; }
   destroyPeer();
   s.partnerId=''; saveLocal();
-  var inp=document.getElementById('peerIdIn'); if(inp) inp.value='';
-  var cIn=document.getElementById('pairCodeIn'); if(cIn) cIn.value='';
   setSyncStatus('не подключено','');
 }
 (function(){
-  document.querySelectorAll('[data-act="startPair"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); startPair(); }); });
-  document.querySelectorAll('[data-act="clearPairs"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); clearPairs(); }); });
   document.querySelectorAll('[data-copypair="1"]').forEach(function(b){ b.addEventListener('click', function(){ var v=document.getElementById('pairCodeVal'); if(v) copyCode(v.textContent.replace(/\s+/g,'')); }); });
   document.querySelectorAll('[data-closepair="1"]').forEach(function(b){ b.addEventListener('click', closePairPopup); });
   var pp=document.getElementById('pairPopup');
   if(pp) pp.addEventListener('pointerdown', function(e){ if(e.target===pp) closePairPopup(); });
+  var cIn=document.getElementById('pairCodeIn');
+  if(cIn) cIn.addEventListener('input', function(){ this.value=this.value.toUpperCase(); });
   refreshPairInfo();
 })();
+/* ================= P2P ПО ID (транспорт для сопряжения) ================= */
+var ID_KEY='uzat_device_id';
+var PEER_PREFIX='uzfin-';
+function genId(){ var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r=''; for(var i=0;i<6;i++) r+=a[Math.floor(Math.random()*a.length)]; return r; }
+function loadDevId(){ var v=null; try{ v=localStorage.getItem(ID_KEY); }catch(e){} if(!v || !/^[A-Z0-9]{4,8}$/.test(v)){ v=genId(); try{ localStorage.setItem(ID_KEY,v); }catch(e){} } return v; }
+var DEV_ID=loadDevId();
+var peer=null, conn=null, peerRetry=0;
+var connectAttempts=0, connectTimeout=null, pingTimeout=null, reconnectTimer=null;
+var AUTO_LIMIT=7, autoAttempts=0;
+function autoReset(){ autoAttempts=0; }
+function autoCanProceed(){
+  if(autoAttempts>=AUTO_LIMIT){
+    setSyncStatus('автоподключение приостановлено (лимит '+AUTO_LIMIT+')','err');
+    return false;
+  }
+  return true;
+}
+var PEER_SRCS=[
+  'peerjs.min.js',
+  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
+  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
+  'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
+];
+var PEER_CONFIG_DIRECT = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+  ],
+  iceCandidatePoolSize: 10, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require', iceTransportPolicy: 'all'
+};
+var PEER_CONFIG_RELAY = {
+  iceServers: [
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
+  ],
+  iceTransportPolicy: 'relay'
+};
+var currentPolicy = 'all';
+function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ setSyncStatus('не удалось загрузить связь (CDN/файл недоступен)','err'); cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
+function setSyncStatus(txt, cls){
+  var el=document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent=txt;
+  el.className='tag '+(cls||'');
+  el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
+}
+function destroyPeer(){ if(peer){ try{ peer.destroy(); }catch(e){} peer=null; } }
+function initPeer(cb, policy){
+  cb=cb||function(){};
+  policy=policy||'all';
+  if(policy!==currentPolicy){ destroyPeer(); }
+  currentPolicy=policy;
+  if(peer && !peer.destroyed && peer.open){ cb(true); return; }
+  if(peer && !peer.destroyed && peer.disconnected){
+    setSyncStatus('переподключение к серверу…','info');
+    try{ peer.reconnect(); }catch(e){}
+    var waited=0;
+    (function recheck(){
+      if(peer && peer.open && !peer.disconnected){ cb(true); return; }
+      if(waited>=8000){ destroyPeer(); initPeer(cb, policy); return; }
+      waited+=500; setTimeout(recheck, 500);
+    })();
+    return;
+  }
+  ensurePeer(function(ok){
+    if(!ok){ setSyncStatus('нет связи с сервером — используй «Передачу кодами»/файл','err'); cb(false); return; }
+    var cfg = policy==='relay' ? PEER_CONFIG_RELAY : PEER_CONFIG_DIRECT;
+    var pOpts={ debug:1, config:cfg };
+    try{ peer=new Peer(PEER_PREFIX+DEV_ID, pOpts); }
+    catch(e){ setSyncStatus('ошибка инициализации','err'); cb(false); return; }
+    var opened=false;
+    peer.on('open', function(){ opened=true; peerRetry=0; setSyncStatus(policy==='relay'?'готов (через релей)':'готов к подключению','ok'); cb(true); });
+    peer.on('connection', function(c){ if(conn && conn.open){ try{ c.close(); }catch(e){} return; } conn=c; bindConn('host'); });
+    peer.on('disconnected', function(){
+      setSyncStatus('нет связи с сервером, переподключаюсь…','info');
+      setTimeout(function(){ if(peer && !peer.destroyed && peer.disconnected){ try{ peer.reconnect(); }catch(e){} } }, 1500);
+    });
+    peer.on('close', function(){
+      peer=null;
+    });
+    peer.on('error', function(err){
+      var t=err&&err.type;
+      if(t==='unavailable-id' && peerRetry<6){ peerRetry++; destroyPeer(); setSyncStatus('ожидание сервера… ('+peerRetry+'/6)','info'); setTimeout(function(){ initPeer(cb, policy); }, 1500*peerRetry); return; }
+      if(t==='peer-unavailable'){ setSyncStatus('ID не найден','err'); }
+      else if(t==='network' || t==='server-error'){ setSyncStatus('сеть недоступна — используй «Передачу кодами»','err'); }
+      else if(t==='browser-incompatible'){ setSyncStatus('браузер не поддерживает','err'); }
+      else { setSyncStatus('ошибка: '+(t||'связи'),'err'); }
+      if(!opened) cb(false);
+    });
+    setTimeout(function(){ if(!opened && (!peer || !peer.open)){ setSyncStatus('сервер не отвечает — используй «Передачу кодами»','err'); cb(false); } }, 15000);
+  });
+}
+function attemptConnect(id, policy){
+  policy=policy||'all';
+  if(!autoCanProceed()) return;
+  if(!peer || peer.destroyed || !peer.open){
+    initPeer(function(ok){ if(ok) attemptConnect(id, policy); else setSyncStatus('сервер не готов — используй «Передачу кодами»','err'); }, policy);
+    return;
+  }
+  if(connectAttempts>=4){
+    if(policy==='all'){
+      setSyncStatus('пробую через релей…','info');
+      connectAttempts=0;
+      destroyPeer();
+      setTimeout(function(){ attemptConnect(id, 'relay'); }, 500);
+    } else {
+      setSyncStatus('не удалось (2 режима)','err');
+      connectAttempts=0;
+    }
+    return;
+  }
+  connectAttempts++;
+  autoAttempts++;
+  setSyncStatus(((policy==='relay')?'релей ':'')+'подключение ('+autoAttempts+'/'+AUTO_LIMIT+')','info');
+  try{ conn=peer.connect(PEER_PREFIX+id, { reliable:true }); }
+  catch(e){ setSyncStatus('ошибка соединения','err'); return; }
+  bindConn('guest');
+  if(connectTimeout) clearTimeout(connectTimeout);
+  connectTimeout=setTimeout(function(){
+    if(conn && !conn.open){
+      try{ conn.close(); }catch(e){}
+      conn=null;
+      if(connectAttempts<4) setTimeout(function(){ attemptConnect(id, policy); }, 1000);
+      else attemptConnect(id, policy);
+    }
+  }, 12000);
+}
 /* ================= ЗАКРЫТИЕ ОКОН ================= */
 (function(){
   function closeOnBackdrop(e){
-    ['plannedPopup','resetPopup','reportPopup','plannerPopup'].forEach(function(id){
+    ['plannedPopup','resetPopup','reportPopup','plannerPopup','pairPopup'].forEach(function(id){
       var el=document.getElementById(id);
       if(el && el.classList.contains('open') && e.target===el){ el.classList.remove('open'); }
     });
@@ -1428,6 +1394,13 @@ function disconnectPeer(){
   document.body.addEventListener('pointerdown', closeOnBackdrop, { passive:true });
   document.body.addEventListener('touchstart', closeOnBackdrop, { passive:true });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeOnBackdrop({target:document.body}); } });
+})();
+(function(){
+  var r=document.getElementById('themePicker');
+  if(r) r.addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    s.theme=b.dataset.t; save(); applyT(s.theme); buildThemePicker();
+  });
 })();
 /* ================= RENDER ================= */
 function render(){
@@ -1798,21 +1771,17 @@ function downloadXlsxReport(){
 function buildAndDownloadXlsx(range, list, income){
   var wb=new ExcelJS.Workbook(); wb.creator='Совместные финансы'; wb.created=new Date();
   var T = { bg:'FF0E1117', panel:'FF161A23', panel2:'FF1A1F2A', header:'FF21262F', border:'FF2A2F3A', border2:'FF353A45', text:'FFE6E8EC', text2:'FF8E939C', text3:'FF5A5F68', green:'FF73BF69', red:'FFF2495C', blue:'FF5794F2', orange:'FFFF9830', purple:'FFB877D9', yellow:'FFFADE2A', pink:'FFE91E8C' };
-
   var total = 0; list.forEach(function(it){ total += (it.e.amt||0); });
   var days = Math.round((range.to - range.from) / 86400000) + 1; if (days < 1) days = 1;
   var diff = income - total;
   var plannedTot = plannedTotalInRange(range.from, range.to);
-
   var byCat = {};
   list.forEach(function(it){ byCat[it.e.cat] = (byCat[it.e.cat]||0) + (it.e.amt||0); });
   var catArr = Object.keys(byCat).map(function(n){
     var c = s.cats.find(function(x){ return x.n === n; });
     return {n: n, v: byCat[n], p: c ? (c.p||0) : 0};
   }).sort(function(a, b){ return b.v - a.v; });
-
   var ser = seriesFor(range.from, range.to, list);
-
   var incRows = [];
   Object.keys(s.months).forEach(function(k){
     var p = k.split('-'), y = +p[0], m = +p[1];
@@ -1825,11 +1794,9 @@ function buildAndDownloadXlsx(range, list, income){
     incRows.push({k: k, a: mm.incA||0, b: mm.incB||0, o: o, t: tot});
   });
   incRows.sort(function(x, y){ return x.k < y.k ? -1 : 1; });
-  /* ============= 1. DASHBOARD ============= */
   var ws = wb.addWorksheet('Дашборд', { properties: {tabColor: {argb: T.pink}}, views: [{showGridLines: false}] });
   ws.columns = [{width: 2}, {width: 22}, {width: 16}, {width: 14}, {width: 22}, {width: 16}, {width: 14}, {width: 2}];
   fillDark(ws, 120, 8, T.bg);
-
   ws.mergeCells('B2:G2');
   var title = ws.getCell('B2');
   title.value = 'ФИНАНСОВЫЙ ДАШБОРД';
@@ -1837,7 +1804,6 @@ function buildAndDownloadXlsx(range, list, income){
   title.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   title.border = {bottom: {style: 'thick', color: {argb: T.pink}}};
   ws.getRow(2).height = 52;
-
   ws.mergeCells('B3:G3');
   var subtitle = ws.getCell('B3');
   subtitle.value = fmtDate(range.from) + '  —  ' + fmtDate(range.to) + '   ·   ' + reportPeriodLabel() + '   ·   ' + days + ' дн.' + (plannedTot > 0 ? '   ·   запланировано: ' + Math.round(plannedTot) + ' ₽' : '');
@@ -1845,21 +1811,17 @@ function buildAndDownloadXlsx(range, list, income){
   subtitle.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   ws.getRow(3).height = 24;
   ws.getRow(4).height = 8;
-
   var kpis = [
     {label: 'ПОТРАЧЕНО', value: total, sub: 'за ' + reportPeriodLabel().toLowerCase(), color: T.red},
     {label: 'ДОХОД', value: income, sub: 'за период', color: T.green},
     {label: (diff >= 0 ? 'ОСТАТОК' : 'ДЕФИЦИТ'), value: Math.abs(diff), sub: diff >= 0 ? 'свободно' : 'не хватает', color: diff >= 0 ? T.blue : T.red},
     {label: 'В СРЕДНЕМ', value: total / days, sub: 'за день', color: T.orange}
   ];
-
   drawKpi(ws, 5, 2, 4, kpis[0], T);
   drawKpi(ws, 5, 5, 7, kpis[1], T);
   drawKpi(ws, 9, 2, 4, kpis[2], T);
   drawKpi(ws, 9, 5, 7, kpis[3], T);
-
   ws.getRow(12).height = 12;
-
   ws.mergeCells('B13:G13');
   var sec1 = ws.getCell('B13');
   sec1.value = 'РАСХОДЫ ПО КАТЕГОРИЯМ';
@@ -1867,7 +1829,6 @@ function buildAndDownloadXlsx(range, list, income){
   sec1.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   sec1.border = {left: {style: 'thick', color: {argb: T.blue}}};
   ws.getRow(13).height = 34;
-
   var h1 = ['Категория', 'Сумма', '%', 'План', 'Отклонение'];
   ['B','C','D','E','F'].forEach(function(col, i){
     var cell = ws.getCell(col + '14');
@@ -1878,44 +1839,36 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   ws.getRow(14).height = 26;
-
   catArr.forEach(function(c, i){
     var row = 15 + i;
     ws.getRow(row).height = 22;
     var t = catArr.length > 0 ? (c.v / catArr[0].v) : 0;
     if(catArr[0].v === 0) t = 0;
-
     var nc = ws.getCell('B' + row);
     nc.value = c.n;
     nc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
     nc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
     nc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-
     var bg = mixColor([253,240,248], [233,30,140], t*0.75);
-    var textColor = t > 0.55 ? T.text : T.text;
-
     var vc = ws.getCell('C' + row);
     vc.value = c.v;
     vc.numFmt = '#,##0.00';
-    vc.font = {size: 10, bold: true, color: {argb: textColor}, name: 'Calibri'};
+    vc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
     vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     vc.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bg}};
     vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-
     var pc = ws.getCell('D' + row);
     pc.value = total > 0 ? c.v / total : 0;
     pc.numFmt = '0.0%';
     pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
     pc.alignment = {horizontal: 'center', vertical: 'middle'};
     pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-
     var plc = ws.getCell('E' + row);
     plc.value = c.p || 0;
     plc.numFmt = '#,##0.00';
     plc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
     plc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     plc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-
     var dc = ws.getCell('F' + row);
     var dv = c.p - c.v;
     dc.value = dv;
@@ -1924,12 +1877,10 @@ function buildAndDownloadXlsx(range, list, income){
     dc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     dc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
-
   if (catArr.length > 0){
     ws.addConditionalFormatting({ ref: 'C15:C' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.pink}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
     ws.addConditionalFormatting({ ref: 'D15:D' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.blue}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
-
   var tRow = 15 + catArr.length;
   ws.getRow(tRow).height = 26;
   var planTotal = catArr.reduce(function(a,c){ return a + c.p; }, 0);
@@ -1946,9 +1897,7 @@ function buildAndDownloadXlsx(range, list, income){
     cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0};
     cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
   });
-
   ws.getRow(tRow + 1).height = 12;
-
   var secRow = tRow + 2;
   ws.mergeCells('B' + secRow + ':G' + secRow);
   var sec2 = ws.getCell('B' + secRow);
@@ -1957,7 +1906,6 @@ function buildAndDownloadXlsx(range, list, income){
   sec2.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   sec2.border = {left: {style: 'thick', color: {argb: T.purple}}};
   ws.getRow(secRow).height = 34;
-
   var thRow = secRow + 1;
   var thLabels = [ser.type === 'day' ? 'День' : 'Месяц', 'Сумма', '% от макс'];
   ['B','C','D'].forEach(function(col, i){
@@ -1969,7 +1917,6 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   ws.getRow(thRow).height = 26;
-
   var maxM = 0; ser.arr.forEach(function(x){ if (x.v > maxM) maxM = x.v; });
   ser.arr.forEach(function(x, i){
     var row = thRow + 1 + i;
@@ -1979,14 +1926,12 @@ function buildAndDownloadXlsx(range, list, income){
     lc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
     lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
     lc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-
     var vc = ws.getCell('C' + row);
     vc.value = x.v;
     vc.numFmt = '#,##0.00';
     vc.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
     vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-
     var pc = ws.getCell('D' + row);
     pc.value = maxM > 0 ? x.v / maxM : 0;
     pc.numFmt = '0%';
@@ -1994,15 +1939,12 @@ function buildAndDownloadXlsx(range, list, income){
     pc.alignment = {horizontal: 'center', vertical: 'middle'};
     pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
-
   if (ser.arr.length > 0){
     ws.addConditionalFormatting({ ref: 'C' + (thRow + 1) + ':C' + (thRow + ser.arr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.purple}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
-  /* ============= 2. КАТЕГОРИИ ============= */
   var wsC = wb.addWorksheet('Категории', { properties: {tabColor: {argb: T.blue}}, views: [{showGridLines: false}] });
   wsC.columns = [{width: 30}, {width: 16}, {width: 16}, {width: 18}, {width: 12}];
   fillDark(wsC, 120, 5, T.bg);
-
   var hC = ['Категория', 'План ₽', 'Факт ₽', 'Отклонение ₽', 'Доля'];
   ['A','B','C','D','E'].forEach(function(col, i){
     var cell = wsC.getCell(col + '1');
@@ -2013,7 +1955,6 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   wsC.getRow(1).height = 26;
-
   catArr.forEach(function(c, i){
     var row = 2 + i;
     var dv = c.p - c.v;
@@ -2032,7 +1973,6 @@ function buildAndDownloadXlsx(range, list, income){
     });
     wsC.getRow(row).height = 20;
   });
-
   var totC = 2 + catArr.length;
   var totPlan = catArr.reduce(function(a,c){return a+c.p;},0);
   var totDev = catArr.reduce(function(a,c){return a+(c.p-c.v);},0);
@@ -2048,11 +1988,9 @@ function buildAndDownloadXlsx(range, list, income){
     if (j === 4) cell.numFmt = '0.0%';
   });
   wsC.getRow(totC).height = 26;
-  /* ============= 3. ДОХОДЫ ============= */
   var wsI = wb.addWorksheet('Доходы', { properties: {tabColor: {argb: T.green}}, views: [{showGridLines: false}] });
   wsI.columns = [{width: 16}, {width: 18}, {width: 18}, {width: 16}, {width: 18}];
   fillDark(wsI, 120, 5, T.bg);
-
   var hI = ['Месяц', 'ЗП (5-е) ₽', 'ЗП (20-е) ₽', 'Другое ₽', 'Итого ₽'];
   ['A','B','C','D','E'].forEach(function(col, i){
     var cell = wsI.getCell(col + '1');
@@ -2063,7 +2001,6 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   wsI.getRow(1).height = 26;
-
   if (incRows.length === 0){
     wsI.mergeCells('A2:E2');
     var emptyI = wsI.getCell('A2');
@@ -2089,7 +2026,6 @@ function buildAndDownloadXlsx(range, list, income){
       });
       wsI.getRow(row).height = 20;
     });
-
     var totI = 2 + incRows.length;
     var totA = incRows.reduce(function(a,c){return a+c.a;},0);
     var totB = incRows.reduce(function(a,c){return a+c.b;},0);
@@ -2107,11 +2043,9 @@ function buildAndDownloadXlsx(range, list, income){
     });
     wsI.getRow(totI).height = 26;
   }
-  /* ============= 4. ВСЕ ТРАТЫ ============= */
   var wsE = wb.addWorksheet('Все траты', { properties: {tabColor: {argb: T.red}}, views: [{showGridLines: false}] });
   wsE.columns = [{width: 14}, {width: 24}, {width: 22}, {width: 16}];
   fillDark(wsE, 1500, 4, T.bg);
-
   var hE = ['Дата', 'Категория', 'Подкатегория', 'Сумма ₽'];
   ['A','B','C','D'].forEach(function(col, i){
     var cell = wsE.getCell(col + '1');
@@ -2122,7 +2056,6 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   wsE.getRow(1).height = 26;
-
   if (list.length === 0){
     wsE.mergeCells('A2:D2');
     var emptyE = wsE.getCell('A2');
@@ -2161,8 +2094,7 @@ function buildAndDownloadXlsx(range, list, income){
 applyT(s.theme||'pink');
 buildAccentRow();
 initDateInput();
-initPeerInput();
-initSrvInputs();
+buildThemePicker();
 render();
 </script>
 </body>
