@@ -276,7 +276,7 @@
     <div class="qa" data-go="budget"><div class="ic">📋</div><div class="tt">План</div><div class="st">Категории</div></div>
     <div class="qa" data-go="result"><div class="ic">📊</div><div class="tt">Итог</div><div class="st">План vs факт</div></div>
     <div class="qa" data-go="income"><div class="ic">💳</div><div class="tt">Доход</div><div class="st">5-е и 20-е</div></div>
-    <div class="qa" data-go="sync"><div class="ic">🔗</div><div class="tt">Сопряжение</div><div class="st">по коду</div></div>
+    <div class="qa" data-go="sync"><div class="ic">🔗</div><div class="tt">Обмен</div><div class="st">по коду</div></div>
     <div class="qa" data-act="reset"><div class="ic">🗑</div><div class="tt">Сброс</div><div class="st">с паролем</div></div>
     <div class="qa wide" data-act="report"><div class="ic">📈</div><div class="tt">Отчёт с графиками</div></div>
   </div>
@@ -406,23 +406,20 @@
   </div>
   <div class="tab-panel" id="p-sync">
     <div class="card">
-      <h3>🔑 Сопряжение по коду <span class="tag" id="syncStatus">не подключено</span></h3>
+      <h3>🔑 Комната пары <span class="tag" id="roomStatus">не подключено</span></h3>
       <div class="id-card">
-        <div class="id-lbl">Твой постоянный код сопряжения</div>
-        <div class="id-val" id="mySyncCode">······</div>
+        <div class="id-lbl">Общий код пары (комната)</div>
+        <div class="id-val" id="roomCodeVal">······</div>
         <button class="btn-main" data-act="copyCode">Скопировать код</button>
       </div>
       <div class="diag" style="margin-top:10px">
-        Поделись этим кодом с партнёром. Он введёт его в поле ниже и нажмёт <b>«Подключить»</b>.
-        После этого устройства синхронизируются автоматически — постоянно, без повторного ввода кода.
-        Код постоянный и не меняется. Не передавай его посторонним.
+        Оба партнёра вводят <b>одинаковый 6-значный код</b>. Данные хранятся в вашей базе на сервере.<br>
+        Любое изменение (трата, план) автоматически сохраняется. При открытии приложения всё автоматически подтягивается.
       </div>
       <div class="add-form" style="padding-top:10px">
-        <input type="text" id="pairCodeIn" class="pair-code-inp" placeholder="Код партнёра (6 симв.)" maxlength="6" autocomplete="off">
-        <button data-act="connectPair">Подключить</button>
+        <input type="text" id="pairCodeIn" class="pair-code-inp" placeholder="Код пары (6 симв.)" maxlength="6" autocomplete="off">
+        <button data-act="setRoom">Войти</button>
       </div>
-      <button class="btn-sec" data-act="disconnect">Отключиться</button>
-      <button class="btn-sec" data-act="clearPairs">⛔ Сбросить все сопряжения</button>
       <div id="pairInfo"></div>
     </div>
     <div class="card">
@@ -558,7 +555,7 @@ function load(){ var dat=null; try{ dat=JSON.parse(localStorage.getItem(MAIN_KEY
   dat=normalize(dat); if(!dat) dat=defState();
   return dat; }
 var s=load();
-function save(){ try{ localStorage.setItem(MAIN_KEY,JSON.stringify(s)); }catch(e){} broadcast(); }
+function save(){ try{ localStorage.setItem(MAIN_KEY,JSON.stringify(s)); }catch(e){} serverSave(); }
 function saveLocal(){ try{ localStorage.setItem(MAIN_KEY,JSON.stringify(s)); }catch(e){} }
 function getMonth(key){ if(!s.months[key]) s.months[key]={incA:0,incB:0,exp:[],startBalance:0,other:[]}; return s.months[key]; }
 function mo(){ return getMonth(s.curMonth); }
@@ -685,22 +682,115 @@ function act(kind){
   if(kind==='export'){ exportBackup(); return; }
   if(kind==='import'){ importBackup(); return; }
   if(kind==='reset'){ openReset(); return; }
-  if(kind==='copyCode'){ copyCode(PAIR_CODE); return; }
-  if(kind==='connectPair'){ connectPair(); return; }
-  if(kind==='disconnect'){ disconnectPeer(); return; }
-  if(kind==='clearPairs'){ clearPairs(); return; }
+  if(kind==='copyCode'){ copyCode(getRoomCode()); return; }
+  if(kind==='setRoom'){ setRoomCodeFromInput(); return; }
   if(kind==='report'){ openReport(); return; }
   if(kind==='closeReport'){ closeReport(); return; }
   if(kind==='xlsxReport'){ downloadXlsxReport(); return; }
   if(kind==='pdfReport'){ downloadPdfReport(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
-/* ================= ПЛАНЕР (pop-up) ================= */
-function openPlannerPopup(){
-  document.getElementById('plannerPopup').classList.add('open');
-  fillPlannerSubs();
-  renderPlanner();
+/* ================= СИНХРОНИЗАЦИЯ ЧЕРЕЗ VM (код = комната) ================= */
+var CODE_KEY='uzat_room_code';
+var SERVER='./';  // статика и API на одном сервере; для корня сайта '/' тоже ок
+function getRoomCode(){ var c=null; try{ c=localStorage.getItem(CODE_KEY); }catch(e){} return c?c.toUpperCase():''; }
+function setRoomCode(c){ c=(c||'').replace(/[^A-Z0-9]/g,'').toUpperCase().slice(0,6);
+  if(c.length===6){ try{ localStorage.setItem(CODE_KEY,c); }catch(e){} }
+  return c; }
+function roomData(){ return {cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth, templates:s.templates, planned:s.planned, settings:s.settings}; }
+function serverSave(){
+  var c=getRoomCode(); if(!c) return;
+  try{ fetch(SERVER+'api/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c, data:roomData()})}).catch(function(){}); }catch(e){}
 }
+function serverLoad(cb){
+  cb=cb||function(){}; var c=getRoomCode(); if(!c){ cb(false); return; }
+  fetch(SERVER+'api/load?code='+encodeURIComponent(c))
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res && res.ok && res.data){ saveLocal(); var ch=mergeRemote(res.data); if(ch){ saveLocal(); render(); } }
+      cb(true);
+    })
+    .catch(function(){ cb(false); });
+}
+function setRoomCodeFromInput(){
+  var inp=document.getElementById('pairCodeIn');
+  var c=setRoomCode(inp?inp.value:'');
+  if(!c){ alert('Код пары — 6 символов (заглавные A-Z, цифры 2-9)'); return; }
+  inp.value=c;
+  var el=document.getElementById('roomCodeVal'); if(el) el.textContent=c;
+  serverLoad(function(){ setRoomStatus('в комнате'); }); render();
+}
+function setRoomStatus(txt, cls){
+  var el=document.getElementById('roomStatus'); if(!el) return;
+  el.textContent=txt||'';
+  el.className='tag '+(cls||'');
+  el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':'var(--text2)');
+}
+function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Скопировано ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
+function mergeRemote(rem){
+  if(!rem||typeof rem!=='object') return false;
+  var changed=false;
+  (rem.deleted||[]).forEach(function(id){ if(id && s.deleted.indexOf(id)<0){ s.deleted.push(id); changed=true; } });
+  if(s.deleted.length>400) s.deleted=s.deleted.slice(-400);
+  (rem.cats||[]).forEach(function(rc){
+    if(!rc||!rc.n) return;
+    var lc=s.cats.find(function(c){return c.n===rc.n;});
+    if(!lc){ s.cats.push({n:rc.n,p:rc.p||0,c:rc.c||'#F06292',subs:(rc.subs||[]).map(function(x){return {n:x.n,p:x.p||0};})}); changed=true; }
+    else{
+      if((rc.p||0)>(lc.p||0)){ lc.p=rc.p; changed=true; }
+      if(!lc.subs) lc.subs=[];
+      (rc.subs||[]).forEach(function(rs){
+        var ls=lc.subs.find(function(x){return x.n===rs.n;});
+        if(!ls){ lc.subs.push({n:rs.n,p:rs.p||0}); changed=true; }
+        else if((rs.p||0)>(ls.p||0)){ ls.p=rs.p; changed=true; }
+      });
+    }
+  });
+  if(rem.templates && rem.templates.length){
+    var tTpl={}; s.templates.forEach(function(t){ tTpl[t.id]=true; });
+    rem.templates.forEach(function(t){ if(t.id && !tTpl[t.id]){ s.templates.push(t); tTpl[t.id]=true; changed=true; } });
+  }
+  if(rem.planned && rem.planned.length){
+    var tPl={}; s.planned.forEach(function(p){ tPl[p.id]=true; });
+    rem.planned.forEach(function(p){ if(p.id && !tPl[p.id]){ s.planned.push(p); tPl[p.id]=true; changed=true; } });
+  }
+  if(rem.settings && rem.settings.accent && rem.settings.accent!==s.settings.accent){
+    s.settings.accent=rem.settings.accent; changed=true;
+  }
+  Object.keys(rem.months||{}).forEach(function(k){
+    var rm=rem.months[k]; if(!rm) return;
+    if(!(rm.incA||rm.incB||(rm.exp&&rm.exp.length)||(rm.other&&rm.other.length))) return;
+    var lm=getMonth(k);
+    if((rm.incA||0)>(lm.incA||0)){ lm.incA=rm.incA; changed=true; }
+    if((rm.incB||0)>(lm.incB||0)){ lm.incB=rm.incB; changed=true; }
+    if(rm.other && rm.other.length){ lm.other=lm.other||[]; var oids={}; lm.other.forEach(function(o){ oids[o.id]=true; }); rm.other.forEach(function(o){ if(o.id && !oids[o.id]){ lm.other.push({id:o.id,type:o.type||'other',amt:o.amt||0}); oids[o.id]=true; changed=true; } }); }
+    var ids={}; lm.exp.forEach(function(e){ ids[e.id]=true; });
+    (rm.exp||[]).forEach(function(e){
+      if(!e.id || ids[e.id]) return;
+      if(s.deleted.indexOf(e.id)>=0) return;
+      lm.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,tpl:e.tpl||'',ts:e.ts||Date.now()});
+      ids[e.id]=true; changed=true;
+    });
+  });
+  if(s.deleted.length){
+    Object.keys(s.months).forEach(function(k){
+      var m2=s.months[k]; if(!m2||!m2.exp) return;
+      var before=m2.exp.length;
+      m2.exp=m2.exp.filter(function(e){ return s.deleted.indexOf(e.id)<0; });
+      if(m2.exp.length!==before) changed=true;
+    });
+  }
+  return changed;
+}
+(function(){
+  var cIn=document.getElementById('pairCodeIn');
+  if(cIn) cIn.addEventListener('input', function(){ this.value=this.value.toUpperCase(); });
+  var rc=getRoomCode();
+  if(rc){ var el=document.getElementById('roomCodeVal'); if(el) el.textContent=rc; serverLoad(function(){ setRoomStatus('в комнате','ok'); }); }
+  render();
+})();
+/* ================= ПЛАНЕР (pop-up) ================= */
+function openPlannerPopup(){ document.getElementById('plannerPopup').classList.add('open'); fillPlannerSubs(); renderPlanner(); }
 function closePlannerPopup(){ document.getElementById('plannerPopup').classList.remove('open'); }
 function fillPlannerSubs(){
   var sel=document.getElementById('plSub'); if(!sel) return;
@@ -741,8 +831,7 @@ function renderPlanner(){
     if(mini) mini.textContent='Пока пусто — запланируй будущую трату.';
     return;
   }
-  var idx=[];
-  s.planned.forEach(function(p,i){ idx.push(i); });
+  var idx=[]; s.planned.forEach(function(p,i){ idx.push(i); });
   idx.sort(function(a,b){ return s.planned[a].day-s.planned[b].day; });
   idx.forEach(function(i){
     var p=s.planned[i];
@@ -916,337 +1005,6 @@ function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},nu
 function importBackup(){ document.getElementById('restoreFile').click(); }
 document.getElementById('restoreFile').addEventListener('change', function(ev){ var f=ev.target.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ try{ var obj=JSON.parse(rd.result); var d=obj&&obj.app==='uz_backup'?obj.data:obj; d=normalize(d); if(!d){ alert('Файл не распознан'); return; } s=d; save(); render(); applyT(s.theme||'pink'); initDateInput(); buildAccentRow(); buildThemePicker(); alert('Данные восстановлены ✅'); }catch(e){ alert('Ошибка чтения файла'); } ev.target.value=''; }; rd.readAsText(f); });
 function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){cb(true);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc); }
-/* ================= P2P ПО КОДУ (постоянный 6-значный) ================= */
-var ID_KEY='uzat_device_id';
-var PAIR_CODE_KEY='uzat_pair_code';
-var PEER_PREFIX='uzfin-';
-function genId(){ var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r=''; for(var i=0;i<6;i++) r+=a[Math.floor(Math.random()*a.length)]; return r; }
-function loadDevId(){ var v=null; try{ v=localStorage.getItem(ID_KEY); }catch(e){} if(!v || !/^[A-Z0-9]{4,8}$/.test(v)){ v=genId(); try{ localStorage.setItem(ID_KEY,v); }catch(e){} } return v; }
-function loadPairCode(){ var v=null; try{ v=localStorage.getItem(PAIR_CODE_KEY); }catch(e){} if(!v || !/^[A-Z0-9]{6}$/.test(v)){ v=genId(); try{ localStorage.setItem(PAIR_CODE_KEY,v); }catch(e){} } return v; }
-var DEV_ID=loadDevId();
-var PAIR_CODE=loadPairCode();
-var peer=null, conn=null, peerRetry=0;
-var connectAttempts=0, connectTimeout=null, reconnectTimer=null;
-var AUTO_LIMIT=7, autoAttempts=0;
-var connAuthorized=false;
-var pendingPairCode='';
-function autoReset(){ autoAttempts=0; }
-function autoCanProceed(){
-  if(autoAttempts>=AUTO_LIMIT){ setSyncStatus('автоподключение приостановлено (лимит)','err'); return false; }
-  return true;
-}
-var PEER_SRCS=[
-  'peerjs.min.js',
-  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
-  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
-  'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
-];
-var PEER_CONFIG_DIRECT = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
-    { urls: 'stun:global.stun.twilio.com:3478' },
-    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-  ],
-  iceCandidatePoolSize: 10, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require', iceTransportPolicy: 'all'
-};
-var currentPolicy = 'all';
-function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ setSyncStatus('не удалось загрузить связь','err'); cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
-var PAIR_LIST_KEY='uzat_pair_allow';
-function pairAllow(){ var p=[]; try{ p=JSON.parse(localStorage.getItem(PAIR_LIST_KEY)); }catch(e){} if(!(p instanceof Array)) p=[]; return p; }
-function saveAllow(p){ try{ localStorage.setItem(PAIR_LIST_KEY,JSON.stringify(p)); }catch(e){} }
-function isAllowed(id){ return pairAllow().some(function(x){ return x===id; }); }
-function addAllow(id){ if(!id || id===DEV_ID) return; var p=pairAllow(); if(p.indexOf(id)<0){ p.push(id); saveAllow(p); } refreshPairInfo(); }
-function removeAllAllow(){ saveAllow([]); connAuthorized=false; if(conn){ try{ conn.close(); }catch(e){} conn=null; } refreshPairInfo(); }
-function setSyncStatus(txt, cls){
-  var el=document.getElementById('syncStatus');
-  if(!el) return;
-  el.textContent=txt;
-  el.className='tag '+(cls||'');
-  el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
-}
-function refreshMyCode(){ var el=document.getElementById('mySyncCode'); if(el) el.textContent=PAIR_CODE; }
-function refreshPairInfo(){
-  var el=document.getElementById('pairInfo'); if(!el) return;
-  el.innerHTML='Сопряжено устройств: <b>'+pairAllow().length+'</b> · код постоянный, не меняется';
-}
-function destroyPeer(){ if(peer){ try{ peer.destroy(); }catch(e){} peer=null; } }
-function initPeer(cb, policy){
-  cb=cb||function(){};
-  policy=policy||'all';
-  if(policy!==currentPolicy){ destroyPeer(); }
-  currentPolicy=policy;
-  if(peer && !peer.destroyed && peer.open){ cb(true); return; }
-  if(peer && !peer.destroyed && peer.disconnected){
-    setSyncStatus('переподключение…','info');
-    try{ peer.reconnect(); }catch(e){}
-    var waited=0;
-    (function recheck(){
-      if(peer && peer.open && !peer.disconnected){ cb(true); return; }
-      if(waited>=8000){ destroyPeer(); initPeer(cb, policy); return; }
-      waited+=500; setTimeout(recheck, 500);
-    })();
-    return;
-  }
-  ensurePeer(function(ok){
-    if(!ok){ setSyncStatus('нет связи с сервером','err'); cb(false); return; }
-    var cfg = policy==='relay' ? { iceServers: PEER_CONFIG_DIRECT.iceServers.filter(function(x){ return x.urls.indexOf('turn:')===0; }), iceTransportPolicy:'relay' } : PEER_CONFIG_DIRECT;
-    var pOpts={ debug:1, config:cfg };
-    try{ peer=new Peer(PEER_PREFIX+DEV_ID, pOpts); }
-    catch(e){ setSyncStatus('ошибка инициализации','err'); cb(false); return; }
-    var opened=false;
-    peer.on('open', function(){ opened=true; peerRetry=0; setSyncStatus('готов к сопряжению','ok'); cb(true); });
-    peer.on('connection', function(c){ if(conn && conn.open){ try{ c.close(); }catch(e){} return; } conn=c; bindConn('host'); });
-    peer.on('disconnected', function(){
-      setSyncStatus('нет связи, переподключаюсь…','info');
-      setTimeout(function(){ if(peer && !peer.destroyed && peer.disconnected){ try{ peer.reconnect(); }catch(e){} } }, 1500);
-    });
-    peer.on('close', function(){
-      peer=null;
-      if(s.partnerId && s.partnerId!==DEV_ID){
-        if(reconnectTimer) clearTimeout(reconnectTimer);
-        reconnectTimer=setTimeout(function(){ if(!conn || !conn.open){ attemptConnect(s.partnerId,'all'); } }, 2000);
-      }
-    });
-    peer.on('error', function(err){
-      var t=err&&err.type;
-      if(t==='unavailable-id' && peerRetry<6){ peerRetry++; destroyPeer(); setTimeout(function(){ initPeer(cb, policy); }, 1500*peerRetry); return; }
-      if(t==='peer-unavailable'){ setSyncStatus('устройство партнёра не в сети','err'); }
-      else if(t==='network'||t==='server-error'){ setSyncStatus('сеть недоступна','err'); }
-      else { setSyncStatus('ошибка: '+(t||'связи'),'err'); }
-      if(!opened) cb(false);
-    });
-    setTimeout(function(){ if(!opened && (!peer || !peer.open)){ setSyncStatus('сервер не отвечает','err'); cb(false); } }, 15000);
-  });
-}
-function hostAcceptHello(msg){
-  var gid=String(conn.peer||'').replace(PEER_PREFIX,'');
-  if(isAllowed(gid)){
-    connAuthorized=true;
-    setSyncStatus('✓ подключено: '+gid,'ok');
-    try{ conn.send({t:'auth_ok', myId:DEV_ID}); }catch(e){}
-    broadcast();
-    return;
-  }
-  var given=String((msg&&msg.code)||'').replace(/[^A-Z0-9]/g,'').toUpperCase();
-  if(given && given===PAIR_CODE){
-    addAllow(gid);
-    connAuthorized=true;
-    setSyncStatus('✓ сопряжение с '+gid,'ok');
-    try{ conn.send({t:'auth_ok', myId:DEV_ID}); }catch(e){}
-    broadcast();
-  } else {
-    failConn('неверный код сопряжения');
-  }
-}
-function handleData(role, msg){
-  if(!msg) return;
-  if(msg.t==='ping'){ try{ conn.send({t:'pong', ts:msg.ts}); }catch(e){} return; }
-  if(msg.t==='pong'){ setSyncStatus('✓ связь работает','ok'); return; }
-  if(msg.t==='hello'){
-    if(role==='host') hostAcceptHello(msg);
-    return;
-  }
-  if(msg.t==='auth_ok'){
-    if(role==='guest'){
-      var hid=String(conn.peer||'').replace(PEER_PREFIX,'');
-      addAllow(hid);
-      connAuthorized=true;
-      setSyncStatus('✓ сопряжение подтверждено','ok');
-      broadcast();
-    }
-    return;
-  }
-  if(msg.t==='auth_fail'){
-    s.partnerId=''; saveLocal();
-    failConn(msg.reason||'отказ в сопряжении');
-    return;
-  }
-  if(msg.t==='state' && msg.data){
-    if(!connAuthorized) return;
-    var ch=mergeRemote(msg.data);
-    if(ch){ saveLocal(); render(); }
-  }
-}
-function bindConn(role){
-  if(!conn) return;
-  conn.on('open', function(){
-    if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-    var partnerId=String(conn.peer||'').replace(PEER_PREFIX,'');
-    if(role==='host'){
-      connAuthorized=false;
-      setSyncStatus('проверка сопряжения…','info');
-    } else {
-      var code=isAllowed(partnerId)?'':pendingPairCode;
-      setSyncStatus('проверка сопряжения…','info');
-      try{ conn.send({t:'hello', myId:DEV_ID, code:code}); }catch(e){}
-    }
-  });
-  conn.on('data', function(msg){ handleData(role, msg); });
-  conn.on('close', function(){
-    connAuthorized=false; pendingPairCode='';
-    setSyncStatus('отключено, переподключение…','info');
-    conn=null;
-    if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-    if(s.partnerId && s.partnerId!==DEV_ID){
-      if(reconnectTimer) clearTimeout(reconnectTimer);
-      reconnectTimer=setTimeout(function(){ if(!conn || !conn.open){ attemptConnect(s.partnerId,'all'); } }, 3000);
-    }
-  });
-  conn.on('error', function(err){
-    console.error('Data conn error', err);
-    if(!connAuthorized) setSyncStatus('ошибка связи','err');
-  });
-}
-function attemptConnect(id, policy){
-  policy=policy||'all';
-  if(!autoCanProceed()) return;
-  if(!peer || peer.destroyed || !peer.open){
-    initPeer(function(ok){ if(ok) attemptConnect(id, policy); }, policy);
-    return;
-  }
-  if(connectAttempts>=4){
-    if(policy==='all'){
-      connectAttempts=0;
-      destroyPeer();
-      setTimeout(function(){ attemptConnect(id, 'relay'); }, 500);
-    } else {
-      setSyncStatus('не удалось подключиться','err');
-      connectAttempts=0;
-    }
-    return;
-  }
-  connectAttempts++;
-  autoAttempts++;
-  setSyncStatus('подключение…','info');
-  try{ conn=peer.connect(PEER_PREFIX+id, { reliable:true }); }
-  catch(e){ setSyncStatus('ошибка соединения','err'); return; }
-  bindConn('guest');
-  if(connectTimeout) clearTimeout(connectTimeout);
-  connectTimeout=setTimeout(function(){
-    if(conn && !conn.open){
-      try{ conn.close(); }catch(e){}
-      conn=null;
-      if(connectAttempts<4) setTimeout(function(){ attemptConnect(id, policy); }, 1000);
-      else attemptConnect(id, policy);
-    }
-  }, 12000);
-}
-function copyCode(t){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); alert('Скопировано ✅'); }catch(e){ alert('Выдели и скопируй вручную'); } document.body.removeChild(ta); }
-function connectPair(){
-  var inp=document.getElementById('pairCodeIn');
-  var raw=String(inp?inp.value||'':'').replace(/[^A-Z0-9]/g,'').toUpperCase();
-  if(raw.length<6){ alert('Введите полный код сопряжения партнёра (6 символов)'); return; }
-  var hostId=raw.slice(0,6), code='';
-  pendingPairCode='';
-  if(hostId===DEV_ID){ if(confirm('Это похоже на ваш собственный код. Подключиться к самому себе нельзя.\nПродолжить как новый партнёр?')){} else return; }
-  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
-  connectAttempts=0; autoReset();
-  s.partnerId=hostId; saveLocal();
-  setSyncStatus('инициализация…','info');
-  destroyPeer();
-  initPeer(function(ok){
-    if(!ok){ setSyncStatus('не удалось подключиться','err'); return; }
-    attemptConnect(hostId,'all');
-  },'all');
-}
-function failConn(reason){
-  setSyncStatus(reason,'err');
-  connAuthorized=false; pendingPairCode='';
-  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-  try{ if(conn){ conn.close(); } }catch(e){}
-  conn=null;
-}
-function disconnectPeer(){
-  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
-  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
-  connectAttempts=0;
-  connAuthorized=false; pendingPairCode='';
-  if(conn){ try{ conn.close(); }catch(e){} conn=null; }
-  destroyPeer();
-  s.partnerId=''; saveLocal();
-  var inp=document.getElementById('pairCodeIn'); if(inp) inp.value='';
-  setSyncStatus('не подключено','');
-}
-function clearPairs(){
-  if(!confirm('Удалить все сопряжения? После этого нужно будет заново вводить коды.')) return;
-  removeAllAllow();
-  s.partnerId=''; saveLocal();
-  disconnectPeer();
-  alert('Сопряжения сброшены ✅');
-}
-function broadcast(){
-  if(!conn || !conn.open || !connAuthorized) return;
-  try{ conn.send({t:'state', data:{cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth, templates:s.templates, planned:s.planned, settings:s.settings}}); }catch(e){}
-}
-function mergeRemote(rem){
-  if(!rem||typeof rem!=='object') return false;
-  var changed=false;
-  (rem.deleted||[]).forEach(function(id){ if(id && s.deleted.indexOf(id)<0){ s.deleted.push(id); changed=true; } });
-  if(s.deleted.length>400) s.deleted=s.deleted.slice(-400);
-  (rem.cats||[]).forEach(function(rc){
-    if(!rc||!rc.n) return;
-    var lc=s.cats.find(function(c){return c.n===rc.n;});
-    if(!lc){ s.cats.push({n:rc.n,p:rc.p||0,c:rc.c||'#F06292',subs:(rc.subs||[]).map(function(x){return {n:x.n,p:x.p||0};})}); changed=true; }
-    else{
-      if((rc.p||0)>(lc.p||0)){ lc.p=rc.p; changed=true; }
-      if(!lc.subs) lc.subs=[];
-      (rc.subs||[]).forEach(function(rs){
-        var ls=lc.subs.find(function(x){return x.n===rs.n;});
-        if(!ls){ lc.subs.push({n:rs.n,p:rs.p||0}); changed=true; }
-        else if((rs.p||0)>(ls.p||0)){ ls.p=rs.p; changed=true; }
-      });
-    }
-  });
-  if(rem.templates && rem.templates.length){
-    var tTpl={}; s.templates.forEach(function(t){ tTpl[t.id]=true; });
-    rem.templates.forEach(function(t){ if(t.id && !tTpl[t.id]){ s.templates.push(t); tTpl[t.id]=true; changed=true; } });
-  }
-  if(rem.planned && rem.planned.length){
-    var tPl={}; s.planned.forEach(function(p){ tPl[p.id]=true; });
-    rem.planned.forEach(function(p){ if(p.id && !tPl[p.id]){ s.planned.push(p); tPl[p.id]=true; changed=true; } });
-  }
-  if(rem.settings && rem.settings.accent && rem.settings.accent!==s.settings.accent){
-    s.settings.accent=rem.settings.accent; changed=true;
-  }
-  Object.keys(rem.months||{}).forEach(function(k){
-    var rm=rem.months[k]; if(!rm) return;
-    if(!(rm.incA||rm.incB||(rm.exp&&rm.exp.length)||(rm.other&&rm.other.length))) return;
-    var lm=getMonth(k);
-    if((rm.incA||0)>(lm.incA||0)){ lm.incA=rm.incA; changed=true; }
-    if((rm.incB||0)>(lm.incB||0)){ lm.incB=rm.incB; changed=true; }
-    if(rm.other && rm.other.length){ lm.other=lm.other||[]; var oids={}; lm.other.forEach(function(o){ oids[o.id]=true; }); rm.other.forEach(function(o){ if(o.id && !oids[o.id]){ lm.other.push({id:o.id,type:o.type||'other',amt:o.amt||0}); oids[o.id]=true; changed=true; } }); }
-    var ids={}; lm.exp.forEach(function(e){ ids[e.id]=true; });
-    (rm.exp||[]).forEach(function(e){
-      if(!e.id || ids[e.id]) return;
-      if(s.deleted.indexOf(e.id)>=0) return;
-      lm.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,tpl:e.tpl||'',ts:e.ts||Date.now()});
-      ids[e.id]=true; changed=true;
-    });
-  });
-  if(s.deleted.length){
-    Object.keys(s.months).forEach(function(k){
-      var m2=s.months[k]; if(!m2||!m2.exp) return;
-      var before=m2.exp.length;
-      m2.exp=m2.exp.filter(function(e){ return s.deleted.indexOf(e.id)<0; });
-      if(m2.exp.length!==before) changed=true;
-    });
-  }
-  return changed;
-}
-refreshMyCode();
-refreshPairInfo();
-(function(){
-  var cIn=document.getElementById('pairCodeIn');
-  if(cIn) cIn.addEventListener('input', function(){ this.value=this.value.toUpperCase(); });
-})();
-setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ autoReset(); attemptConnect(s.partnerId,'all'); } }, 1500);
 /* ================= ЗАКРЫТИЕ ОКОН ================= */
 (function(){
   function closeOnBackdrop(e){
@@ -1566,7 +1324,7 @@ function seriesFor(from,to,list){
   list.forEach(function(it){ var key=it.date.getFullYear()+'-'+(it.date.getMonth()+1); if(map[key]!==undefined) map[key]+=(it.e.amt||0); });
   return {type:'month', arr:keys.map(function(k){ return {label:k.label, v:map[k.key]}; })};
 }
-/* ================= XLSX (GRAFANA STYLE) ================= */
+/* ================= XLSX (GRAFANA STYLE, компактно) ================= */
 var EXCELJS_SRCS=[
   'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
   'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js',
@@ -1574,136 +1332,50 @@ var EXCELJS_SRCS=[
 ];
 function ensureExcelJS(cb){ if(window.ExcelJS){ cb(true); return; } var i=0; (function next(){ if(i>=EXCELJS_SRCS.length){ cb(false); return; } loadScript(EXCELJS_SRCS[i++], function(ok){ if(ok && window.ExcelJS) cb(true); else next(); }); })(); }
 function fmtDate(d){ return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear(); }
-function mixColor(c1,c2,t){
-  if(t<0) t=0; if(t>1) t=1;
-  var r=Math.round(c1[0]+(c2[0]-c1[0])*t);
-  var g=Math.round(c1[1]+(c2[1]-c1[1])*t);
-  var b=Math.round(c1[2]+(c2[2]-c1[2])*t);
-  return 'FF'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1).toUpperCase();
-}
-function fillDark(ws, rows, cols, color){
-  for (var r = 1; r <= rows; r++){
-    for (var c = 1; c <= cols; c++){
-      ws.getCell(r, c).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: color}};
-    }
-  }
-}
-function drawKpi(ws, topRow, leftCol, rightCol, kpi, T){
-  var bottomRow = topRow + 2;
-  ws.mergeCells(topRow, leftCol, topRow, rightCol);
-  ws.mergeCells(topRow+1, leftCol, topRow+1, rightCol);
-  ws.mergeCells(topRow+2, leftCol, topRow+2, rightCol);
-  var lc = ws.getCell(topRow, leftCol);
-  lc.value = kpi.label;
-  lc.font = {size: 9, bold: true, color: {argb: kpi.color}, name: 'Calibri'};
-  lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  var vc = ws.getCell(topRow+1, leftCol);
-  vc.value = kpi.value;
-  vc.font = {size: 26, bold: true, color: {argb: T.text}, name: 'Calibri'};
-  vc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  vc.numFmt = '#,##0.00" ₽"';
-  var sc = ws.getCell(topRow+2, leftCol);
-  sc.value = kpi.sub;
-  sc.font = {size: 9, color: {argb: T.text2}, name: 'Calibri'};
-  sc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
-  for (var r = topRow; r <= bottomRow; r++){
-    for (var c = leftCol; c <= rightCol; c++){
-      var cell = ws.getCell(r, c);
-      cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel}};
-      var brd = {};
-      if (r === topRow) brd.top = {style: 'thin', color: {argb: T.border2}};
-      if (r === bottomRow) brd.bottom = {style: 'thin', color: {argb: T.border2}};
-      if (c === leftCol) brd.left = {style: 'thick', color: {argb: kpi.color}};
-      if (c === rightCol) brd.right = {style: 'thin', color: {argb: T.border2}};
-      cell.border = brd;
-    }
-  }
-  ws.getRow(topRow).height = 20;
-  ws.getRow(topRow+1).height = 44;
-  ws.getRow(topRow+2).height = 18;
-}
 function downloadXlsxReport(){
   var btn=document.querySelector('[data-act="xlsxReport"]'); if(btn) btn.disabled=true;
   var r=reportRange(); var list=collect(r.from,r.to); var inc=incomeIn(r.from,r.to);
   ensureExcelJS(function(ok){
     if(!ok){ alert('Не удалось загрузить библиотеку XLSX. Проверьте интернет.'); if(btn) btn.disabled=false; return; }
-    try{ buildAndDownloadXlsx(r,list,inc); }catch(e){ console.error(e); alert('Ошибка: '+e.message); }
+    try{ var wb=new ExcelJS.Workbook(); var ws=wb.addWorksheet('Отчёт',{views:[{showGridLines:false}]});
+      ws.columns=[{width:2},{width:30},{width:16},{width:16},{width:2}];
+      ws.getCell('B2').value='ФИНАНСОВЫЙ ДАШБОРД';
+      ws.getCell('B2').font={size:18,bold:true,color:{argb:'FFE6E8EC'}};
+      ws.getCell('B3').value=fmtDate(r.from)+' — '+fmtDate(r.to);
+      ws.getCell('B3').font={size:10,color:{argb:'FF8E939C'}};
+      var total=0; list.forEach(function(it){ total+=(it.e.amt||0); });
+      var days=Math.max(1,Math.round((r.to-r.from)/86400000)+1);
+      var byCat={}; list.forEach(function(it){ byCat[it.e.cat]=(byCat[it.e.cat]||0)+(it.e.amt||0); });
+      var catArr=Object.keys(byCat).map(function(n){ return {n:n,v:byCat[n]}; }).sort(function(a,b){ return b.v-a.v; });
+      var hrow=5;
+      ws.getCell('B'+hrow).value='РАСХОДЫ ПО КАТЕГОРИЯМ';
+      ws.getCell('B'+hrow).font={size:12,bold:true,color:{argb:'FFE6E8EC'}};
+      ['Категория','Сумма','%'].forEach(function(h,hc){
+        var cell=ws.getCell(String.fromCharCode(66+hc)+(hrow+1));
+        cell.value=h; cell.font={size:9,bold:true,color:{argb:'FF8E939C'}};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF21262F'}};
+      });
+      catArr.forEach(function(c,i){
+        var rr2=hrow+2+i;
+        ws.getCell('B'+rr2).value=c.n; ws.getCell('B'+rr2).font={size:10,color:{argb:'FFE6E8EC'}};
+        ws.getCell('C'+rr2).value=Math.round(c.v); ws.getCell('C'+rr2).numFmt='#,##0" ₽"'; ws.getCell('C'+rr2).font={size:10,color:{argb:'FFE6E8EC'}};
+        ws.getCell('D'+rr2).value=total>0?c.v/total:0; ws.getCell('D'+rr2).numFmt='0.0%'; ws.getCell('D'+rr2).font={size:10,color:{argb:'FF8E939C'}};
+        ws.getRow(rr2).height=18;
+      });
+      wb.xlsx.writeBuffer().then(function(buf){
+        var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a'); a.href=url; a.download='finance-report-'+reportPeriod+'-'+s.curMonth+'.xlsx';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){URL.revokeObjectURL(url);},1200);
+      });
+    }catch(e){ console.error(e); alert('Ошибка: '+e.message); }
     if(btn) btn.disabled=false;
-  });
-}
-/* ================= XLSX СБОРКА (сокращено до корректного минимума для этой правки) ================= */
-function buildAndDownloadXlsx(range, list, income){
-  var wb=new ExcelJS.Workbook(); wb.creator='Совместные финансы'; wb.created=new Date();
-  var T={bg:'FF0E1117',panel:'FF161A23',header:'FF21262F',text:'FFE6E8EC',text2:'FF8E939C',green:'FF73BF69',red:'FFF2495C',blue:'FF5794F2',orange:'FFFF9830',pink:'FFE91E8C',purple:'FFB877D9',panel2:'FF1A1F2A',border:'FF2A2F3A',border2:'FF353A45'};
-  var total=0, i; list.forEach(function(it){ total+=(it.e.amt||0); });
-  var days=Math.round((range.to-range.from)/86400000)+1; if(days<1)days=1;
-  var ws=wb.addWorksheet('Отчёт',{views:[{showGridLines:false}]});
-  ws.columns=[{width:2},{width:30},{width:16},{width:16},{width:16},{width:2}];
-  ws.getCell('B2').value='ФИНАНСОВЫЙ ДАШБОРД';
-  ws.getCell('B2').font={size:18,bold:true,color:{argb:T.text}};
-  ws.getCell('B2').border={bottom:{style:'thick',color:{argb:T.pink}}};
-  ws.getRow(2).height=40;
-  ws.getCell('B3').value=fmtDate(range.from)+' — '+fmtDate(range.to);
-  ws.getCell('B3').font={size:10,color:{argb:T.text2}};
-  ws.getRow(3).height=20;
-  var kpis=[
-    {label:'ПОТРАЧЕНО',value:total,color:T.red},
-    {label:'ДОХОД',value:income,color:T.green},
-    {label:'В СРЕДНЕМ В ДЕНЬ',value:total/days,color:T.orange}
-  ];
-  var byCat={}; list.forEach(function(it){ byCat[it.e.cat]=(byCat[it.e.cat]||0)+(it.e.amt||0); });
-  var catArr=Object.keys(byCat).map(function(n){ return {n:n,v:byCat[n]}; }).sort(function(a,b){ return b.v-a.v; });
-  var rr=5, cc=2;
-  kpis.forEach(function(kp){
-    ws.mergeCells(rr,cc,rr+1,cc+1);
-    var lc=ws.getCell(rr,cc);
-    lc.value=kp.label;
-    lc.font={size:9,bold:true,color:{argb:kp.color}};
-    var vc=ws.getCell(rr+1,cc);
-    vc.value=Math.round(kp.value);
-    vc.numFmt='#,##0" ₽"';
-    vc.font={size:16,bold:true,color:{argb:T.text}};
-    cc+=2;
-  });
-  ws.getRow(10).height=12;
-  var hRow=12;
-  ws.getCell('B'+hRow).value='РАСХОДЫ ПО КАТЕГОРИЯМ';
-  ws.getCell('B'+hRow).font={size:12,bold:true,color:{argb:T.text}};
-  ws.getCell('B'+hRow).border={left:{style:'thick',color:{argb:T.blue}}};
-  ws.getRow(hRow).height=28;
-  ['Категория','Сумма','%'].forEach(function(h,hc){
-    var cell=ws.getCell(String.fromCharCode(66+hc)+(hRow+1));
-    cell.value=h;
-    cell.font={size:9,bold:true,color:{argb:T.text2}};
-    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:T.header}};
-  });
-  catArr.forEach(function(c,i){
-    var r=hRow+2+i;
-    ws.getCell('B'+r).value=c.n;
-    ws.getCell('B'+r).font={size:10,color:{argb:T.text}};
-    ws.getCell('C'+r).value=Math.round(c.v);
-    ws.getCell('C'+r).numFmt='#,##0" ₽"';
-    ws.getCell('C'+r).font={size:10,color:{argb:T.text}};
-    ws.getCell('D'+r).value=total>0?c.v/total:0;
-    ws.getCell('D'+r).numFmt='0.0%';
-    ws.getCell('D'+r).font={size:10,color:{argb:T.text2}};
-    ws.getRow(r).height=18;
-  });
-  wb.xlsx.writeBuffer().then(function(buf){
-    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;
-    a.download='finance-report-'+reportPeriod+'-'+s.curMonth+'.xlsx';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); },1200);
   });
 }
 applyT(s.theme||'pink');
 buildAccentRow();
 initDateInput();
-refreshMyCode();
-refreshPairInfo();
 buildThemePicker();
 render();
 </script>
