@@ -321,9 +321,10 @@
     <div class="card">
       <h3>🗓 Планер <span class="tag">будущие траты</span></h3>
       <div id="plList"></div>
-      <div class="add-form">
+      <div class="add-form" style="flex-wrap:wrap">
         <input type="number" id="plDay" placeholder="День" inputmode="numeric" style="max-width:70px">
         <select id="plCat"></select>
+        <select id="plSub" style="display:none;max-width:130px"></select>
         <input type="text" id="plAmt" placeholder="Сумма" inputmode="text" autocomplete="off" style="max-width:90px">
         <button data-act="addPlanned">+</button>
       </div>
@@ -717,15 +718,26 @@ function act(kind){
   if(kind==='pdfReport'){ downloadPdfReport(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
-/* ================= ПЛАНЕР ================= */
+/* ================= ПЛАНЕР (с подкатегориями) ================= */
+function fillPlannerSubs(){
+  var sel=document.getElementById('plSub'); if(!sel) return;
+  var cat=document.getElementById('plCat').value;
+  var c=s.cats.find(function(x){return x.n===cat;});
+  if(c && c.subs && c.subs.length>0){ sel.style.display=''; } else { sel.style.display='none'; }
+  var prev=sel.value; sel.innerHTML='<option value="">— вся —</option>';
+  if(c && c.subs){ c.subs.forEach(function(sb){ var o=document.createElement('option'); o.value=sb.n; o.textContent=sb.n; if(prev===sb.n)o.selected=true; sel.appendChild(o); }); }
+}
+var _plCatEl=document.getElementById('plCat');
+if(_plCatEl) _plCatEl.addEventListener('change', fillPlannerSubs);
 function addPlanned(){
   var day=Math.round(+document.getElementById('plDay').value);
   var cat=document.getElementById('plCat').value;
+  var sub=document.getElementById('plSub').value||'';
   var amt=parseNum(document.getElementById('plAmt').value);
   var dim=daysInMonth(s.curMonth);
   if(!day||day<1||day>dim){ alert('День от 1 до '+dim); return; }
   if(!amt||amt<=0){ alert('Введи сумму'); return; }
-  s.planned.push({id:makeId(), day:day, cat:cat, sub:'', amt:amt, ts:Date.now()});
+  s.planned.push({id:makeId(), day:day, cat:cat, sub:sub, amt:amt, ts:Date.now()});
   document.getElementById('plDay').value=''; document.getElementById('plAmt').value='';
   save(); render();
 }
@@ -739,6 +751,7 @@ function payPlanned(i){
 function renderPlanner(){
   var l=document.getElementById('plList'); if(!l) return;
   l.innerHTML='';
+  fillPlannerSubs();
   if(!s.planned.length){ l.innerHTML='<div class="empty">Нет запланированных трат ✨</div>'; return; }
   var idx=[];
   s.planned.forEach(function(p,i){ idx.push(i); });
@@ -747,7 +760,7 @@ function renderPlanner(){
     var p=s.planned[i];
     var c=s.cats.find(function(x){return x.n===p.cat;}); var cl=c?c.c:'#E777A8';
     var r=document.createElement('div'); r.className='day-item';
-    r.innerHTML='<span class="d">'+p.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+esc(p.cat)+'</span><span class="s">'+fm(p.amt)+'</span><button class="btn-edit" title="Оплачено">✓</button><button class="btn-danger" title="Удалить">×</button>';
+    r.innerHTML='<span class="d">'+p.day+'</span><span class="dot" style="background:'+cl+'"></span><span class="c">'+(p.sub?esc(p.cat)+' / '+esc(p.sub):esc(p.cat))+'</span><span class="s">'+fm(p.amt)+'</span><button class="btn-edit" title="Оплачено">✓</button><button class="btn-danger" title="Удалить">×</button>';
     r.querySelector('.btn-edit').onclick=function(){ payPlanned(i); };
     r.querySelector('.btn-danger').onclick=function(){ if(confirm('Удалить из планера?')) delPlanned(i); };
     l.appendChild(r);
@@ -759,6 +772,7 @@ function renderTplSelects(){
     var sc=document.getElementById(id); if(!sc) return;
     var pv=sc.value; sc.innerHTML=''; s.cats.forEach(function(c){ var o=document.createElement('option'); o.value=c.n; o.textContent=c.n; if(c.n===pv)o.selected=true; sc.appendChild(o); });
   });
+  fillPlannerSubs();
 }
 function addTpl(){
   var name=document.getElementById('tplName').value.trim();
@@ -846,7 +860,6 @@ document.getElementById('tAmt').addEventListener('input', function(){
   showDayHint();
 });
 document.getElementById('tDate').addEventListener('change', showDayHint);
-document.getElementById('tCat').addEventListener('change', function(){ renderSubSelect(); showDayHint(); });
 function showDayHint(){
   var hint=document.getElementById('tDayHint'); if(!hint) return;
   var amt=parseNum(document.getElementById('tAmt').value);
@@ -858,13 +871,12 @@ function showDayHint(){
   var plan=c?(c.p||0):0;
   var used=spentCat(cat);
   var dayUsed=spentCatDay(cat,day);
-  var will=dayUsed+amt;
   if(plan>0){
     var left=plan-used;
     hint.textContent='День: уже '+fm(dayUsed)+' · останется в плане категории: '+(left>=0?fm(left):'перерасход '+fm(-left));
     hint.style.color = left<0?'var(--warn)':'var(--text2)';
   } else {
-    hint.textContent='За день по категории: '+fm(will);
+    hint.textContent='За день по категории: '+fm(dayUsed+amt);
     hint.style.color='var(--text2)';
   }
 }
@@ -1420,6 +1432,7 @@ function renderBudget(){
 function renderSubSelect(){ var cat=document.getElementById('tCat').value; var c=s.cats.find(function(x){return x.n===cat;}); var sel=document.getElementById('tSub'); var wrap=document.getElementById('tSubWrap');
   if(c&&c.subs&&c.subs.length>0){ sel.style.display=''; wrap.style.display=''; } else { sel.style.display='none'; wrap.style.display='none'; }
   var prev=sel.value; sel.innerHTML='<option value="">— вся —</option>'; if(c&&c.subs){ c.subs.forEach(function(sb){ var o=document.createElement('option'); o.value=sb.n; o.textContent=sb.n; if(prev===sb.n)o.selected=true; sel.appendChild(o); }); } }
+document.getElementById('tCat').addEventListener('change', function(){ renderSubSelect(); showDayHint(); });
 var reportPeriod='month';
 function openReport(){ document.getElementById('reportPopup').classList.add('open'); buildReport(); }
 function closeReport(){ document.getElementById('reportPopup').classList.remove('open'); }
@@ -1546,7 +1559,7 @@ function downloadPdfReport(){
   var r=reportRange();
   var cells=body.querySelectorAll('.rep-cell');
   var kpis='';
-  cells.forEach(function(c){ kpis+='<div class="kpi" style="border-left-color:'+(c.getAttribute('style')||'').match(/#[0-9a-fA-F]{6}/)?((c.getAttribute('style')||'').match(/#[0-9a-fA-F]{6}/)[0]||'#E91E8C'):'#E91E8C'+'">'+c.querySelector('.l').textContent+'<b>'+c.querySelector('.v').textContent+'</b></div>'; });
+  cells.forEach(function(c){ var col='#E91E8C'; var st=c.getAttribute('style')||''; var mm=st.match(/#[0-9a-fA-F]{6}/); if(mm) col=mm[0]; kpis+='<div class="kpi" style="border-left-color:'+col+'">'+c.querySelector('.l').textContent+'<b>'+c.querySelector('.v').textContent+'</b></div>'; });
   var clean=body.innerHTML.replace(/<div class="bars[^>]*>[\s\S]*?<\/div>/g,'');
   var html='<html><head><meta charset="utf-8"><title>Отчёт</title><style>'+
     'body{font-family:Arial,sans-serif;color:#111;padding:20px}'+
