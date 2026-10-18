@@ -194,17 +194,6 @@
   .plan-txt{ flex:none; font-size:11px; font-weight:700; color:var(--text2); white-space:nowrap; }
   .diag{ font-size:11px; color:var(--text2); background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-top:10px; line-height:1.5; }
   .diag code{ background:var(--card); padding:1px 5px; border-radius:5px; font-size:10px; color:var(--accent); font-weight:700; }
-  /* ===== ЗАМОК ПРИ ВХОДЕ ===== */
-  #entryLock{ position:fixed; inset:0; z-index:9999; background:linear-gradient(160deg,#ffe3f1 0%,#fff6fb 45%,#ffd9ec 100%); color:#4A2440; display:flex; align-items:center; justify-content:center; padding:24px; }
-  #entryLock .el-box{ width:100%; max-width:320px; background:#fff; border:1px solid #F3C6E0; border-radius:18px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,.18); text-align:center; }
-  #entryLock .el-emoji{ font-size:40px; }
-  #entryLock h2{ font-size:17px; font-weight:700; color:#4A2440; margin:12px 0 6px; }
-  #entryLock p{ font-size:12px; color:#9B6B8B; line-height:1.5; margin-bottom:14px; }
-  #entryLock input{ width:100%; padding:12px 14px; font-size:16px; border:1.5px solid #F3C6E0; border-radius:12px; background:#FDF0F8; color:#4A2440; outline:none; text-align:center; font-weight:600; letter-spacing:2px; margin-bottom:12px; box-sizing:border-box; }
-  #entryLock input:focus{ border-color:#E91E8C; }
-  #entryLock button{ width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,#E91E8C,#D81B7F); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
-  #entryLock button:active{ filter:brightness(.92); }
-  #entryLock .el-hint{ font-size:10px; color:#9B6B8B; margin-top:10px; }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
   #reportPopup.open{ display:flex; }
   #reportPopup .rp-box2{ background:#0D1117; width:100%; max-width:420px; max-height:92vh; border-radius:22px 22px 0 0; display:flex; flex-direction:column; overflow:hidden; border:1px solid #21262D; }
@@ -500,16 +489,6 @@
       <button data-p="year">Год</button>
     </div>
     <div class="rp-body" id="reportBody"></div>
-  </div>
-</div>
-<div id="entryLock">
-  <div class="el-box">
-    <div class="el-emoji">🔒</div>
-    <h2 id="elTitle">Введите пароль</h2>
-    <p id="elSub">Это приватное приложение. Для доступа нужен пароль.</p>
-    <input type="password" id="elPin" placeholder="Пароль" autocomplete="off">
-    <button id="elBtn">Войти</button>
-    <div class="el-hint" id="elHint"></div>
   </div>
 </div>
 <script>
@@ -1535,7 +1514,6 @@ initDateInput();
 initPeerInput();
 initSrvInputs();
 render();
-openEntryLock();
 </script>
 </body>
 </html>
