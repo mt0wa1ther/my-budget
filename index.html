@@ -184,13 +184,6 @@
   .plan-line .bar-wrap{ flex:1; height:8px; background:var(--track); border-radius:999px; overflow:hidden; }
   .plan-line .bar{ width:100%; height:100%; border-radius:999px; overflow:hidden; }
   .plan-txt{ flex:none; font-size:11px; font-weight:700; color:var(--text2); white-space:nowrap; }
-  .bt-block{ background:var(--soft); border:1px dashed var(--line); border-radius:14px; padding:12px; margin-top:10px; }
-  .bt-block h4{ font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
-  .bt-block p{ font-size:11px; color:var(--text2); line-height:1.45; margin-bottom:10px; }
-  .bt-block .btn-sec{ margin-top:0; }
-  .bt-block .exp-field{ margin-bottom:8px; }
-  .bt-block input{ font-size:13px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); outline:none; width:100%; font-weight:600; }
-  .bt-block input:focus{ border-color:var(--accent); }
   .diag{ font-size:11px; color:var(--text2); background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-top:10px; line-height:1.5; }
   .diag code{ background:var(--card); padding:1px 5px; border-radius:5px; font-size:10px; color:var(--accent); font-weight:700; }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
@@ -243,7 +236,6 @@
   #resetPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:220; display:none; align-items:center; justify-content:center; padding:16px; }
   #resetPopup.open{ display:flex; }
   #resetPopup .rp-box{ background:#ffffff; border:1px solid #E91E8C; border-radius:16px; padding:20px; max-width:320px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.35); }
-  #beacio-banner{ position:fixed; left:12px; right:12px; bottom:calc(84px + env(safe-area-inset-bottom)); z-index:300; background:#fff; border:1px solid #F3C6E0; border-radius:16px; padding:14px; box-shadow:0 8px 30px rgba(0,0,0,.18); font-family:inherit; color:#4A2440; font-size:13px; line-height:1.45; display:flex; gap:10px; align-items:flex-start; }
 </style>
 </head>
 <body>
@@ -387,31 +379,25 @@
       <button class="btn-sec" data-act="pingPartner">🔍 Проверить связь</button>
       <button class="btn-sec" data-act="disconnect">Отключиться</button>
       <div class="diag">
-        <b>Если «нет связи с сервером»:</b> библиотека связи грузится с внешних CDN, которые иногда
-        блокирует провайдер. В этом случае используйте <b>код/QR</b> из блока ниже — он работает офлайн.
+        <b>Как работает:</b> оба устройства должны использовать один и тот же сервер (CDN по умолчанию или свой из блока ниже).
       </div>
     </div>
     <div class="card">
-      <h3>📶 Bluetooth <span class="tag" id="btStatus">не подключено</span></h3>
-      <div class="bt-block">
-        <h4>Внимание: телефон ⇄ телефон не работает</h4>
-        <p style="color:var(--warn)"><b>Bluetooth из браузера умеет подключаться только к внешним BLE-устройствам
-        (часы, датчик, ESP32). Два телефона в браузере обменяться по Bluetooth физически не могут</b> —
-        поэтому «подключение» к iPhone не имеет смысла для переноса данных.</p>
-        <p>Для переноса между телефонами используйте блок ниже: <b>«Передать всё» (код/QR)</b> или
-        <b>«Сохранить копию / Восстановить»</b> файлом.</p>
-        <label class="exp-field">
-          <span class="exp-lbl">Имя или префикс BLE-устройства</span>
-          <input type="text" id="btFilterName" placeholder="MyDevice" autocomplete="off">
-        </label>
-        <label class="exp-field">
-          <span class="exp-lbl">UUID сервиса (для ESP32/часов)</span>
-          <input type="text" id="btFilterService" placeholder="0x180F или 0000180F-0000-1000-8000-00805F9B34FB" autocomplete="off">
-        </label>
-        <button class="btn-sec" id="btConnectBtn" data-act="btConnect" style="margin-top:0">🔵 Подключиться по Bluetooth</button>
-        <button class="btn-sec" id="btSendBtn" data-act="btSend">📤 Отправить всё по Bluetooth</button>
-        <button class="btn-sec" id="btInstallBtn" data-act="btInstall">📲 Установить beacio</button>
+      <h3>🌐 Свой сервер <span class="tag" id="srvStatus">CDN по умолчанию</span></h3>
+      <div class="diag">
+        Введи данные твоего сервера PeerJS (IP/домен, порт, путь, ключ). Если там запущен peerjs — связь по ID пойдёт через него,
+        и о сервисе знаете только вы двое. На обоих устройствах — одинаковые параметры.
       </div>
+      <div class="add-form" style="padding-top:10px;flex-wrap:wrap">
+        <input type="text" id="srvHost" placeholder="IP или домен" autocomplete="off">
+        <input type="text" id="srvPort" placeholder="9090" autocomplete="off" inputmode="numeric" style="max-width:86px">
+      </div>
+      <div class="add-form" style="padding-top:6px;flex-wrap:wrap">
+        <input type="text" id="srvPath" placeholder="/myapp" autocomplete="off">
+        <input type="text" id="srvKey" placeholder="ключ" autocomplete="off">
+      </div>
+      <button class="btn-main" data-act="srvSave" style="margin-top:10px">Сохранить сервер</button>
+      <button class="btn-sec" data-act="srvClear">Сбросить (CDN по умолчанию)</button>
     </div>
     <div class="card">
       <h3>🧾 Передача кодами <span class="tag">офлайн</span></h3>
@@ -489,7 +475,6 @@
     <div class="rp-body" id="reportBody"></div>
   </div>
 </div>
-<script src="beacio.js"></script>
 <script>
 /* ================= БАЗОВОЕ СОСТОЯНИЕ ================= */
 var MAIN_KEY='uzat_budget_main';
@@ -634,9 +619,18 @@ function act(kind){
   if(kind==='connectId'){ connectToPartner(document.getElementById('peerIdIn').value); return; }
   if(kind==='disconnect'){ disconnectPeer(); return; }
   if(kind==='pingPartner'){ pingPartner(); return; }
-  if(kind==='btConnect'){ btConnect(); return; }
-  if(kind==='btSend'){ btSend(); return; }
-  if(kind==='btInstall'){ BeacioBridge.showInstallBanner(); return; }
+  if(kind==='srvSave'){
+    var _v=srvFromInputs();
+    if(!_v.host){ alert('Введи IP или домен сервера'); return; }
+    srvSave(_v); initSrvInputs();
+    destroyPeer(); setSyncStatus('сервер сохранён, нажми «Подключить»','info');
+    return;
+  }
+  if(kind==='srvClear'){
+    srvClearAll(); initSrvInputs();
+    destroyPeer(); setSyncStatus('не подключено','');
+    return;
+  }
   if(kind==='report'){ openReport(); return; }
   if(kind==='closeReport'){ closeReport(); return; }
   if(kind==='xlsxReport'){ downloadXlsxReport(); return; }
@@ -792,209 +786,29 @@ function importExp(data){ var area=document.getElementById('scanArea'); var mkey
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
-/* ================= BEACIO BRIDGE ================= */
-var BeacioBridge = (function(){
-  'use strict';
-  var IOS_SAFARI = /iPhone|iPad|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
-  var CDN_BEACIO_SRC = 'https://beacio.com/beacio.js';
-  var beacioLoaded = false;
-  var bannerShown = false;
-  function showInstallBanner(){
-    if(document.getElementById('beacio-banner') || bannerShown) return;
-    bannerShown = true;
-    var b = document.createElement('div');
-    b.id = 'beacio-banner';
-    b.innerHTML =
-      '<div style="font-size:22px;flex:none">📶</div>' +
-      '<div style="flex:1;min-width:0">' +
-        '<b>Bluetooth в Safari</b><br>' +
-        'Для Bluetooth на iPhone установите бесплатное приложение <b>beacio</b> из App Store (iOS 26.2+).' +
-        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">' +
-          '<a href="https://apps.apple.com/ru/app/beacio/id6761301368" target="_blank" rel="noopener" style="padding:9px 14px;background:#E91E8C;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:12px">beacio в App Store</a>' +
-          '<button type="button" id="beacio-dismiss" style="padding:9px 14px;background:#FDF0F8;border:1px solid #F3C6E0;border-radius:10px;font-weight:600;font-size:12px;color:#4A2440">Позже</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(b);
-    var close = b.querySelector('#beacio-dismiss');
-    if(close){ close.onclick = function(){ b.remove(); bannerShown = false; try{ localStorage.setItem('bt_banner_dismissed','1'); }catch(e){} }; }
-  }
-  function tryLoad(src, cb){
-    var sc = document.createElement('script');
-    sc.src = src;
-    sc.onload = function(){ cb(true); };
-    sc.onerror = function(){ cb(false); };
-    document.head.appendChild(sc);
-  }
-  function ensureReady(cb){
-    if(typeof navigator!=='undefined' && navigator.bluetooth){ cb(true); return; }
-    if(beacioLoaded){ cb(true); return; }
-    tryLoad(CDN_BEACIO_SRC, function(ok){
-      if(ok && (navigator.bluetooth || window.beacioIOS)){ beacioLoaded = true; cb(true); return; }
-      cb(false);
-    });
-  }
-  function autoShowBanner(){
-    if(!IOS_SAFARI) return;
-    if(typeof navigator!=='undefined' && navigator.bluetooth) return;
-    try{ if(localStorage.getItem('bt_banner_dismissed')==='1') return; }catch(e){}
-    setTimeout(showInstallBanner, 1500);
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', autoShowBanner);
-  } else {
-    autoShowBanner();
-  }
-  return {
-    isIOSSafari: function(){ return IOS_SAFARI; },
-    ensureReady: ensureReady,
-    showInstallBanner: showInstallBanner,
-    hasBluetooth: function(){ return typeof navigator!=='undefined' && !!navigator.bluetooth; }
-  };
-})();
-/* ================= НАСТРОЙКИ BLUETOOTH ================= */
-var BT_SETTINGS_KEY = 'bt_filter_settings';
-function getBtSettings(){
-  var def = { namePrefix:'', services:'' };
-  try{
-    var raw = localStorage.getItem(BT_SETTINGS_KEY);
-    if(raw){ var p = JSON.parse(raw); return { namePrefix: p.namePrefix||'', services: p.services||'' }; }
-  }catch(e){}
+/* ================= СВОЙ СЕРВЕР ================= */
+var SRV_KEY='uzat_sync_server';
+function srvLoad(){
+  var def={host:'',port:0,path:'',key:''};
+  try{ var raw=localStorage.getItem(SRV_KEY); if(raw){ var p=JSON.parse(raw); return {host:p.host||'',port:+p.port||0,path:p.path||'',key:p.key||''}; } }catch(e){}
   return def;
 }
-function saveBtSettings(v){ try{ localStorage.setItem(BT_SETTINGS_KEY, JSON.stringify(v)); }catch(e){} }
-function initBtInputs(){
-  var st = getBtSettings();
-  var n = document.getElementById('btFilterName'); if(n) n.value = st.namePrefix;
-  var s = document.getElementById('btFilterService'); if(s) s.value = st.services;
+function srvSave(v){ try{ localStorage.setItem(SRV_KEY, JSON.stringify(v)); }catch(e){} }
+function srvClearAll(){ try{ localStorage.removeItem(SRV_KEY); }catch(e){} }
+function initSrvInputs(){
+  var v=srvLoad();
+  var h=document.getElementById('srvHost'), p=document.getElementById('srvPort'),
+      pa=document.getElementById('srvPath'), k=document.getElementById('srvKey');
+  if(h) h.value=v.host||'';
+  if(p) p.value=v.port||'';
+  if(pa) pa.value=v.path||'/myapp';
+  if(k) k.value=v.key||'';
+  var st=document.getElementById('srvStatus');
+  if(st) st.textContent = v.host ? (v.host+':'+(v.port||9090)+' ✔') : 'CDN по умолчанию';
 }
-function readBtInputs(){
-  var n = document.getElementById('btFilterName');
-  var s = document.getElementById('btFilterService');
-  var st = { namePrefix: n ? n.value.trim() : '', services: s ? s.value.trim() : '' };
-  saveBtSettings(st); return st;
-}
-function normalizeUuid(u){
-  u = String(u||'').trim().toUpperCase();
-  if(!u) return '';
-  if(/^0X[0-9A-F]{4}$/.test(u)) u = u.slice(2);
-  if(/^[0-9A-F]{4}$/.test(u)) return '0000'+u.toLowerCase()+'-0000-1000-8000-00805f9b34fb';
-  return u.toLowerCase();
-}
-function parseBtServices(s){
-  if(!s) return [];
-  return s.split(/[,\s]+/).filter(Boolean).map(normalizeUuid);
-}
-/* ================= BLUETOOTH (внешнее BLE-устройство) ================= */
-var btDevice=null, btChar=null;
-var btRxBuf=[], btRxTimer=null;
-function setBtStatus(txt, cls){
-  var el=document.getElementById('btStatus');
-  if(!el) return;
-  el.textContent=txt;
-  el.className='tag '+(cls||'');
-  el.style.color = cls==='ok'?'var(--ok)':(cls==='err'?'var(--warn)':(cls==='info'?'var(--accent)':'var(--text2)'));
-}
-function handleBtMessage(obj){
-  if(!obj || obj.app!=='uz') return;
-  if(obj.payload){
-    btRxBuf=[]; if(btRxTimer){ clearTimeout(btRxTimer); btRxTimer=null; }
-    mergePayload(obj.payload);
-    setBtStatus('✓ данные получены','ok');
-  }
-}
-function btConnect(){
-  BeacioBridge.ensureReady(function(ok){
-    if(!ok){ BeacioBridge.showInstallBanner(); setBtStatus('нет поддержки Bluetooth','err'); return; }
-    runBluetoothConnect();
-  });
-}
-function runBluetoothConnect(){
-  var st = readBtInputs();
-  var SERVICE_UUID = '0000abcd-0000-1000-8000-00805f9b34fb';
-  var CHAR_UUID = '0000abce-0000-1000-8000-00805f9b34fb';
-  var filters = [];
-  if(st.namePrefix) filters.push({ namePrefix: st.namePrefix });
-  var uuids = parseBtServices(st.services);
-  if(uuids.length) filters.push({ services: uuids });
-  var optional = [SERVICE_UUID].concat(uuids);
-  var options = filters.length
-    ? { filters: filters, optionalServices: optional }
-    : { acceptAllDevices: true, optionalServices: optional };
-  navigator.bluetooth.requestDevice(options)
-    .then(function(dev){
-      btDevice = dev;
-      setBtStatus('подключение к '+(dev.name||dev.id||'BLE')+'…','info');
-      return dev.gatt.connect();
-    })
-    .then(function(server){ return server.getPrimaryService(SERVICE_UUID).catch(function(){ return null; }); })
-    .then(function(service){
-      if(!service){
-        // Важно: у iPhone нашего сервиса нет → это не устройство обмена
-        setBtStatus('НЕТ обмена: нет нашего сервиса','err');
-        alert('Это устройство не поддерживает обмен данными «Совместных финансов».\n\n' +
-          'Bluetooth «телефон ⇄ телефон» из браузера технически невозможен.\n' +
-          'Для переноса данных используйте:\n' +
-          '• «Передать всё» (код / QR)\n' +
-          '• «Сохранить копию» / «Восстановить» файлом\n' +
-          '• Связь по ID (если доступен сервер)');
-        btDevice=null; btChar=null;
-        return;
-      }
-      return service.getCharacteristic(CHAR_UUID).then(function(ch){
-        btChar = ch;
-        setBtStatus('✓ обмен готов','ok');
-        ch.addEventListener('characteristicvaluechanged', function(ev){
-          var d = ev.target.value;
-          try{
-            var bytes = d instanceof ArrayBuffer ? new Uint8Array(d) : new Uint8Array(d.buffer||d);
-            btRxBuf.push(Uint8Array.from(bytes));
-          }catch(e){ return; }
-          if(btRxTimer) clearTimeout(btRxTimer);
-          btRxTimer = setTimeout(function(){
-            btRxTimer=null;
-            try{
-              var len=0,i;
-              for(i=0;i<btRxBuf.length;i++) len+=btRxBuf[i].length;
-              var joined=new Uint8Array(len), off=0;
-              for(i=0;i<btRxBuf.length;i++){ joined.set(btRxBuf[i], off); off+=btRxBuf[i].length; }
-              var str=new TextDecoder().decode(joined);
-              var obj=JSON.parse(str);
-              btRxBuf=[];
-              handleBtMessage(obj);
-            }catch(e){ btRxBuf=[]; }
-          }, 300);
-        });
-        return ch.startNotifications().catch(function(){});
-      }).catch(function(){
-        setBtStatus('нет характеристики обмена','err');
-        btChar=null;
-      });
-    })
-    .catch(function(err){
-      if(err && err.name==='NotFoundError'){ setBtStatus('устройство не выбрано','err'); }
-      else { setBtStatus('ошибка: '+((err&&err.message)||'неизвестно'),'err'); }
-    });
-}
-function btSend(){
-  if(!btChar){
-    alert('Нет активной BLE-ссылки обмена.\n\n' +
-      'Напомним: телефон ⇄ телефон по Bluetooth в браузере невозможен.\n\n' +
-      'Используйте «Передать всё» кодом/QR или «Сохранить копию»/«Восстановить» файлом — это работает офлайн.');
-    return;
-  }
-  try{
-    var json = JSON.stringify({ app:'uz', full:true, payload:fullPayload() });
-    var bytes = new TextEncoder().encode(json);
-    var p = Promise.resolve();
-    for(var i=0;i<bytes.length;i+=180){
-      (function(chunk){
-        p = p.then(function(){ return btChar.writeValue(chunk); })
-             .then(function(){ return new Promise(function(r){ setTimeout(r,30); }); });
-      })(bytes.slice(i, i+180));
-    }
-    p.then(function(){ setBtStatus('✓ всё отправлено','ok'); })
-     .catch(function(e){ setBtStatus('ошибка: '+(e.message||e.name),'err'); });
-  } catch(e){ setBtStatus('ошибка: '+e.message,'err'); }
+function srvFromInputs(){
+  var g=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  return { host:g('srvHost'), port:+g('srvPort')||0, path:g('srvPath')||'/', key:g('srvKey') };
 }
 /* ================= P2P ПО ID ================= */
 var ID_KEY='uzat_device_id';
@@ -1005,6 +819,7 @@ var DEV_ID=loadDevId();
 var peer=null, conn=null, peerRetry=0;
 var connectAttempts=0, connectTimeout=null, pingTimeout=null, reconnectTimer=null;
 var PEER_SRCS=[
+  'peerjs.min.js',
   'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js',
@@ -1034,7 +849,7 @@ var PEER_CONFIG_RELAY = {
   iceTransportPolicy: 'relay'
 };
 var currentPolicy = 'all';
-function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ setSyncStatus('не удалось загрузить связь (CDN блокирован)','err'); cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
+function ensurePeer(cb){ if(window.Peer){ cb(true); return; } var i=0; (function next(){ if(i>=PEER_SRCS.length){ setSyncStatus('не удалось загрузить связь (CDN/файл недоступен)','err'); cb(false); return; } loadScript(PEER_SRCS[i++], function(ok){ if(ok && window.Peer) cb(true); else next(); }); })(); }
 function setSyncStatus(txt, cls){
   var el=document.getElementById('syncStatus');
   if(!el) return;
@@ -1066,7 +881,18 @@ function initPeer(cb, policy){
   ensurePeer(function(ok){
     if(!ok){ setSyncStatus('нет связи с сервером — используй код/файл','err'); cb(false); return; }
     var cfg = policy==='relay' ? PEER_CONFIG_RELAY : PEER_CONFIG_DIRECT;
-    try{ peer=new Peer(PEER_PREFIX+DEV_ID, { debug:1, config:cfg }); }
+    var pOpts={ debug:1, config:cfg };
+    var srv=srvLoad();
+    if(srv && srv.host){
+      var pageHttps = (location.protocol==='https:' || location.protocol==='wss:');
+      pOpts.host=srv.host;
+      pOpts.port=srv.port || (pageHttps?443:80);
+      pOpts.path=srv.path || '/';
+      if(srv.key) pOpts.key=srv.key;
+      pOpts.secure=pageHttps;
+      setSyncStatus('подключение к '+srv.host+':'+(srv.port||9090)+'…','info');
+    }
+    try{ peer=new Peer(PEER_PREFIX+DEV_ID, pOpts); }
     catch(e){ setSyncStatus('ошибка инициализации','err'); cb(false); return; }
     var opened=false;
     peer.on('open', function(){ opened=true; peerRetry=0; setSyncStatus(policy==='relay'?'готов (через релей)':'готов к подключению','ok'); cb(true); });
@@ -1660,7 +1486,7 @@ function buildAndDownloadXlsx(range, list, income){
 applyT(s.theme||'pink');
 initDateInput();
 initPeerInput();
-initBtInputs();
+initSrvInputs();
 render();
 </script>
 </body>
