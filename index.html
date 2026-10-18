@@ -248,6 +248,25 @@
   #resetPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:220; display:none; align-items:center; justify-content:center; padding:16px; }
   #resetPopup.open{ display:flex; }
   #resetPopup .rp-box{ background:#ffffff; border:1px solid #E91E8C; border-radius:16px; padding:20px; max-width:320px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  /* ===== НОВОЕ: pop-up планера ===== */
+  #plannerPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:240; display:none; align-items:center; justify-content:center; padding:16px; }
+  #plannerPopup.open{ display:flex; }
+  #plannerPopup .pp-box{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; max-width:360px; width:100%; max-height:88vh; overflow-y:auto; box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  #plannerPopup .pr-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  #plannerPopup .pr-head h3{ font-size:15px; font-weight:700; color:var(--text); margin:0; }
+  #plannerPopup .pr-head button{ background:var(--soft); border:1px solid var(--line); color:var(--text2); font-size:15px; width:30px; height:30px; border-radius:9px; cursor:pointer; flex:none; }
+  #plannerPopup .day-list{ max-height:34vh; }
+  /* ===== НОВОЕ: аккуратная форма планера ===== */
+  .pform{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+  .pform .pcell{ display:flex; flex-direction:column; gap:3px; }
+  .pform .pcell label{ font-size:10px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.6px; }
+  .pform .full{ grid-column:1 / -1; }
+  .pform input,.pform select{ width:100%; font-size:14px; padding:11px 12px; border:1.5px solid var(--line); border-radius:12px; background:var(--soft); color:var(--text); font-weight:600; outline:none; -webkit-appearance:none; appearance:none; box-sizing:border-box; }
+  .pform input:focus,.pform select:focus{ border-color:var(--accent); background:var(--card); }
+  .pform input[type="number"]{ -moz-appearance:textfield; }
+  .pform input[type="number"]::-webkit-outer-spin-button,.pform input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .pform .btn-add{ grid-column:1 / -1; width:100%; margin-top:2px; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
+  .pform .btn-add:active{ filter:brightness(.92); }
 </style>
 </head>
 <body>
@@ -318,16 +337,11 @@
         <button class="btn-main" data-act="addExp">Добавить трату</button>
       </div>
     </div>
-    <div class="card">
+    <!-- ===== НОВОЕ: компактный блок планера-кнопка ===== -->
+    <div class="card" onclick="openPlannerPopup()" style="cursor:pointer">
       <h3>🗓 Планер <span class="tag">будущие траты</span></h3>
-      <div id="plList"></div>
-      <div class="add-form" style="flex-wrap:wrap">
-        <input type="number" id="plDay" placeholder="День" inputmode="numeric" style="max-width:70px">
-        <select id="plCat"></select>
-        <select id="plSub" style="display:none;max-width:130px"></select>
-        <input type="text" id="plAmt" placeholder="Сумма" inputmode="text" autocomplete="off" style="max-width:90px">
-        <button data-act="addPlanned">+</button>
-      </div>
+      <div id="plMini" style="font-size:12px;color:var(--text2)"></div>
+      <div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--accent)">Открыть планер ▸</div>
     </div>
     <div class="card">
       <h3 onclick="toggleJournal()" style="cursor:pointer">📅 Дневник <span class="tag" id="jToggle">▼</span></h3>
@@ -506,6 +520,36 @@
       <button class="btn-sec" data-act="resetCancel" style="flex:1;margin:0;background:#f2f2f2">Отмена</button>
       <button class="btn-main" data-act="resetOk" style="flex:1;background:#D6336C">Сбросить</button>
     </div>
+  </div>
+</div>
+<!-- ===== НОВОЕ: pop-up планера ===== -->
+<div id="plannerPopup">
+  <div class="pp-box">
+    <div class="pr-head">
+      <h3>🗓 Планер — будущие траты</h3>
+      <button onclick="closePlannerPopup()">✕</button>
+    </div>
+    <div id="plList2" class="day-list"></div>
+    <div class="pform">
+      <div class="pcell">
+        <label>📅 День</label>
+        <input type="number" id="plDay" placeholder="Напр. 15" inputmode="numeric">
+      </div>
+      <div class="pcell">
+        <label>🧾 Категория</label>
+        <select id="plCat"></select>
+      </div>
+      <div class="pcell full" id="plSubWrap">
+        <label>📂 Подкатегория</label>
+        <select id="plSub"></select>
+      </div>
+      <div class="pcell full">
+        <label>💵 Сумма</label>
+        <input type="text" id="plAmt" placeholder="Напр. 1500 или 700+800" inputmode="text" autocomplete="off">
+      </div>
+      <button class="btn-add" data-act="addPlanned">＋ Добавить в планер</button>
+    </div>
+    <button class="pp-ok" onclick="closePlannerPopup()" style="margin-top:14px">Готово</button>
   </div>
 </div>
 <div id="reportPopup">
@@ -718,7 +762,13 @@ function act(kind){
   if(kind==='pdfReport'){ downloadPdfReport(); return; }
 }
 document.querySelectorAll('[data-act]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); act(b.dataset.act); }); });
-/* ================= ПЛАНЕР (с подкатегориями) ================= */
+/* ================= ПЛАНЕР (pop-up) ================= */
+function openPlannerPopup(){
+  document.getElementById('plannerPopup').classList.add('open');
+  fillPlannerSubs();
+  renderPlanner();
+}
+function closePlannerPopup(){ document.getElementById('plannerPopup').classList.remove('open'); }
 function fillPlannerSubs(){
   var sel=document.getElementById('plSub'); if(!sel) return;
   var cat=document.getElementById('plCat').value;
@@ -749,10 +799,15 @@ function payPlanned(i){
   save(); render();
 }
 function renderPlanner(){
-  var l=document.getElementById('plList'); if(!l) return;
+  var l=document.getElementById('plList2'); if(!l) return;
   l.innerHTML='';
   fillPlannerSubs();
-  if(!s.planned.length){ l.innerHTML='<div class="empty">Нет запланированных трат ✨</div>'; return; }
+  var mini=document.getElementById('plMini');
+  if(!s.planned.length){
+    l.innerHTML='<div class="empty">Нет запланированных трат ✨</div>';
+    if(mini) mini.textContent='Пока пусто — запланируй будущую трату.';
+    return;
+  }
   var idx=[];
   s.planned.forEach(function(p,i){ idx.push(i); });
   idx.sort(function(a,b){ return s.planned[a].day-s.planned[b].day; });
@@ -765,6 +820,7 @@ function renderPlanner(){
     r.querySelector('.btn-danger').onclick=function(){ if(confirm('Удалить из планера?')) delPlanned(i); };
     l.appendChild(r);
   });
+  if(mini) mini.textContent='Запланировано: '+s.planned.length+' · на '+fm(sumPlanned(s.curMonth));
 }
 /* ================= ШАБЛОНЫ ================= */
 function renderTplSelects(){
@@ -1292,7 +1348,7 @@ setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner
 /* ================= ЗАКРЫТИЕ ОКОН ================= */
 (function(){
   function closeOnBackdrop(e){
-    ['plannedPopup','resetPopup','reportPopup'].forEach(function(id){
+    ['plannedPopup','resetPopup','reportPopup','plannerPopup'].forEach(function(id){
       var el=document.getElementById(id);
       if(el && el.classList.contains('open') && e.target===el){ el.classList.remove('open'); }
     });
