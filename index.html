@@ -820,7 +820,7 @@ function renderPlanner(){
     r.querySelector('.btn-danger').onclick=function(){ if(confirm('Удалить из планера?')) delPlanned(i); };
     l.appendChild(r);
   });
-  if(mini) mini.textContent='Запланировано: '+s.planned.length+' · на '+fm(sumPlanned(s.curMonth));
+  if(mini) mini.textContent='Запланировано: '+s.planned.length+' · на '+fm(s.planned.reduce(function(a,p){return a+(p.amt||0);},0));
 }
 /* ================= ШАБЛОНЫ ================= */
 function renderTplSelects(){
