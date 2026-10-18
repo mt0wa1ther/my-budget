@@ -265,6 +265,16 @@
   .pform input[type="number"]::-webkit-outer-spin-button,.pform input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .pform .btn-add{ grid-column:1 / -1; width:100%; margin-top:2px; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .pform .btn-add:active{ filter:brightness(.92); }
+/* ===== СОПРЯЖЕНИЕ ПО КОДУ ===== */
+#pairPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:250; display:none; align-items:center; justify-content:center; padding:16px; }
+#pairPopup.open{ display:flex; }
+#pairPopup .pp-box{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px; max-width:340px; width:100%; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.35); }
+#pairPopup .pair-code{ font-size:32px; font-weight:800; letter-spacing:6px; color:var(--accent); font-family:'Courier New',monospace; margin:12px 0 4px; }
+#pairPopup .pair-hint{ font-size:12px; color:var(--text2); line-height:1.5; margin:6px 0 12px; }
+#pairPopup .pair-actions{ display:flex; gap:8px; margin-top:12px; }
+#pairPopup .pair-actions button{ flex:1; }
+.pair-code-inp{ letter-spacing:3px; text-align:center; font-weight:700; }
+#pairInfo{ font-size:11px; color:var(--text2); margin-top:8px; }
 </style>
 </head>
 <body>
@@ -431,6 +441,12 @@
         <input type="text" id="peerIdIn" placeholder="ID партнёра" maxlength="8">
         <button data-act="connectId">Подключить</button>
       </div>
+      <div class="add-form" style="padding-top:6px">
+        <input type="text" id="pairCodeIn" class="pair-code-inp" placeholder="Код сопряжения партнёра" maxlength="8" autocomplete="off">
+      </div>
+      <button class="btn-main" data-act="startPair" style="margin-top:10px">🔑 Начать сопряжение по коду</button>
+      <button class="btn-sec" data-act="clearPairs">⛔ Сбросить сопряжения</button>
+      <div id="pairInfo"></div>
       <button class="btn-sec" data-act="pingPartner">🔍 Проверить связь</button>
       <button class="btn-sec" data-act="disconnect">Отключиться</button>
       <div class="diag">
@@ -546,6 +562,19 @@
       <button class="btn-add" data-act="addPlanned">＋ Добавить в планер</button>
     </div>
     <button class="pp-ok" onclick="closePlannerPopup()" style="margin-top:14px">Готово</button>
+  </div>
+</div>
+<div id="pairPopup">
+  <div class="pp-box">
+    <div style="font-size:30px">🔑</div>
+    <h3 style="font-size:16px;font-weight:700;color:var(--text);margin:8px 0 2px">Код сопряжения</h3>
+    <div class="pair-code" id="pairCodeVal">······</div>
+    <div class="pair-hint" id="pairHint"></div>
+    <div style="font-size:11px;color:var(--text2)">Действует 10 минут, одноразовый, сгорает после 5 неверных вводов.</div>
+    <div class="pair-actions">
+      <button class="btn-sec" data-copypair="1" style="margin:0">Скопировать</button>
+      <button class="btn-main" data-closepair="1" style="margin:0">Готово</button>
+    </div>
   </div>
 </div>
 <div id="reportPopup">
@@ -1185,24 +1214,153 @@ function initPeer(cb, policy){
     setTimeout(function(){ if(!opened && (!peer || !peer.open)){ setSyncStatus('сервер не отвечает — используй код/файл','err'); cb(false); } }, 15000);
   });
 }
+/* ================= 🔑 СОПРЯЖЕНИЕ ПО КОДУ (авторизация) ================= */
+var PAIR_KEY='uzat_pairing';
+var connAuthorized=false;
+var pendingPairCode='';
+
+function defPair(){ return {code:'', exp:0, attempts:0, allow:[]}; }
+function pairData(){
+  var p=null;
+  try{ p=JSON.parse(localStorage.getItem(PAIR_KEY)); }catch(e){}
+  if(!p) p=defPair();
+  if(!p.allow || !(p.allow instanceof Array)) p.allow=[];
+  if(p.code && p.exp && Date.now()>p.exp){ p.code=''; p.exp=0; p.attempts=0; savePair(p); }
+  return p;
+}
+function savePair(p){ try{ localStorage.setItem(PAIR_KEY, JSON.stringify(p)); }catch(e){} }
+function isAllowed(id){ return pairData().allow.some(function(x){ return x.id===id; }); }
+function addPairPartner(id){
+  if(!id || id===DEV_ID) return;
+  var p=pairData();
+  if(!p.allow.some(function(x){ return x.id===id; })){ p.allow.push({id:id, since:Date.now()}); savePair(p); }
+  refreshPairInfo();
+}
+function clearPairCode(){ var p=pairData(); p.code=''; p.exp=0; p.attempts=0; savePair(p); }
+function failConn(reason){
+  setSyncStatus(reason,'err');
+  connAuthorized=false; pendingPairCode='';
+  if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
+  try{ if(conn){ conn.close(); } }catch(e){}
+  conn=null;
+}
+function startPair(){
+  if(!window.crypto || !window.crypto.getRandomValues){ alert('Браузер не поддерживает безопасную генерацию кода'); return; }
+  var p=pairData();
+  var alpha='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var idx=new Uint8Array(6); crypto.getRandomValues(idx);
+  var code='';
+  for(var i=0;i<6;i++) code+=alpha.charAt(idx[i] % alpha.length);
+  p.code=code; p.exp=Date.now()+10*60*1000; p.attempts=0;
+  savePair(p);
+  showPairPopup(code);
+  refreshPairInfo();
+}
+function showPairPopup(code){
+  var pop=document.getElementById('pairPopup');
+  var val=document.getElementById('pairCodeVal');
+  var hint=document.getElementById('pairHint');
+  if(!pop || !val){ alert('Код сопряжения: '+code); return; }
+  val.textContent = code.split('').join(' ');
+  if(hint) hint.textContent='Отправь партнёру свой ID: '+DEV_ID+' и этот код. Он введёт оба значения у себя.';
+  pop.classList.add('open');
+}
+function closePairPopup(){ var pop=document.getElementById('pairPopup'); if(pop) pop.classList.remove('open'); }
+function refreshPairInfo(){
+  var el=document.getElementById('pairInfo'); if(!el) return;
+  var p=pairData();
+  var act = p.code && p.exp && Date.now()<p.exp;
+  var mins = act ? Math.max(1,Math.ceil((p.exp-Date.now())/60000)) : 0;
+  el.innerHTML='Сопряжено устройств: <b>'+p.allow.length+'</b>'+(act?' · код активен, осталось <b>'+mins+' мин</b>':'');
+}
+function clearPairs(){
+  if(!confirm('Удалить все сопряжения? Партнёры не смогут подключаться автоматически.')) return;
+  var p=pairData(); p.allow=[]; p.code=''; p.exp=0; p.attempts=0; savePair(p);
+  connAuthorized=false; pendingPairCode='';
+  if(conn){ try{ conn.close(); }catch(e){} conn=null; }
+  refreshPairInfo();
+  alert('Сопряжения сброшены ✅');
+}
+function handleData(role, msg){
+  if(!msg) return;
+  if(msg.t==='ping'){ try{ conn.send({t:'pong', ts:msg.ts}); }catch(e){} return; }
+  if(msg.t==='pong'){ setSyncStatus('✓ связь работает','ok'); if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; } return; }
+  if(msg.t==='hello'){
+    if(role==='host') hostAcceptHello(msg);
+    return;
+  }
+  if(msg.t==='auth_ok'){
+    if(role==='guest'){
+      var hid=String(conn.peer||'').replace(PEER_PREFIX,'');
+      addPairPartner(hid);
+      connAuthorized=true;
+      setSyncStatus('✓ сопряжение подтверждено','ok');
+      broadcast();
+    }
+    return;
+  }
+  if(msg.t==='auth_fail'){
+    s.partnerId=''; saveLocal();
+    failConn(msg.reason||'отказ в сопряжении');
+    return;
+  }
+  if(msg.t==='state' && msg.data){
+    if(!connAuthorized) return;
+    var ch=mergeRemote(msg.data);
+    if(ch){ save(); render(); }
+  }
+}
+function hostAcceptHello(msg){
+  var gid=String(conn.peer||'').replace(PEER_PREFIX,'');
+  if(isAllowed(gid)){
+    connAuthorized=true;
+    setSyncStatus('✓ подключено: '+gid,'ok');
+    try{ conn.send({t:'auth_ok', myId:DEV_ID}); }catch(e){}
+    broadcast();
+    return;
+  }
+  var p=pairData();
+  if(!p.code){
+    failConn('нет активного кода сопряжения — начните его на своём устройстве');
+    return;
+  }
+  var given=String((msg&&msg.code)||'').replace(/[^A-Z0-9]/g,'').toUpperCase();
+  if(given && given===p.code){
+    addPairPartner(gid);
+    clearPairCode();
+    connAuthorized=true;
+    setSyncStatus('✓ сопряжение с '+gid+' подтверждено','ok');
+    try{ conn.send({t:'auth_ok', myId:DEV_ID}); }catch(e){}
+    broadcast();
+  } else {
+    p.attempts=(p.attempts||0)+1;
+    if(p.attempts>=5){
+      clearPairCode();
+      failConn('код сгорел (5 неверных попыток) — начните сопряжение заново');
+    } else {
+      savePair(p);
+      failConn('неверный код сопряжения (попытка '+p.attempts+' из 5)');
+    }
+  }
+}
 function bindConn(role){
   if(!conn) return;
   conn.on('open', function(){
     if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
     var partnerId=String(conn.peer||'').replace(PEER_PREFIX,'');
-    setSyncStatus((role==='host'?'✓ подключён ':'✓ подключено ')+partnerId,'ok');
-    connectAttempts=0;
-    autoReset();
-    broadcast();
+    if(role==='host'){
+      connAuthorized=false;
+      setSyncStatus('проверка сопряжения партнёра…','info');
+    } else {
+      var code=isAllowed(partnerId)?'':pendingPairCode;
+      setSyncStatus('проверка сопряжения…','info');
+      try{ conn.send({t:'hello', myId:DEV_ID, code:code}); }catch(e){}
+    }
   });
-  conn.on('data', function(msg){
-    if(!msg) return;
-    if(msg.t==='ping'){ try{ conn.send({t:'pong', ts:msg.ts}); }catch(e){} return; }
-    if(msg.t==='pong'){ setSyncStatus('✓ связь работает','ok'); if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; } return; }
-    if(msg.t==='state' && msg.data){ var ch=mergeRemote(msg.data); if(ch){ save(); render(); } }
-  });
+  conn.on('data', function(msg){ handleData(role, msg); });
   conn.on('close', function(){
-    setSyncStatus('отключено, переподключаюсь…','info');
+    connAuthorized=false; pendingPairCode='';
+    setSyncStatus('отключено, переподключение…','info');
     conn=null;
     if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
     if(s.partnerId && s.partnerId!==DEV_ID){
@@ -1210,137 +1368,55 @@ function bindConn(role){
       reconnectTimer=setTimeout(function(){ if(!conn || !conn.open){ attemptConnect(s.partnerId); } }, 3000);
     }
   });
-  conn.on('error', function(err){ console.error('Data conn error', err); setSyncStatus('ошибка связи','err'); });
+  conn.on('error', function(err){
+    console.error('Data conn error', err);
+    if(!connAuthorized) setSyncStatus('ошибка связи','err');
+  });
 }
-function attemptConnect(id, policy){
-  policy=policy||'all';
-  if(!autoCanProceed()) return;
-  if(!peer || peer.destroyed || !peer.open){
-    initPeer(function(ok){ if(ok) attemptConnect(id, policy); else setSyncStatus('сервер не готов — используй код/файл','err'); }, policy);
-    return;
-  }
-  if(connectAttempts>=4){
-    if(policy==='all'){
-      setSyncStatus('пробую через релей…','info');
-      connectAttempts=0;
-      destroyPeer();
-      setTimeout(function(){ attemptConnect(id, 'relay'); }, 500);
-    } else {
-      setSyncStatus('не удалось (2 режима)','err');
-      connectAttempts=0;
-    }
-    return;
-  }
-  connectAttempts++;
-  autoAttempts++;
-  setSyncStatus(((policy==='relay')?'релей ':'')+'подключение ('+autoAttempts+'/'+AUTO_LIMIT+')','info');
-  try{ conn=peer.connect(PEER_PREFIX+id, { reliable:true }); }
-  catch(e){ setSyncStatus('ошибка соединения','err'); return; }
-  bindConn('guest');
-  if(connectTimeout) clearTimeout(connectTimeout);
-  connectTimeout=setTimeout(function(){
-    if(conn && !conn.open){
-      try{ conn.close(); }catch(e){}
-      conn=null;
-      if(connectAttempts<4) setTimeout(function(){ attemptConnect(id, policy); }, 1000);
-      else attemptConnect(id, policy);
-    }
-  }, 12000);
+function broadcast(){
+  if(!conn || !conn.open || !connAuthorized) return;
+  try{ conn.send({t:'state', data:{cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth, templates:s.templates, planned:s.planned, settings:s.settings}}); }catch(e){}
 }
 function connectToPartner(raw){
   var id=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(id.length<4){ alert('Введите ID партнёра'); return; }
   if(id===DEV_ID){ alert('Это ваш собственный ID'); return; }
+  var cEl=document.getElementById('pairCodeIn');
+  pendingPairCode = cEl ? String(cEl.value||'').replace(/[^A-Z0-9]/g,'').toUpperCase() : '';
   if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
   if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
-  connectAttempts=0;
-  autoReset();
+  connectAttempts=0; autoReset();
   s.partnerId=id; saveLocal();
   var inp=document.getElementById('peerIdIn'); if(inp) inp.value=id;
   setSyncStatus('инициализация…','info');
   destroyPeer();
-  initPeer(function(ok){ if(!ok){ setSyncStatus('не удалось инициализировать — используй код/файл','err'); return; } attemptConnect(id, 'all'); }, 'all');
-}
-function pingPartner(){
-  if(!conn || !conn.open){ alert('Сначала подключитесь к партнёру по ID'); return; }
-  try{
-    conn.send({t:'ping', ts:Date.now()});
-    setSyncStatus('пинг отправлен…','info');
-    if(pingTimeout) clearTimeout(pingTimeout);
-    pingTimeout=setTimeout(function(){ setSyncStatus('нет ответа на пинг','err'); }, 5000);
-  } catch(e){ setSyncStatus('ошибка отправки','err'); }
+  initPeer(function(ok){
+    if(!ok){ setSyncStatus('не удалось инициализировать — используй код/файл','err'); return; }
+    attemptConnect(id,'all');
+  },'all');
 }
 function disconnectPeer(){
   if(connectTimeout){ clearTimeout(connectTimeout); connectTimeout=null; }
   if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; }
   if(pingTimeout){ clearTimeout(pingTimeout); pingTimeout=null; }
   connectAttempts=0;
+  connAuthorized=false; pendingPairCode='';
   if(conn){ try{ conn.close(); }catch(e){} conn=null; }
   destroyPeer();
   s.partnerId=''; saveLocal();
   var inp=document.getElementById('peerIdIn'); if(inp) inp.value='';
+  var cIn=document.getElementById('pairCodeIn'); if(cIn) cIn.value='';
   setSyncStatus('не подключено','');
 }
-function broadcast(){
-  if(!conn || !conn.open) return;
-  try{ conn.send({t:'state', data:{cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth, templates:s.templates, planned:s.planned, settings:s.settings}}); }catch(e){}
-}
-function mergeRemote(rem){
-  if(!rem||typeof rem!=='object') return false;
-  var changed=false;
-  (rem.deleted||[]).forEach(function(id){ if(id && s.deleted.indexOf(id)<0){ s.deleted.push(id); changed=true; } });
-  if(s.deleted.length>400) s.deleted=s.deleted.slice(-400);
-  (rem.cats||[]).forEach(function(rc){
-    if(!rc||!rc.n) return;
-    var lc=s.cats.find(function(c){return c.n===rc.n;});
-    if(!lc){ s.cats.push({n:rc.n,p:rc.p||0,c:rc.c||'#F06292',subs:(rc.subs||[]).map(function(x){return {n:x.n,p:x.p||0};})}); changed=true; }
-    else{
-      if((rc.p||0)>(lc.p||0)){ lc.p=rc.p; changed=true; }
-      if(!lc.subs) lc.subs=[];
-      (rc.subs||[]).forEach(function(rs){
-        var ls=lc.subs.find(function(x){return x.n===rs.n;});
-        if(!ls){ lc.subs.push({n:rs.n,p:rs.p||0}); changed=true; }
-        else if((rs.p||0)>(ls.p||0)){ ls.p=rs.p; changed=true; }
-      });
-    }
-  });
-  if(rem.templates && rem.templates.length){
-    var tTpl={}; s.templates.forEach(function(t){ tTpl[t.id]=true; });
-    rem.templates.forEach(function(t){ if(t.id && !tTpl[t.id]){ s.templates.push(t); tTpl[t.id]=true; changed=true; } });
-  }
-  if(rem.planned && rem.planned.length){
-    var tPl={}; s.planned.forEach(function(p){ tPl[p.id]=true; });
-    rem.planned.forEach(function(p){ if(p.id && !tPl[p.id]){ s.planned.push(p); tPl[p.id]=true; changed=true; } });
-  }
-  if(rem.settings && rem.settings.accent && rem.settings.accent!==s.settings.accent){
-    s.settings.accent=rem.settings.accent; changed=true;
-  }
-  Object.keys(rem.months||{}).forEach(function(k){
-    var rm=rem.months[k]; if(!rm) return;
-    if(!(rm.incA||rm.incB||(rm.exp&&rm.exp.length)||(rm.other&&rm.other.length))) return;
-    var lm=getMonth(k);
-    if((rm.incA||0)>(lm.incA||0)){ lm.incA=rm.incA; changed=true; }
-    if((rm.incB||0)>(lm.incB||0)){ lm.incB=rm.incB; changed=true; }
-    if(rm.other && rm.other.length){ lm.other=lm.other||[]; var oids={}; lm.other.forEach(function(o){ oids[o.id]=true; }); rm.other.forEach(function(o){ if(o.id && !oids[o.id]){ lm.other.push({id:o.id,type:o.type||'other',amt:o.amt||0}); oids[o.id]=true; changed=true; } }); }
-    var ids={}; lm.exp.forEach(function(e){ ids[e.id]=true; });
-    (rm.exp||[]).forEach(function(e){
-      if(!e.id || ids[e.id]) return;
-      if(s.deleted.indexOf(e.id)>=0) return;
-      lm.exp.push({id:e.id,day:e.day,cat:e.cat,sub:e.sub||'',amt:e.amt,tpl:e.tpl||'',ts:e.ts||Date.now()});
-      ids[e.id]=true; changed=true;
-    });
-  });
-  if(s.deleted.length){
-    Object.keys(s.months).forEach(function(k){
-      var m2=s.months[k]; if(!m2||!m2.exp) return;
-      var before=m2.exp.length;
-      m2.exp=m2.exp.filter(function(e){ return s.deleted.indexOf(e.id)<0; });
-      if(m2.exp.length!==before) changed=true;
-    });
-  }
-  return changed;
-}
-setTimeout(function(){ if(s.partnerId && s.partnerId!==DEV_ID){ connectToPartner(s.partnerId); } }, 2000);
+(function(){
+  document.querySelectorAll('[data-act="startPair"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); startPair(); }); });
+  document.querySelectorAll('[data-act="clearPairs"]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); clearPairs(); }); });
+  document.querySelectorAll('[data-copypair="1"]').forEach(function(b){ b.addEventListener('click', function(){ var v=document.getElementById('pairCodeVal'); if(v) copyCode(v.textContent.replace(/\s+/g,'')); }); });
+  document.querySelectorAll('[data-closepair="1"]').forEach(function(b){ b.addEventListener('click', closePairPopup); });
+  var pp=document.getElementById('pairPopup');
+  if(pp) pp.addEventListener('pointerdown', function(e){ if(e.target===pp) closePairPopup(); });
+  refreshPairInfo();
+})();
 /* ================= ЗАКРЫТИЕ ОКОН ================= */
 (function(){
   function closeOnBackdrop(e){
@@ -1722,21 +1798,21 @@ function downloadXlsxReport(){
 function buildAndDownloadXlsx(range, list, income){
   var wb=new ExcelJS.Workbook(); wb.creator='Совместные финансы'; wb.created=new Date();
   var T = { bg:'FF0E1117', panel:'FF161A23', panel2:'FF1A1F2A', header:'FF21262F', border:'FF2A2F3A', border2:'FF353A45', text:'FFE6E8EC', text2:'FF8E939C', text3:'FF5A5F68', green:'FF73BF69', red:'FFF2495C', blue:'FF5794F2', orange:'FFFF9830', purple:'FFB877D9', yellow:'FFFADE2A', pink:'FFE91E8C' };
-  
+
   var total = 0; list.forEach(function(it){ total += (it.e.amt||0); });
   var days = Math.round((range.to - range.from) / 86400000) + 1; if (days < 1) days = 1;
   var diff = income - total;
   var plannedTot = plannedTotalInRange(range.from, range.to);
-  
+
   var byCat = {};
   list.forEach(function(it){ byCat[it.e.cat] = (byCat[it.e.cat]||0) + (it.e.amt||0); });
   var catArr = Object.keys(byCat).map(function(n){
     var c = s.cats.find(function(x){ return x.n === n; });
     return {n: n, v: byCat[n], p: c ? (c.p||0) : 0};
   }).sort(function(a, b){ return b.v - a.v; });
-  
+
   var ser = seriesFor(range.from, range.to, list);
-  
+
   var incRows = [];
   Object.keys(s.months).forEach(function(k){
     var p = k.split('-'), y = +p[0], m = +p[1];
@@ -1749,12 +1825,11 @@ function buildAndDownloadXlsx(range, list, income){
     incRows.push({k: k, a: mm.incA||0, b: mm.incB||0, o: o, t: tot});
   });
   incRows.sort(function(x, y){ return x.k < y.k ? -1 : 1; });
-
   /* ============= 1. DASHBOARD ============= */
   var ws = wb.addWorksheet('Дашборд', { properties: {tabColor: {argb: T.pink}}, views: [{showGridLines: false}] });
   ws.columns = [{width: 2}, {width: 22}, {width: 16}, {width: 14}, {width: 22}, {width: 16}, {width: 14}, {width: 2}];
   fillDark(ws, 120, 8, T.bg);
-  
+
   ws.mergeCells('B2:G2');
   var title = ws.getCell('B2');
   title.value = 'ФИНАНСОВЫЙ ДАШБОРД';
@@ -1762,7 +1837,7 @@ function buildAndDownloadXlsx(range, list, income){
   title.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   title.border = {bottom: {style: 'thick', color: {argb: T.pink}}};
   ws.getRow(2).height = 52;
-  
+
   ws.mergeCells('B3:G3');
   var subtitle = ws.getCell('B3');
   subtitle.value = fmtDate(range.from) + '  —  ' + fmtDate(range.to) + '   ·   ' + reportPeriodLabel() + '   ·   ' + days + ' дн.' + (plannedTot > 0 ? '   ·   запланировано: ' + Math.round(plannedTot) + ' ₽' : '');
@@ -1770,21 +1845,21 @@ function buildAndDownloadXlsx(range, list, income){
   subtitle.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   ws.getRow(3).height = 24;
   ws.getRow(4).height = 8;
-  
+
   var kpis = [
     {label: 'ПОТРАЧЕНО', value: total, sub: 'за ' + reportPeriodLabel().toLowerCase(), color: T.red},
     {label: 'ДОХОД', value: income, sub: 'за период', color: T.green},
     {label: (diff >= 0 ? 'ОСТАТОК' : 'ДЕФИЦИТ'), value: Math.abs(diff), sub: diff >= 0 ? 'свободно' : 'не хватает', color: diff >= 0 ? T.blue : T.red},
     {label: 'В СРЕДНЕМ', value: total / days, sub: 'за день', color: T.orange}
   ];
-  
+
   drawKpi(ws, 5, 2, 4, kpis[0], T);
   drawKpi(ws, 5, 5, 7, kpis[1], T);
   drawKpi(ws, 9, 2, 4, kpis[2], T);
   drawKpi(ws, 9, 5, 7, kpis[3], T);
-  
+
   ws.getRow(12).height = 12;
-  
+
   ws.mergeCells('B13:G13');
   var sec1 = ws.getCell('B13');
   sec1.value = 'РАСХОДЫ ПО КАТЕГОРИЯМ';
@@ -1792,7 +1867,7 @@ function buildAndDownloadXlsx(range, list, income){
   sec1.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   sec1.border = {left: {style: 'thick', color: {argb: T.blue}}};
   ws.getRow(13).height = 34;
-  
+
   var h1 = ['Категория', 'Сумма', '%', 'План', 'Отклонение'];
   ['B','C','D','E','F'].forEach(function(col, i){
     var cell = ws.getCell(col + '14');
@@ -1803,22 +1878,22 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   ws.getRow(14).height = 26;
-  
+
   catArr.forEach(function(c, i){
     var row = 15 + i;
     ws.getRow(row).height = 22;
     var t = catArr.length > 0 ? (c.v / catArr[0].v) : 0;
     if(catArr[0].v === 0) t = 0;
-    
+
     var nc = ws.getCell('B' + row);
     nc.value = c.n;
     nc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
     nc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
     nc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    
+
     var bg = mixColor([253,240,248], [233,30,140], t*0.75);
     var textColor = t > 0.55 ? T.text : T.text;
-    
+
     var vc = ws.getCell('C' + row);
     vc.value = c.v;
     vc.numFmt = '#,##0.00';
@@ -1826,21 +1901,21 @@ function buildAndDownloadXlsx(range, list, income){
     vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     vc.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: bg}};
     vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    
+
     var pc = ws.getCell('D' + row);
     pc.value = total > 0 ? c.v / total : 0;
     pc.numFmt = '0.0%';
     pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
     pc.alignment = {horizontal: 'center', vertical: 'middle'};
     pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    
+
     var plc = ws.getCell('E' + row);
     plc.value = c.p || 0;
     plc.numFmt = '#,##0.00';
     plc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'};
     plc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     plc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    
+
     var dc = ws.getCell('F' + row);
     var dv = c.p - c.v;
     dc.value = dv;
@@ -1849,12 +1924,12 @@ function buildAndDownloadXlsx(range, list, income){
     dc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     dc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
-  
+
   if (catArr.length > 0){
     ws.addConditionalFormatting({ ref: 'C15:C' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.pink}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
     ws.addConditionalFormatting({ ref: 'D15:D' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.blue}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
-  
+
   var tRow = 15 + catArr.length;
   ws.getRow(tRow).height = 26;
   var planTotal = catArr.reduce(function(a,c){ return a + c.p; }, 0);
@@ -1871,9 +1946,9 @@ function buildAndDownloadXlsx(range, list, income){
     cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0};
     cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
   });
-  
+
   ws.getRow(tRow + 1).height = 12;
-  
+
   var secRow = tRow + 2;
   ws.mergeCells('B' + secRow + ':G' + secRow);
   var sec2 = ws.getCell('B' + secRow);
@@ -1882,7 +1957,7 @@ function buildAndDownloadXlsx(range, list, income){
   sec2.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
   sec2.border = {left: {style: 'thick', color: {argb: T.purple}}};
   ws.getRow(secRow).height = 34;
-  
+
   var thRow = secRow + 1;
   var thLabels = [ser.type === 'day' ? 'День' : 'Месяц', 'Сумма', '% от макс'];
   ['B','C','D'].forEach(function(col, i){
@@ -1894,7 +1969,7 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   ws.getRow(thRow).height = 26;
-  
+
   var maxM = 0; ser.arr.forEach(function(x){ if (x.v > maxM) maxM = x.v; });
   ser.arr.forEach(function(x, i){
     var row = thRow + 1 + i;
@@ -1904,14 +1979,14 @@ function buildAndDownloadXlsx(range, list, income){
     lc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
     lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
     lc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    
+
     var vc = ws.getCell('C' + row);
     vc.value = x.v;
     vc.numFmt = '#,##0.00';
     vc.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
     vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1};
     vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
-    
+
     var pc = ws.getCell('D' + row);
     pc.value = maxM > 0 ? x.v / maxM : 0;
     pc.numFmt = '0%';
@@ -1919,16 +1994,15 @@ function buildAndDownloadXlsx(range, list, income){
     pc.alignment = {horizontal: 'center', vertical: 'middle'};
     pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
   });
-  
+
   if (ser.arr.length > 0){
     ws.addConditionalFormatting({ ref: 'C' + (thRow + 1) + ':C' + (thRow + ser.arr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.purple}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
   }
-
   /* ============= 2. КАТЕГОРИИ ============= */
   var wsC = wb.addWorksheet('Категории', { properties: {tabColor: {argb: T.blue}}, views: [{showGridLines: false}] });
   wsC.columns = [{width: 30}, {width: 16}, {width: 16}, {width: 18}, {width: 12}];
   fillDark(wsC, 120, 5, T.bg);
-  
+
   var hC = ['Категория', 'План ₽', 'Факт ₽', 'Отклонение ₽', 'Доля'];
   ['A','B','C','D','E'].forEach(function(col, i){
     var cell = wsC.getCell(col + '1');
@@ -1939,7 +2013,7 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   wsC.getRow(1).height = 26;
-  
+
   catArr.forEach(function(c, i){
     var row = 2 + i;
     var dv = c.p - c.v;
@@ -1958,7 +2032,7 @@ function buildAndDownloadXlsx(range, list, income){
     });
     wsC.getRow(row).height = 20;
   });
-  
+
   var totC = 2 + catArr.length;
   var totPlan = catArr.reduce(function(a,c){return a+c.p;},0);
   var totDev = catArr.reduce(function(a,c){return a+(c.p-c.v);},0);
@@ -1974,12 +2048,11 @@ function buildAndDownloadXlsx(range, list, income){
     if (j === 4) cell.numFmt = '0.0%';
   });
   wsC.getRow(totC).height = 26;
-
   /* ============= 3. ДОХОДЫ ============= */
   var wsI = wb.addWorksheet('Доходы', { properties: {tabColor: {argb: T.green}}, views: [{showGridLines: false}] });
   wsI.columns = [{width: 16}, {width: 18}, {width: 18}, {width: 16}, {width: 18}];
   fillDark(wsI, 120, 5, T.bg);
-  
+
   var hI = ['Месяц', 'ЗП (5-е) ₽', 'ЗП (20-е) ₽', 'Другое ₽', 'Итого ₽'];
   ['A','B','C','D','E'].forEach(function(col, i){
     var cell = wsI.getCell(col + '1');
@@ -1990,7 +2063,7 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   wsI.getRow(1).height = 26;
-  
+
   if (incRows.length === 0){
     wsI.mergeCells('A2:E2');
     var emptyI = wsI.getCell('A2');
@@ -2016,7 +2089,7 @@ function buildAndDownloadXlsx(range, list, income){
       });
       wsI.getRow(row).height = 20;
     });
-    
+
     var totI = 2 + incRows.length;
     var totA = incRows.reduce(function(a,c){return a+c.a;},0);
     var totB = incRows.reduce(function(a,c){return a+c.b;},0);
@@ -2034,12 +2107,11 @@ function buildAndDownloadXlsx(range, list, income){
     });
     wsI.getRow(totI).height = 26;
   }
-
   /* ============= 4. ВСЕ ТРАТЫ ============= */
   var wsE = wb.addWorksheet('Все траты', { properties: {tabColor: {argb: T.red}}, views: [{showGridLines: false}] });
   wsE.columns = [{width: 14}, {width: 24}, {width: 22}, {width: 16}];
   fillDark(wsE, 1500, 4, T.bg);
-  
+
   var hE = ['Дата', 'Категория', 'Подкатегория', 'Сумма ₽'];
   ['A','B','C','D'].forEach(function(col, i){
     var cell = wsE.getCell(col + '1');
@@ -2050,7 +2122,7 @@ function buildAndDownloadXlsx(range, list, income){
     cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}};
   });
   wsE.getRow(1).height = 26;
-  
+
   if (list.length === 0){
     wsE.mergeCells('A2:D2');
     var emptyE = wsE.getCell('A2');
@@ -2076,7 +2148,6 @@ function buildAndDownloadXlsx(range, list, income){
       wsE.getRow(row).height = 20;
     });
   }
-
   wb.xlsx.writeBuffer().then(function(buf){
     var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     var url=URL.createObjectURL(blob);
