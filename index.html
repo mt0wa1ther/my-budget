@@ -163,6 +163,14 @@
   .sync-btn .si{ font-size:26px; }
   .sync-btn .st2{ font-size:12px; font-weight:600; color:var(--text); margin-top:4px; }
   .sync-btn .ss{ font-size:10px; color:var(--text2); margin-top:2px; }
+  /* ===== СВОРАЧИВАЕМЫЕ БЛОКИ ===== */
+  .sb-toggle{ display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 12px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .sb-toggle:active{ background:var(--soft); transform:scale(.98); }
+  .sb-toggle .si{ font-size:19px; line-height:1; width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--soft); flex:none; }
+  .sb-toggle .st{ flex:1 1 auto; min-width:0; font-size:12px; font-weight:600; color:var(--text); }
+  .sb-toggle .ar{ font-size:13px; color:var(--accent); flex:none; transition:transform .2s; }
+  .sb-toggle.open .ar{ transform:rotate(180deg); }
+  #srvCard, #codesCard{ display:none; }
   .btn-main{ width:100%; padding:13px; border:none; border-radius:14px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; letter-spacing:.3px; box-shadow:0 6px 16px rgba(0,0,0,.14); transition:filter .2s, transform .12s; }
   .btn-main:active{ filter:brightness(.94); transform:scale(.99); }
   .btn-sec{ width:100%; padding:11px; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:600; cursor:pointer; margin-top:8px; transition:background .2s, transform .12s; }
@@ -315,8 +323,8 @@
       </div>
     </div>
     <div class="card">
-      <h3 onclick="toggleJournal()" style="cursor:pointer">📅 Дневник <span class="tag" id="jToggle">▲</span></h3>
-      <div id="jBody"><div class="day-list" id="dList"></div></div>
+      <h3 onclick="toggleJournal()" style="cursor:pointer">📅 Дневник <span class="tag" id="jToggle">▼</span></h3>
+      <div id="jBody" style="display:none"><div class="day-list" id="dList"></div></div>
       <div style="font-size:11px;color:var(--text2);margin-top:6px" id="dCount"></div>
     </div>
   </div>
@@ -393,7 +401,15 @@
         <b>Как работает:</b> оба устройства должны использовать один и тот же сервер (CDN по умолчанию или свой из блока ниже).
       </div>
     </div>
-    <div class="card">
+    <div class="sync-cta" style="padding:14px 14px 0">
+      <div class="sb-toggle" id="btnSrv" onclick="toggleBlock('srvCard','btnSrv')">
+        <span class="si">🌐</span><span class="st">Свой сервер</span><span class="ar">▾</span>
+      </div>
+      <div class="sb-toggle" id="btnCodes" onclick="toggleBlock('codesCard','btnCodes')">
+        <span class="si">🧾</span><span class="st">Передача кодами</span><span class="ar">▾</span>
+      </div>
+    </div>
+    <div class="card" id="srvCard">
       <h3>🌐 Свой сервер <span class="tag" id="srvStatus">CDN по умолчанию</span></h3>
       <div class="diag">
         Введи данные твоего сервера PeerJS (IP/домен, порт, путь, ключ). Если там запущен peerjs — связь по ID пойдёт через него,
@@ -410,7 +426,7 @@
       <button class="btn-main" data-act="srvSave" style="margin-top:10px">Сохранить сервер</button>
       <button class="btn-sec" data-act="srvClear">Сбросить (CDN по умолчанию)</button>
     </div>
-    <div class="card">
+    <div class="card" id="codesCard">
       <h3>🧾 Передача кодами <span class="tag">офлайн</span></h3>
       <div style="font-size:12px;color:var(--text2);margin-bottom:10px">
         Полный перенос всех данных (траты, планы, доходы, все месяцы). Скопируй код и отправь партнёру,
@@ -505,7 +521,7 @@ var MAND='Обязательные', SPEC='Внеплановые траты';
 var SUB_CATS=[MAND,'Развлечения',SPEC];
 var ui={expanded:{},popYear:new Date().getFullYear()};
 var qrVisible=false, lastQR='', qrMode='exp';
-var journalOpen=true;
+var journalOpen=false;
 function cmk(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
 function defState(){ return {theme:'pink',deleted:[],partnerId:'',cats:[
   {n:MAND,p:0,c:'#E57373',subs:[{n:'Квартира',p:0},{n:'Кредит',p:0},{n:'Подписки',p:0},{n:'Мобильный',p:0},{n:'Интернет',p:0}]},
@@ -598,6 +614,16 @@ function greetingMsg(){
   if(hasMain&&hasAdv) return PHRASES_SALARY[2];
   if(hasMain||hasAdv) return PHRASES_SALARY[0];
   return greetingByTime();
+}
+function toggleBlock(id, btnId){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var show = el.style.display!=='block';
+  el.style.display = show?'block':'none';
+  if(btnId){
+    var b=document.getElementById(btnId);
+    if(b) b.classList.toggle('open', show);
+  }
 }
 function toggleJournal(){ var b=document.getElementById('jBody'); var t=document.getElementById('jToggle'); if(!journalOpen){ b.style.display='block'; t.textContent='▲'; journalOpen=true; } else { b.style.display='none'; t.textContent='▼'; journalOpen=false; } }
 var FLOWERS=['🌸','🌷','🌺','💮','🌼','🏵️','🌹'];
@@ -807,43 +833,6 @@ function importExp(data){ var area=document.getElementById('scanArea'); var mkey
   save(); render(); qrVisible=false;
   area.innerHTML='<div class="qr-holder"><div style="font-size:30px">✅</div><div style="font-size:15px;color:var(--ok);font-weight:700;margin:8px 0">Готово!</div><div style="font-size:13px;color:var(--text2)">Добавлено трат: <b style="color:var(--text)">'+added+'</b></div><br><button class="btn-main" data-go="track">К дневнику</button></div>';
   var gb=area.querySelector('[data-go="track"]'); if(gb) gb.onclick=function(){ nav('track'); }; }
-/* ================= ЗАМОК ПРИ ВХОДЕ ================= */
-var ENTRY_PW_KEY='uzat_entry_pw';
-function getEntryPw(){ try{ return localStorage.getItem(ENTRY_PW_KEY); }catch(e){ return null; } }
-function setEntryPw(p){ try{ localStorage.setItem(ENTRY_PW_KEY,p); }catch(e){} }
-function openEntryLock(){
-  var lock=document.getElementById('entryLock');
-  if(!lock) return;
-  lock.style.display='flex';
-  document.getElementById('elPin').value='';
-  document.getElementById('elPin').focus();
-  var has=getEntryPw();
-  document.getElementById('elTitle').textContent=has?'Введите пароль':'Задайте пароль';
-  document.getElementById('elSub').textContent=has?'Это приватное приложение. Для доступа нужен пароль.':'Придумайте пароль — он понадобится при каждом входе.';
-  document.getElementById('elHint').textContent=has?'Пароль вводится при каждом заходе на сайт.':'Запомните пароль.';
-}
-function submitEntry(){
-  var pin=document.getElementById('elPin').value;
-  if(!pin){ alert('Введи пароль'); return; }
-  var has=getEntryPw();
-  if(!has){
-    if(pin.length<3){ alert('Пароль слишком короткий (минимум 3 символа)'); return; }
-    setEntryPw(pin);
-    closeEntryLock();
-  } else if(pin===has){
-    closeEntryLock();
-  } else {
-    alert('Неверный пароль');
-    document.getElementById('elPin').value='';
-    document.getElementById('elPin').focus();
-  }
-}
-function closeEntryLock(){
-  document.getElementById('entryLock').style.display='none';
-  if(typeof render==='function') render();
-}
-document.getElementById('elBtn').addEventListener('click', submitEntry);
-document.getElementById('elPin').addEventListener('keydown', function(e){ if(e.key==='Enter') submitEntry(); });
 /* ================= СВОЙ СЕРВЕР ================= */
 var SRV_KEY='uzat_sync_server';
 function srvLoad(){
