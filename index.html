@@ -931,7 +931,7 @@ function initPeer(cb, policy){
       peer=null;
       if(s.partnerId && s.partnerId!==DEV_ID){
         if(reconnectTimer) clearTimeout(reconnectTimer);
-        reconnectTimer=setTimeout(function(){ if(!conn || !conn.open){ connectToPartner(s.partnerId); } }, 2000);
+        reconnectTimer=setTimeout(function(){ if(!conn || !conn.open){ attemptConnect(s.partnerId); } }, 2000);
       }
     });
     peer.on('error', function(err){
