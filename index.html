@@ -15,6 +15,8 @@
 <style>
   *{ box-sizing:border-box; margin:0; }
   body{ margin:0; font-family:'Segoe UI',Roboto,Arial,sans-serif; transition:background .3s; -webkit-tap-highlight-color:transparent; }
+  #p2r-indicator{ position:fixed; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#E91E8C,#F48FB1); z-index:999; transform:translateY(-100%); opacity:0; transition:transform .2s, opacity .2s; }
+  #p2r-indicator.show{ transform:translateY(0); opacity:1; }
   .phone{ max-width:420px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:92px; }
   .bg-deco{ position:fixed; inset:0; z-index:-2; pointer-events:none; transition:opacity .3s; }
   .bg-pink{ background:linear-gradient(160deg,#ffe3f1 0%,#fff6fb 45%,#ffd9ec 100%); }
@@ -180,6 +182,13 @@
   .theme-picker button{ flex:1; padding:14px 4px; min-height:52px; border:1.5px solid var(--line); background:var(--card); color:var(--text); border-radius:14px; font-weight:700; font-size:13px; cursor:pointer; transition:transform .12s, border-color .2s, background .2s; }
   .theme-picker button.active{ border-color:var(--accent); background:var(--soft); box-shadow:0 2px 10px rgba(0,0,0,.08); }
   .theme-picker button:active{ transform:scale(.96); }
+  #reloadPopup{ position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:260; display:none; align-items:center; justify-content:center; padding:16px; }
+  #reloadPopup.open{ display:flex; }
+  #reloadPopup .pp-box{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; max-width:320px; width:100%; box-shadow:0 8px 30px rgba(0,0,0,.35); text-align:center; }
+  #reloadPopup h3{ font-size:16px; font-weight:700; color:var(--text); margin:8px 0 6px; }
+  #reloadPopup p{ font-size:12px; color:var(--text2); line-height:1.5; margin-bottom:14px; }
+  #reloadPopup .rp-actions{ display:flex; gap:8px; margin-top:14px; }
+  #reloadPopup .rp-actions button{ flex:1; margin:0; }
   #reportPopup{ position:fixed; inset:0; background:rgba(4,7,12,.78); z-index:210; display:none; align-items:flex-end; justify-content:center; }
   #reportPopup.open{ display:flex; }
   #reportPopup .rp-box2{ background:#0D1117; width:100%; max-width:420px; max-height:92vh; border-radius:22px 22px 0 0; display:flex; flex-direction:column; overflow:hidden; border:1px solid #21262D; }
@@ -250,6 +259,7 @@
 </style>
 </head>
 <body>
+<div id="p2r-indicator"></div>
 <div class="bg-deco bg-pink" id="bgPink"></div>
 <div class="flowers" id="flowers"></div>
 <div class="bg-deco bg-moon" id="bgMoon" style="opacity:0"></div>
@@ -414,12 +424,13 @@
       </div>
       <div class="diag" style="margin-top:10px">
         Оба партнёра вводят <b>одинаковый 6-значный код</b>. Данные хранятся в вашей базе на сервере.<br>
-        Любое изменение (трата, план) автоматически сохраняется. При открытии приложения всё автоматически подтягивается.
+        Любое изменение (трата, план) автоматически сохраняется и синхронизируется в реальном времени.
       </div>
       <div class="add-form" style="padding-top:10px">
         <input type="text" id="pairCodeIn" class="pair-code-inp" placeholder="Код пары (6 симв.)" maxlength="6" autocomplete="off">
         <button data-act="setRoom">Войти</button>
       </div>
+      <button class="btn-sec" data-act="showReload" style="margin-top:8px">🔄 Обновить вручную</button>
       <div id="pairInfo"></div>
     </div>
     <div class="card">
@@ -493,6 +504,17 @@
       <button class="btn-add" data-act="addPlanned">＋ Добавить в планер</button>
     </div>
     <button class="pp-ok" onclick="closePlannerPopup()" style="margin-top:14px">Готово</button>
+  </div>
+</div>
+<div id="reloadPopup">
+  <div class="pp-box">
+    <div style="font-size:30px">🔄</div>
+    <h3>Обновить данные</h3>
+    <p>Перезагрузить страницу, чтобы сразу подтянуть последние изменения с сервера?</p>
+    <div class="rp-actions">
+      <button class="btn-sec" data-cancelreload="1">Отмена</button>
+      <button class="btn-main" data-doreload="1">Обновить</button>
+    </div>
   </div>
 </div>
 <div id="reportPopup">
@@ -684,6 +706,7 @@ function act(kind){
   if(kind==='reset'){ openReset(); return; }
   if(kind==='copyCode'){ copyCode(getRoomCode()); return; }
   if(kind==='setRoom'){ setRoomCodeFromInput(); return; }
+  if(kind==='showReload'){ openReloadPopup(); return; }
   if(kind==='report'){ openReport(); return; }
   if(kind==='closeReport'){ closeReport(); return; }
   if(kind==='xlsxReport'){ downloadXlsxReport(); return; }
@@ -699,8 +722,11 @@ function setRoomCode(c){ c=(c||'').replace(/[^A-Z0-9]/g,'').toUpperCase().slice(
   return c; }
 function roomData(){ return {cats:s.cats, months:s.months, deleted:s.deleted, curMonth:s.curMonth, templates:s.templates, planned:s.planned, settings:s.settings}; }
 function serverSave(){
-  var c=getRoomCode(); if(!c) return;
-  try{ fetch(SERVER+'api/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c, data:roomData()})}).catch(function(){}); }catch(e){}
+  var c=getRoomCode(); if(!c) return Promise.resolve();
+  try{
+    return fetch(SERVER+'api/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code:c, data:roomData()})})
+      .catch(function(){ return null; });
+  }catch(e){ return Promise.resolve(); }
 }
 function serverLoad(cb){
   cb=cb||function(){}; var c=getRoomCode(); if(!c){ cb(false); return; }
@@ -718,7 +744,7 @@ function setRoomCodeFromInput(){
   if(!c){ alert('Код пары — 6 символов (заглавные A-Z, цифры 2-9)'); return; }
   inp.value=c;
   var el=document.getElementById('roomCodeVal'); if(el) el.textContent=c;
-  serverLoad(function(){ setRoomStatus('в комнате'); }); render();
+  serverLoad(function(){ setRoomStatus('в комнате','ok'); }); render();
 }
 function setRoomStatus(txt, cls){
   var el=document.getElementById('roomStatus'); if(!el) return;
@@ -788,6 +814,43 @@ function mergeRemote(rem){
   var rc=getRoomCode();
   if(rc){ var el=document.getElementById('roomCodeVal'); if(el) el.textContent=rc; serverLoad(function(){ setRoomStatus('в комнате','ok'); }); }
   render();
+})();
+function openReloadPopup(){ var p=document.getElementById('reloadPopup'); if(p) p.classList.add('open'); }
+function closeReloadPopup(){ var p=document.getElementById('reloadPopup'); if(p) p.classList.remove('open'); }
+function doReloadPage(){ location.reload(); }
+function autoPollSync(){
+  var el=document.activeElement;
+  if(el && (el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA')) return; // не мешаем вводу
+  if(getRoomCode()) serverLoad();
+}
+setInterval(autoPollSync, 3000);
+/* ===== Pull-to-refresh (свайп вниз) ===== */
+(function(){
+  var startY=null, pulling=false, THRESHOLD=100, MAX=150;
+  var ind=document.getElementById('p2r-indicator');
+  function setY(y){
+    if(!ind) return;
+    if(y<=0){ ind.style.transform='translateY(-100%)'; ind.style.opacity='0'; return; }
+    ind.style.transform='translateY('+(y-3)+'px)';
+    ind.style.opacity=Math.min(1, y/THRESHOLD);
+  }
+  window.addEventListener('touchstart', function(e){
+    if(window.scrollY>0) return;              // только когда мы на самом верху
+    startY=e.touches[0].clientY; pulling=true;
+  }, {passive:true});
+  window.addEventListener('touchmove', function(e){
+    if(!pulling || startY===null) return;
+    var dy=e.touches[0].clientY-startY;
+    if(dy<0){ setY(0); return; }              // свайп вверх — игнор
+    e.preventDefault();
+    setY(Math.min(dy, MAX));
+  }, {passive:false});
+  window.addEventListener('touchend', function(){
+    if(!pulling) return;
+    pulling=false; startY=null;
+    if(ind && parseFloat(ind.style.opacity)>=1){ location.reload(); }
+    else setY(0);
+  });
 })();
 /* ================= ПЛАНЕР (pop-up) ================= */
 function openPlannerPopup(){ document.getElementById('plannerPopup').classList.add('open'); fillPlannerSubs(); renderPlanner(); }
@@ -998,7 +1061,26 @@ function setPw(p){ try{ localStorage.setItem(RESET_PW_KEY,p); }catch(e){} }
 var resetHasPw = !!getPw();
 function openReset(){ var pop=document.getElementById('resetPopup'); pop.classList.add('open'); document.getElementById('parSetup').style.display=resetHasPw?'none':'block'; document.getElementById('parEnter').style.display=resetHasPw?'block':'none'; document.getElementById('parNew').value=''; document.getElementById('parNew2').value=''; document.getElementById('parIn').value=''; }
 function closeReset(){ document.getElementById('resetPopup').classList.remove('open'); }
-function doReset(){ if(!resetHasPw){ var n1=document.getElementById('parNew').value, n2=document.getElementById('parNew2').value; if(!n1||n1.length<3){ alert('Пароль слишком короткий'); return; } if(n1!==n2){ alert('Пароли не совпадают'); return; } setPw(n1); resetHasPw=true; } else { var pw=document.getElementById('parIn').value; if(pw!==getPw()){ alert('Неверный пароль'); return; } } try{ localStorage.removeItem(MAIN_KEY); }catch(e){} OLD_KEYS.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} }); s=defState(); s=normalize(s); save(); closeReset(); alert('Все данные удалены ✅'); location.reload(); }
+function doReset(){
+  if(!resetHasPw){
+    var n1=document.getElementById('parNew').value, n2=document.getElementById('parNew2').value;
+    if(!n1||n1.length<3){ alert('Пароль слишком короткий'); return; }
+    if(n1!==n2){ alert('Пароли не совпадают'); return; }
+    setPw(n1); resetHasPw=true;
+  } else {
+    var pw=document.getElementById('parIn').value;
+    if(pw!==getPw()){ alert('Неверный пароль'); return; }
+  }
+  try{ localStorage.removeItem(MAIN_KEY); }catch(e){}
+  OLD_KEYS.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  s=defState(); s=normalize(s);
+  closeReset();
+  save();
+  serverSave().then(function(){
+    alert('Все данные удалены ✅');
+    location.reload();
+  });
+}
 document.querySelectorAll('[data-act="resetCancel"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); closeReset(); }); });
 document.querySelectorAll('[data-act="resetOk"]').forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); doReset(); }); });
 function exportBackup(){ var data=JSON.stringify({app:'uz_backup',v:2,data:s},null,2); var blob=new Blob([data],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='finance-backup-'+s.curMonth+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(url);},1000); alert('Резервная копия сохранена ✅'); }
@@ -1008,7 +1090,7 @@ function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=sr
 /* ================= ЗАКРЫТИЕ ОКОН ================= */
 (function(){
   function closeOnBackdrop(e){
-    ['plannedPopup','resetPopup','reportPopup','plannerPopup'].forEach(function(id){
+    ['plannedPopup','resetPopup','reportPopup','plannerPopup','reloadPopup'].forEach(function(id){
       var el=document.getElementById(id);
       if(el && el.classList.contains('open') && e.target===el){ el.classList.remove('open'); }
     });
@@ -1016,6 +1098,12 @@ function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=sr
   document.body.addEventListener('pointerdown', closeOnBackdrop, { passive:true });
   document.body.addEventListener('touchstart', closeOnBackdrop, { passive:true });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeOnBackdrop({target:document.body}); } });
+})();
+(function(){
+  document.querySelectorAll('[data-cancelreload="1"]').forEach(function(b){ b.addEventListener('click', closeReloadPopup); });
+  document.querySelectorAll('[data-doreload="1"]').forEach(function(b){ b.addEventListener('click', doReloadPage); });
+  var rp=document.getElementById('reloadPopup');
+  if(rp) rp.addEventListener('pointerdown', function(e){ if(e.target===rp) closeReloadPopup(); });
 })();
 (function(){
   var r=document.getElementById('themePicker');
