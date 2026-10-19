@@ -1598,14 +1598,6 @@ function buildAndDownloadXlsx(range, list, income){
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1200);
   });
 }
-
-applyT(s.theme||'pink');
-initDateInput();
-initPeerInput();
-render();
-
-
-
 /* Mobile dashboard and sequential synchronization */
 var syncState={loading:false,saving:false,revision:0,timer:null,poll:null,lastError:'',failures:0};
 function syncNotice(message,ok){
