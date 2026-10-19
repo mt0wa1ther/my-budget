@@ -1200,108 +1200,28 @@ document.querySelectorAll('#periodChips button').forEach(function(b){
   b.onclick=function(){ reportPeriod=b.dataset.p; document.querySelectorAll('#periodChips button').forEach(function(x){ x.classList.toggle('active',x===b); }); buildReport(); };
 });
 document.getElementById('reportPopup').addEventListener('click', function(e){ if(e.target===this) closeReport(); });
-function buildAndDownloadXlsx(range, list, income){
-  var wb=new ExcelJS.Workbook(); wb.creator='Совместные финансы'; wb.created=new Date();
-
-  // ---------- базовые суммы за период ----------
-  var total=0; list.forEach(function(it){ total+=(it.e.amt||0); });
-  var diff=income-total;
-
-  // ---------- Лист 1: Сводка ----------
-  var ws1=wb.addWorksheet('Сводка');
-  ws1.columns=[{width:26},{width:18},{width:18},{width:18}];
-  // заголовок
-  ws1.getCell('A1').value='ФИНАНСОВЫЙ ОТЧЁТ';
-  ws1.getCell('A1').font={size:16,bold:true};
-  ws1.getCell('A2').value=fmtDate(range.from)+' — '+fmtDate(range.to)+' · '+reportPeriodLabel();
-  ws1.getCell('A2').font={color:{argb:'888888'}};
-
-  ws1.getCell('A4').value='Потрачено за период';  ws1.getCell('B4').value=total;
-  ws1.getCell('A5').value='Доход за период';      ws1.getCell('B5').value=income;
-  ws1.getCell('A6').value='Остаток (доход − расход)'; ws1.getCell('B6').value=diff;
-
-  // среднее в день
-  var days=Math.round((range.to-range.from)/86400000)+1;
-  ws1.getCell('A8').value='Средний расход в день'; ws1.getCell('B8').value=days>0?(total/days):0;
-
-  // траты к плану
-  var planT=0; s.cats.forEach(function(c){ planT+=(c.p||0); });
-  var pctPlan = planT>0 ? (total/planT*100) : 0;
-  ws1.getCell('A10').value='Траты к плану';       ws1.getCell('B10').value=planT>0?Math.round(pctPlan)+'%':'план не задан';
-  ws1.getCell('A11').value='План на месяц';       ws1.getCell('B11').value=planT;
-  ws1.getCell('A12').value='Отклонение от плана'; ws1.getCell('B12').value=planT-total;
-
-  ['B4','B5','B6','B8','B11','B12'].forEach(function(c){ ws1.getCell(c).numFmt='# ##0.## "₽"'; });
-  ws1.getCell('B4').font={bold:true,color:{argb:'F2495C'}};
-  ws1.getCell('B5').font={bold:true,color:{argb:'73BF69'}};
-  ws1.getCell('B6').font={bold:true};
-
-  // ---------- Лист 2: Категории ----------
-  var ws2=wb.addWorksheet('Категории');
-  ws2.columns=[{width:24},{width:16},{width:12},{width:16},{width:16}];
-  ws2.addRow(['Категория','Сумма','%','План ₽','Отклонение']).font={bold:true};
-  var byCat={}; list.forEach(function(it){ byCat[it.e.cat]=(byCat[it.e.cat]||0)+(it.e.amt||0); });
-  var catArr=Object.keys(byCat).map(function(n){ return {n:n,v:byCat[n]}; }).sort(function(a,b){return b.v-a.v;});
-  var sumF=total, planAll=0;
-  catArr.forEach(function(it){
-    var c=s.cats.find(function(x){return x.n===it.n;});
-    var p=c?(c.p||0):0; planAll+=p;
-    var dv=p-it.v;
-    ws2.addRow([it.n, it.v, total?((it.v/total*100).toFixed(1)+'%'):'0%', p, dv]);
-  });
-  // строка итого
-  var totR=ws2.addRow(['ИТОГО', total, '100.0%', planAll, planAll-total]);
-  totR.font={bold:true};
-  // если категорий нет
-  if(!catArr.length){ ws2.addRow(['Нет данных о расходах за период']).font={color:{argb:'888888'}}; }
-
-  // ---------- Лист 3: Доходы по месяцам ----------
-  var ws3=wb.addWorksheet('Доходы');
-  ws3.columns=[{width:14},{width:14},{width:14},{width:14},{width:14}];
-  ws3.addRow(['Месяц','ЗП 5-е','ЗП 20-е','Другое','Итого']).font={bold:true};
-  // собираем месяцы из данных за период
-  var months=[]; var seen={};
+function reportRange(){
+  var today=new Date(); today.setHours(0,0,0,0);
+  if(reportPeriod==='month'){
+    var p=s.curMonth.split('-'), y=+p[0], m=+p[1];
+    return {from:new Date(y,m-1,1), to:new Date(y,m,0,23,59,59)};
+  }
+  var n = reportPeriod==='week'?7:(reportPeriod==='2week'?14:(reportPeriod==='half'?183:365));
+  return {from:new Date(today.getTime()-(n-1)*86400000), to:new Date(today.getTime()+86399999)};
+}
+function reportPeriodLabel(){ return { week:'Неделя','2week':'2 недели',month:'Месяц',half:'6 месяцев',year:'Год' }[reportPeriod]||'Период'; }
+function collect(from,to){
+  var out=[];
   Object.keys(s.months).forEach(function(k){
     var p=k.split('-'), y=+p[0], m=+p[1]; if(!y||!m) return;
     var mStart=new Date(y,m-1,1), mEnd=new Date(y,m,0,23,59,59);
-    if(mEnd<range.from||mStart>range.to) return;
-    if(seen[k]) return; seen[k]=true;
-    var mm=s.months[k];
-    months.push({key:k, zp5:(mm.incA||0), zp20:(mm.incB||0), other:sumOther(mm)});
-  });
-  months.sort(function(a,b){return a.key<b.key?-1:1;});
-  if(months.length){
-    months.forEach(function(r){
-      ws3.addRow([SHORT[+r.key.split('-')[1]-1]+' '+r.key.split('-')[0], r.zp5, r.zp20, r.other, r.zp5+r.zp20+r.other]);
+    if(mEnd<from||mStart>to) return;
+    (s.months[k].exp||[]).forEach(function(e){
+      var d=new Date(y,m-1,e.day||1);
+      if(d>=from && d<=to && d.getTime()<=todayMid().getTime()) out.push({date:d, e:e});
     });
-  } else {
-    ws3.addRow(['Нет данных о доходах за период']).font={color:{argb:'888888'}};
-  }
-
-  // ---------- Лист 4: Все траты (транзакции) ----------
-  var ws4=wb.addWorksheet('Траты');
-  ws4.columns=[{width:12},{width:22},{width:22},{width:16}];
-  ws4.addRow(['Дата','Категория','Подкатегория','Сумма']).font={bold:true};
-  // сортируем по дате
-  var sorted=list.slice().sort(function(a,b){ return a.date.getTime()-b.date.getTime(); });
-  if(sorted.length){
-    sorted.forEach(function(it){
-      ws4.addRow([fmtDate(it.date), it.e.cat, it.e.sub||'—', it.e.amt||0]);
-    });
-  } else {
-    ws4.addRow(['Нет трат за период']).font={color:{argb:'888888'}};
-  }
-
-  // ---------- генерация и скачивание ----------
-  wb.xlsx.writeBuffer().then(function(buf){
-    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download='finance-report-'+reportPeriod+'-'+s.curMonth+'.xlsx';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); },1200);
   });
-}
+  return out;
 }
 function incomeIn(from,to){
   var sum=0;
