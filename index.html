@@ -273,25 +273,154 @@ button,input,select{font-family:inherit}button:focus-visible{outline:2px solid #
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
  @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
- /* ===== Переводы между счетами ===== */
-.transfer-card{margin:0 0 14px;padding:18px;border-radius:22px;background:linear-gradient(140deg,#171a27,#10121b);border:1px solid #ffffff1c}
-.transfer-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.transfer-form .full{grid-column:1/-1}
-.transfer-form label{display:block;font-size:10px;font-weight:600;color:#8a8d9e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.transfer-form input,.transfer-form select{width:100%;min-height:46px;padding:11px 12px;border:1.5px solid #303347;border-radius:12px;background:#080b14;color:#eee;font-size:15px;font-weight:600;outline:none}
-.transfer-form input:focus,.transfer-form select:focus{border-color:var(--lime)}
-.transfer-list{margin-top:14px}
-.transfer-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #ffffff0b}
-.transfer-item:last-child{border-bottom:0}
-.transfer-icon{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:#20243a;color:var(--lime)}
-.transfer-body{flex:1;min-width:0}
-.transfer-title{font-size:12px;color:#d5d6e2;overflow-wrap:anywhere}
-.transfer-meta{font-size:10px;color:#60667f;margin-top:3px}
-.transfer-amount{font-size:12px;font-weight:600;color:#d0d1df;white-space:nowrap}
-.transfer-delete{background:none;border:0;color:#60667f;font-size:15px;cursor:pointer;padding:4px}
-@media(max-width:370px){.transfer-form{grid-template-columns:1fr}}
-</style><style id="day-night-themes">
-</style><style id="day-night-themes">
+ /* ===== UI IMPROVEMENT: cards, navigation, forms ===== */
+
+.card,
+.surface,
+.income-block,
+.cat-block,
+.transfer-card {
+  border-radius: 20px;
+  border-color: rgba(255, 255, 255, .14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+}
+
+.card,
+.surface {
+  padding: 18px;
+}
+
+.card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -.02em;
+  margin-bottom: 14px;
+}
+
+.row,
+.subrow,
+.day-item,
+.dt,
+.dc {
+  align-items: center;
+  min-width: 0;
+}
+
+.row .nm,
+.subrow .nm,
+.day-item .c,
+.dt-title,
+.dc-name {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.row .amt,
+.subrow .amt,
+.day-item .s,
+.dt-amt,
+.figure,
+.hero-summary strong,
+.ring-label strong {
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.balance {
+  overflow-wrap: anywhere;
+  line-height: 1.08;
+}
+
+.exp-form input,
+.exp-form select,
+.income-block .calc-row input,
+.pform input,
+.pform select,
+.add-form input,
+.add-form select,
+.search-inp {
+  border-radius: 14px;
+  line-height: 1.3;
+  transition: border-color .18s ease, background .18s ease;
+}
+
+.exp-form input:focus,
+.exp-form select:focus,
+.income-block .calc-row input:focus,
+.pform input:focus,
+.pform select:focus,
+.add-form input:focus,
+.add-form select:focus,
+.search-inp:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgba(203, 247, 91, .12);
+}
+
+.exp-lbl,
+.pform label,
+.income-block .lbl {
+  line-height: 1.3;
+  letter-spacing: .06em;
+}
+
+.btn-main,
+.btn-sec,
+.pform .btn-add,
+.gradient-btn {
+  border-radius: 16px;
+  line-height: 1.2;
+  transition: transform .12s ease, filter .18s ease;
+}
+
+.btn-main:active,
+.btn-sec:active,
+.pform .btn-add:active,
+.gradient-btn:active {
+  transform: scale(.985);
+}
+
+.bottom-nav {
+  border-radius: 30px;
+  border-color: rgba(255, 255, 255, .18);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .38);
+}
+
+.bn {
+  border-radius: 16px;
+  gap: 4px;
+}
+
+.bn.active {
+  background: rgba(203, 247, 91, .10);
+}
+
+.bn .bic {
+  transition: transform .15s ease;
+}
+
+.bn.active .bic {
+  transform: translateY(-2px);
+}
+
+/* Небольшие экраны */
+@media(max-width:370px) {
+  .card,
+  .surface {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .exp-form input,
+  .exp-form select,
+  .pform input,
+  .pform select {
+    font-size: 15px;
+  }
+}
+
+
 /* Original application theme system: all styles embedded, no external resources. */
 html[data-theme="dark"]{--page:#090b12;--surface:#11141e;--surface-2:#171b28;--field:#0b0e17;--ink:#eff1fa;--muted:#9298ad;--border:#2b3042;--progress:#292e42;--theme-accent:#cbf75b;--theme-warning:#fb8096;--hero-text:#eeeefe;--hero-muted:#b0b1ca;--shadow:0 12px 32px #00000017;--theme-grad:linear-gradient(110deg,#cbf75b,#7970ec)}
 html[data-theme="light"]{--page:#f4f6fb;--surface:#fff;--surface-2:#edf0f8;--field:#f7f8fc;--ink:#20263a;--muted:#687189;--border:#dce2ee;--progress:#e3e7f2;--theme-accent:#5a48ca;--theme-warning:#c12e53;--hero-text:#28264d;--hero-muted:#696785;--shadow:0 12px 32px #303e6b0a;--theme-grad:linear-gradient(110deg,#dbf78b,#bbb4f7)}
