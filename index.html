@@ -10,6 +10,9 @@
 <meta content="Финансы" name="apple-mobile-web-app-title"/>
 <meta content="#090b12" name="theme-color"/>
 <link href="manifest.json" rel="manifest"/>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="aicon.png" rel="icon" sizes="512x512" type="image/png"/>
 <link href="aicon.png" rel="apple-touch-icon"/>
 <title>Совместные финансы</title>
@@ -257,6 +260,144 @@
   .pform input[type="number"]::-webkit-outer-spin-button,.pform input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .pform .btn-add{ grid-column:1 / -1; width:100%; margin-top:2px; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:14px; cursor:pointer; }
   .pform .btn-add:active{ filter:brightness(.92); }
+ /* ===== ТИПОГРАФИКА И ПОЗИЦИОНИРОВАНИЕ ТЕКСТА ===== */
+
+body,
+.phone,
+button,
+input,
+select,
+textarea {
+  font-family: Inter, "SF Pro Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+h1,
+h2,
+h3,
+h4,
+.brand {
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+p,
+.empty,
+.diag,
+.planned-note,
+.transfer-meta,
+.dt-note {
+  line-height: 1.5;
+}
+
+/* Текст не должен вылезать из карточек и строк */
+.card,
+.surface,
+.income-block,
+.cat-block,
+.mob-head,
+.pp-box,
+.rp-box2 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.row,
+.subrow,
+.day-item,
+.dt,
+.dc,
+.other-item {
+  align-items: center;
+  min-width: 0;
+}
+
+.row .nm,
+.subrow .nm,
+.day-item .c,
+.dt-title,
+.dc-name,
+.other-item .ot {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+/* Суммы: ровные цифры и запрет некрасивого переноса */
+.balance,
+.figure,
+.hero-summary strong,
+.ring-label strong,
+.row .amt,
+.subrow .amt,
+.day-item .s,
+.dt-amt,
+.mini .v,
+.rep-cell .v,
+.transfer-amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1.15;
+}
+
+.balance {
+  overflow-wrap: anywhere;
+}
+
+/* Формы: текст по центру вертикали */
+button,
+input,
+select,
+textarea {
+  line-height: 1.25;
+}
+
+.exp-form input,
+.exp-form select,
+.income-block .calc-row input,
+.pform input,
+.pform select,
+.add-form input,
+.add-form select,
+.search-inp {
+  line-height: 1.3;
+}
+
+/* Заголовки и подписи */
+.card h3,
+.caption,
+.exp-lbl,
+.pform label,
+.income-block .lbl,
+.rep-title {
+  letter-spacing: -0.01em;
+}
+
+.exp-lbl,
+.pform label,
+.income-block .lbl,
+.rep-title {
+  letter-spacing: .06em;
+  line-height: 1.3;
+}
+
+/* Мобильная навигация */
+.bn {
+  line-height: 1.2;
+}
+
+.bn .bic {
+  line-height: 1;
+}
 </style>
 <style id="dashboard-mobile">
 :root{--lime:#cbf75b;--purple:#7970ec;--bg:#090b12;--card:#11131e;--soft:#191c2a;--text:#eff1fa;--text2:#8a8d9e;--line:#292b3a;--track:#242638;--warn:#fb8096;--ok:#cbf75b;--accent:#cbf75b;--accent2:#7970ec;--grad:linear-gradient(110deg,#cbf75b,#7970ec)}
