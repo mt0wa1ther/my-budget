@@ -398,6 +398,128 @@ textarea {
 .bn .bic {
   line-height: 1;
 }
+ /* ===== ПОЛЯ СУММ И ПЛАН VS ФАКТ ===== */
+
+/* Поля ввода сумм */
+.exp-amt,
+.pform input[type="number"],
+.add-form input[type="number"],
+.plan-inp,
+.plan-inp.sm {
+  font-family: Inter, "SF Pro Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #eff1fa;
+  background: #0b0e17;
+  border: 1.5px solid #33364b;
+  border-radius: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.exp-amt {
+  font-size: 22px;
+  padding: 16px 18px !important;
+  text-align: right;
+  line-height: 1.1;
+}
+
+.pform input[type="number"],
+.add-form input[type="number"] {
+  min-height: 48px;
+  padding: 12px 14px;
+  font-size: 16px;
+  text-align: right;
+}
+
+.plan-inp {
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 14px;
+  text-align: right;
+}
+
+.plan-inp.sm {
+  min-height: 38px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.exp-amt:focus,
+.pform input[type="number"]:focus,
+.add-form input[type="number"]:focus,
+.plan-inp:focus,
+.plan-inp.sm:focus {
+  background: #10131f;
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgba(203, 247, 91, .14);
+  outline: none;
+}
+
+/* Убираем стрелки у числовых полей */
+.pform input[type="number"]::-webkit-outer-spin-button,
+.pform input[type="number"]::-webkit-inner-spin-button,
+.add-form input[type="number"]::-webkit-outer-spin-button,
+.add-form input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Блок план vs факт */
+#planTotal {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(203, 247, 91, .10);
+  border: 1px solid rgba(203, 247, 91, .25);
+  color: #d8f88b;
+  white-space: nowrap;
+}
+
+.plan-line {
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .035);
+  border: 1px solid rgba(255, 255, 255, .07);
+}
+
+.plan-line .bar-wrap {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.plan-line .bar {
+  border-radius: 999px;
+}
+
+.plan-txt {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #b9bccb;
+  text-align: right;
+  white-space: normal;
+  min-width: 86px;
+}
+
+/* Экономия / остаток */
+.plan-txt:has(+ *),
+#bRows .plan-txt {
+  color: #b9bccb;
+}
+
+.over,
+.plan-txt.over {
+  color: #fb8096 !important;
+}
+
+.plan-txt:not(.over) {
+  color: #cbf75b;
+}
 </style>
 <style id="dashboard-mobile">
 :root{--lime:#cbf75b;--purple:#7970ec;--bg:#090b12;--card:#11131e;--soft:#191c2a;--text:#eff1fa;--text2:#8a8d9e;--line:#292b3a;--track:#242638;--warn:#fb8096;--ok:#cbf75b;--accent:#cbf75b;--accent2:#7970ec;--grad:linear-gradient(110deg,#cbf75b,#7970ec)}
