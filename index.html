@@ -1368,49 +1368,241 @@ var EXCELJS_SRCS=[
   'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'
 ];
-function ensureExcelJS(cb){ if(window.ExcelJS){ cb(true); return; } var i=0; (function next(){ if(i>=EXCELJS_SRCS.length){ cb(false); return; } loadScript(EXCELJS_SRCS[i++], function(ok){ if(ok && window.ExcelJS) cb(true); else next(); }); })(); }
+function ensureExcelJS(cb){
+  if(window.ExcelJS){ cb(true); return; }
+  var i=0;
+  (function next(){
+    if(i>=EXCELJS_SRCS.length){ cb(false); return; }
+    loadScript(EXCELJS_SRCS[i++], function(ok){ if(ok && window.ExcelJS) cb(true); else next(); });
+  })();
+}
 function fmtDate(d){ return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear(); }
+function drawKpi(ws, topRow, leftCol, rightCol, kpi, T){
+  var bottomRow = topRow + 2;
+  ws.mergeCells(topRow, leftCol, topRow, rightCol);
+  ws.mergeCells(topRow+1, leftCol, topRow+1, rightCol);
+  ws.mergeCells(topRow+2, leftCol, topRow+2, rightCol);
+  var lc = ws.getCell(topRow, leftCol);
+  lc.value = kpi.label;
+  lc.font = {size: 9, bold: true, color: {argb: kpi.color}, name: 'Calibri'};
+  lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
+  var vc = ws.getCell(topRow+1, leftCol);
+  vc.value = kpi.value;
+  vc.font = {size: 26, bold: true, color: {argb: T.text}, name: 'Calibri'};
+  vc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
+  vc.numFmt = '#,##0.00" ₽"';
+  var sc = ws.getCell(topRow+2, leftCol);
+  sc.value = kpi.sub;
+  sc.font = {size: 9, color: {argb: T.text2}, name: 'Calibri'};
+  sc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
+  for (var r = topRow; r <= bottomRow; r++){
+    for (var c = leftCol; c <= rightCol; c++){
+      var cell = ws.getCell(r, c);
+      cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel}};
+      var brd = {};
+      if (r === topRow) brd.top = {style: 'thin', color: {argb: T.border2}};
+      if (r === bottomRow) brd.bottom = {style: 'thin', color: {argb: T.border2}};
+      if (c === leftCol) brd.left = {style: 'thick', color: {argb: kpi.color}};
+      if (c === rightCol) brd.right = {style: 'thin', color: {argb: T.border2}};
+      cell.border = brd;
+    }
+  }
+  ws.getRow(topRow).height = 20;
+  ws.getRow(topRow+1).height = 44;
+  ws.getRow(topRow+2).height = 18;
+}
+function fillDark(ws, rows, cols, color){
+  for (var r = 1; r <= rows; r++){ for (var c = 1; c <= cols; c++){ ws.getCell(r, c).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: color}}; } }
+}
 function downloadXlsxReport(){
-  var btn=document.querySelector('[data-act="xlsxReport"]'); if(btn) btn.disabled=true;
-  var r=reportRange(); var list=collect(r.from,r.to); var inc=incomeIn(r.from,r.to);
+  var btn = document.querySelector('[data-act="xlsxReport"]');
+  if (btn) btn.disabled = true;
+  var r = reportRange();
+  var list = collect(r.from, r.to);
+  var inc = incomeIn(r.from, r.to);
   ensureExcelJS(function(ok){
-    if(!ok){ alert('Не удалось загрузить библиотеку XLSX. Проверьте интернет.'); if(btn) btn.disabled=false; return; }
-    try{ var wb=new ExcelJS.Workbook(); var ws=wb.addWorksheet('Отчёт',{views:[{showGridLines:false}]});
-      ws.columns=[{width:2},{width:30},{width:16},{width:16},{width:2}];
-      ws.getCell('B2').value='ФИНАНСОВЫЙ ДАШБОРД';
-      ws.getCell('B2').font={size:18,bold:true,color:{argb:'FFE6E8EC'}};
-      ws.getCell('B3').value=fmtDate(r.from)+' — '+fmtDate(r.to);
-      ws.getCell('B3').font={size:10,color:{argb:'FF8E939C'}};
-      var total=0; list.forEach(function(it){ total+=(it.e.amt||0); });
-      var days=Math.max(1,Math.round((r.to-r.from)/86400000)+1);
-      var byCat={}; list.forEach(function(it){ byCat[it.e.cat]=(byCat[it.e.cat]||0)+(it.e.amt||0); });
-      var catArr=Object.keys(byCat).map(function(n){ return {n:n,v:byCat[n]}; }).sort(function(a,b){ return b.v-a.v; });
-      var hrow=5;
-      ws.getCell('B'+hrow).value='РАСХОДЫ ПО КАТЕГОРИЯМ';
-      ws.getCell('B'+hrow).font={size:12,bold:true,color:{argb:'FFE6E8EC'}};
-      ['Категория','Сумма','%'].forEach(function(h,hc){
-        var cell=ws.getCell(String.fromCharCode(66+hc)+(hrow+1));
-        cell.value=h; cell.font={size:9,bold:true,color:{argb:'FF8E939C'}};
-        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF21262F'}};
-      });
-      catArr.forEach(function(c,i){
-        var rr2=hrow+2+i;
-        ws.getCell('B'+rr2).value=c.n; ws.getCell('B'+rr2).font={size:10,color:{argb:'FFE6E8EC'}};
-        ws.getCell('C'+rr2).value=Math.round(c.v); ws.getCell('C'+rr2).numFmt='#,##0" ₽"'; ws.getCell('C'+rr2).font={size:10,color:{argb:'FFE6E8EC'}};
-        ws.getCell('D'+rr2).value=total>0?c.v/total:0; ws.getCell('D'+rr2).numFmt='0.0%'; ws.getCell('D'+rr2).font={size:10,color:{argb:'FF8E939C'}};
-        ws.getRow(rr2).height=18;
-      });
-      wb.xlsx.writeBuffer().then(function(buf){
-        var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-        var url=URL.createObjectURL(blob);
-        var a=document.createElement('a'); a.href=url; a.download='finance-report-'+reportPeriod+'-'+s.curMonth+'.xlsx';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function(){URL.revokeObjectURL(url);},1200);
-      });
-    }catch(e){ console.error(e); alert('Ошибка: '+e.message); }
-    if(btn) btn.disabled=false;
+    if (!ok){ alert('Не удалось загрузить библиотеку XLSX. Проверьте интернет.'); if(btn) btn.disabled = false; return; }
+    try { buildAndDownloadXlsx(r, list, inc); } catch(e){ console.error(e); alert('Ошибка: ' + e.message); }
+    if (btn) btn.disabled = false;
   });
 }
+function buildAndDownloadXlsx(range, list, income){
+  var wb = new ExcelJS.Workbook();
+  wb.creator = 'Совместные финансы';
+  wb.created = new Date();
+  var T = { bg:'FF0E1117', panel:'FF161A23', panel2:'FF1A1F2A', header:'FF21262F', border:'FF2A2F3A', border2:'FF353A45', text:'FFE6E8EC', text2:'FF8E939C', text3:'FF5A5F68', green:'FF73BF69', red:'FFF2495C', blue:'FF5794F2', orange:'FFFF9830', purple:'FFB877D9', yellow:'FFFADE2A', pink:'FFE91E8C' };
+  var total = 0; list.forEach(function(it){ total += (it.e.amt||0); });
+  var days = Math.round((range.to - range.from) / 86400000) + 1; if (days < 1) days = 1;
+  var diff = income - total;
+  var plannedTot = plannedTotalInRange(range.from, range.to);
+  var byCat = {};
+  list.forEach(function(it){ byCat[it.e.cat] = (byCat[it.e.cat]||0) + (it.e.amt||0); });
+  var catArr = Object.keys(byCat).map(function(n){ var c = s.cats.find(function(x){ return x.n === n; }); return {n: n, v: byCat[n], p: c ? (c.p||0) : 0}; }).sort(function(a, b){ return b.v - a.v; });
+  var ser = seriesFor(range.from, range.to, list);
+  var incRows = [];
+  Object.keys(s.months).forEach(function(k){
+    var p = k.split('-'), y = +p[0], m = +p[1];
+    var mStart = new Date(y, m-1, 1), mEnd = new Date(y, m, 0, 23, 59, 59);
+    if (mEnd < range.from || mStart > range.to) return;
+    var mm = s.months[k]; var o = sumOther(mm); var tot = (mm.incA||0)+(mm.incB||0)+o;
+    if (tot <= 0 && !(mm.exp && mm.exp.length)) return;
+    incRows.push({k: k, a: mm.incA||0, b: mm.incB||0, o: o, t: tot});
+  });
+  incRows.sort(function(x, y){ return x.k < y.k ? -1 : 1; });
+  var ws = wb.addWorksheet('Дашборд', { properties: {tabColor: {argb: T.pink}}, views: [{showGridLines: false}] });
+  ws.columns = [{width: 2}, {width: 22}, {width: 16}, {width: 14}, {width: 22}, {width: 16}, {width: 14}, {width: 2}];
+  fillDark(ws, 120, 8, T.bg);
+  ws.mergeCells('B2:G2');
+  var title = ws.getCell('B2'); title.value = 'ФИНАНСОВЫЙ ДАШБОРД'; title.font = {size: 20, bold: true, color: {argb: T.text}, name: 'Calibri'}; title.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; title.border = {bottom: {style: 'thick', color: {argb: T.pink}}};
+  ws.getRow(2).height = 52;
+  ws.mergeCells('B3:G3');
+  var subtitle = ws.getCell('B3'); subtitle.value = fmtDate(range.from) + '  —  ' + fmtDate(range.to) + '   ·   ' + reportPeriodLabel() + '   ·   ' + days + ' дн.' + (plannedTot > 0 ? '   ·   запланировано: ' + Math.round(plannedTot) + ' ₽' : ''); subtitle.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; subtitle.alignment = {horizontal: 'left', vertical: 'middle', indent: 1};
+  ws.getRow(3).height = 24; ws.getRow(4).height = 8;
+  var kpis = [
+    {label: 'ПОТРАЧЕНО', value: total, sub: 'за ' + reportPeriodLabel().toLowerCase(), color: T.red},
+    {label: 'ДОХОД', value: income, sub: 'за период', color: T.green},
+    {label: (diff >= 0 ? 'ОСТАТОК' : 'ДЕФИЦИТ'), value: Math.abs(diff), sub: diff >= 0 ? 'свободно' : 'не хватает', color: diff >= 0 ? T.blue : T.red},
+    {label: 'В СРЕДНЕМ', value: total / days, sub: 'за день', color: T.orange}
+  ];
+  drawKpi(ws, 5, 2, 4, kpis[0], T); drawKpi(ws, 5, 5, 7, kpis[1], T); drawKpi(ws, 9, 2, 4, kpis[2], T); drawKpi(ws, 9, 5, 7, kpis[3], T);
+  ws.getRow(12).height = 12;
+  ws.mergeCells('B13:G13'); var sec1 = ws.getCell('B13'); sec1.value = 'РАСХОДЫ ПО КАТЕГОРИЯМ'; sec1.font = {size: 13, bold: true, color: {argb: T.text}, name: 'Calibri'}; sec1.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; sec1.border = {left: {style: 'thick', color: {argb: T.blue}}}; ws.getRow(13).height = 34;
+  var h1 = ['Категория', 'Сумма', '%', 'План', 'Отклонение'];
+  ['B','C','D','E','F'].forEach(function(col, i){ var cell = ws.getCell(col + '14'); cell.value = h1[i]; cell.font = {size: 9, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
+  ws.getRow(14).height = 26;
+  catArr.forEach(function(c, i){
+    var row = 15 + i; ws.getRow(row).height = 22;
+    var nc = ws.getCell('B' + row); nc.value = c.n; nc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'}; nc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; nc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var vc = ws.getCell('C' + row); vc.value = c.v; vc.numFmt = '#,##0.00'; vc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'}; vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var pc = ws.getCell('D' + row); pc.value = total > 0 ? c.v / total : 0; pc.numFmt = '0.0%'; pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; pc.alignment = {horizontal: 'center', vertical: 'middle'}; pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var plc = ws.getCell('E' + row); plc.value = c.p || 0; plc.numFmt = '#,##0.00'; plc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; plc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; plc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var dc = ws.getCell('F' + row); var dv = c.p - c.v; dc.value = dv; dc.numFmt = '+#,##0.00;-#,##0.00;—'; dc.font = {size: 10, bold: true, color: {argb: dv >= 0 ? T.green : T.red}, name: 'Calibri'}; dc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; dc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+  });
+  if (catArr.length > 0){
+    ws.addConditionalFormatting({ ref: 'C15:C' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.pink}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
+    ws.addConditionalFormatting({ ref: 'D15:D' + (14 + catArr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.blue}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
+  }
+  var tRow = 15 + catArr.length; ws.getRow(tRow).height = 26;
+  var planTotal = catArr.reduce(function(a,c){ return a + c.p; }, 0);
+  var devTotal = catArr.reduce(function(a,c){ return a + (c.p - c.v); }, 0);
+  var totVals = ['ИТОГО', total, 1, planTotal, devTotal];
+  ['B','C','D','E','F'].forEach(function(col, i){ var cell = ws.getCell(col + tRow); cell.value = totVals[i]; cell.font = {size: 11, bold: true, color: {argb: i === 4 ? (devTotal >= 0 ? T.green : T.red) : T.text}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}}; if (i === 1 || i === 3) cell.numFmt = '#,##0.00'; if (i === 2) cell.numFmt = '0.0%'; if (i === 4) cell.numFmt = '+#,##0.00;-#,##0.00;—'; cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}}; });
+  ws.getRow(tRow + 1).height = 12;
+  var secRow = tRow + 2;
+  ws.mergeCells('B' + secRow + ':G' + secRow); var sec2 = ws.getCell('B' + secRow); sec2.value = 'ДИНАМИКА'; sec2.font = {size: 13, bold: true, color: {argb: T.text}, name: 'Calibri'}; sec2.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; sec2.border = {left: {style: 'thick', color: {argb: T.purple}}}; ws.getRow(secRow).height = 34;
+  var thRow = secRow + 1;
+  var thLabels = [ser.type === 'day' ? 'День' : 'Месяц', 'Сумма', '% от макс'];
+  ['B','C','D'].forEach(function(col, i){ var cell = ws.getCell(col + thRow); cell.value = thLabels[i]; cell.font = {size: 9, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'center', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
+  ws.getRow(thRow).height = 26;
+  var maxM = 0; ser.arr.forEach(function(x){ if (x.v > maxM) maxM = x.v; });
+  ser.arr.forEach(function(x, i){
+    var row = thRow + 1 + i; ws.getRow(row).height = 20;
+    var lc = ws.getCell('B' + row); lc.value = x.label; lc.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'}; lc.alignment = {horizontal: 'left', vertical: 'middle', indent: 1}; lc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var vc = ws.getCell('C' + row); vc.value = x.v; vc.numFmt = '#,##0.00'; vc.font = {size: 10, color: {argb: T.text}, name: 'Calibri'}; vc.alignment = {horizontal: 'right', vertical: 'middle', indent: 1}; vc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+    var pc = ws.getCell('D' + row); pc.value = maxM > 0 ? x.v / maxM : 0; pc.numFmt = '0%'; pc.font = {size: 10, color: {argb: T.text2}, name: 'Calibri'}; pc.alignment = {horizontal: 'center', vertical: 'middle'}; pc.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+  });
+  if (ser.arr.length > 0){
+    ws.addConditionalFormatting({ ref: 'C' + (thRow + 1) + ':C' + (thRow + ser.arr.length), rules: [{type: 'dataBar', minLength: 0, maxLength: 100, color: {argb: T.purple}, cfvo: [{type: 'num', value: 0}, {type: 'max'}]}] });
+  }
+  var wsC = wb.addWorksheet('Категории', { properties: {tabColor: {argb: T.blue}}, views: [{showGridLines: false}] });
+  wsC.columns = [{width: 30}, {width: 16}, {width: 16}, {width: 18}, {width: 12}];
+  fillDark(wsC, 120, 5, T.bg);
+  var hC = ['Категория', 'План ₽', 'Факт ₽', 'Отклонение ₽', 'Доля'];
+  ['A','B','C','D','E'].forEach(function(col, i){ var cell = wsC.getCell(col + '1'); cell.value = hC[i]; cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'right', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
+  wsC.getRow(1).height = 26;
+  catArr.forEach(function(c, i){
+    var row = 2 + i; var dv = c.p - c.v; var vals = [c.n, c.p, c.v, dv, total > 0 ? c.v / total : 0];
+    ['A','B','C','D','E'].forEach(function(col, j){
+      var cell = wsC.getCell(col + row); cell.value = vals[j];
+      cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}};
+      cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1};
+      cell.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+      if (j === 0) cell.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
+      else if (j === 3) cell.font = {size: 10, bold: true, color: {argb: dv >= 0 ? T.green : T.red}, name: 'Calibri'};
+      else cell.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
+      if (j === 1 || j === 2 || j === 3) cell.numFmt = j === 3 ? '+#,##0.00;-#,##0.00;—' : '#,##0.00" ₽"';
+      if (j === 4) cell.numFmt = '0.0%';
+    });
+    wsC.getRow(row).height = 20;
+  });
+  var totC = 2 + catArr.length;
+  var totPlan = catArr.reduce(function(a,c){return a+c.p;},0);
+  var totDev = catArr.reduce(function(a,c){return a+(c.p-c.v);},0);
+  var totCVals = ['ИТОГО', totPlan, total, totDev, 1];
+  ['A','B','C','D','E'].forEach(function(col, j){
+    var cell = wsC.getCell(col + totC); cell.value = totCVals[j]; cell.font = {size: 11, bold: true, color: {argb: j === 3 ? (totDev >= 0 ? T.green : T.red) : T.text}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}}; cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1}; cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
+    if (j === 1 || j === 2 || j === 3) cell.numFmt = j === 3 ? '+#,##0.00;-#,##0.00;—' : '#,##0.00" ₽"';
+    if (j === 4) cell.numFmt = '0.0%';
+  });
+  wsC.getRow(totC).height = 26;
+  var wsI = wb.addWorksheet('Доходы', { properties: {tabColor: {argb: T.green}}, views: [{showGridLines: false}] });
+  wsI.columns = [{width: 16}, {width: 18}, {width: 18}, {width: 16}, {width: 18}];
+  fillDark(wsI, 120, 5, T.bg);
+  var hI = ['Месяц', 'ЗП (5-е) ₽', 'ЗП (20-е) ₽', 'Другое ₽', 'Итого ₽'];
+  ['A','B','C','D','E'].forEach(function(col, i){ var cell = wsI.getCell(col + '1'); cell.value = hI[i]; cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : 'right', vertical: 'middle', indent: i === 0 ? 1 : 0}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
+  wsI.getRow(1).height = 26;
+  if (incRows.length === 0){
+    wsI.mergeCells('A2:E2'); var emptyI = wsI.getCell('A2'); emptyI.value = 'Нет данных о доходах за период'; emptyI.font = {size: 11, italic: true, color: {argb: T.text3}, name: 'Calibri'}; emptyI.alignment = {horizontal: 'center', vertical: 'middle'}; wsI.getRow(2).height = 40;
+  } else {
+    incRows.forEach(function(it, i){
+      var row = 2 + i; var p = it.k.split('-'); var vals = [SHORT[+p[1]-1] + ' ' + p[0], it.a, it.b, it.o, it.t];
+      ['A','B','C','D','E'].forEach(function(col, j){
+        var cell = wsI.getCell(col + row); cell.value = vals[j]; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}}; cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1}; cell.border = {bottom: {style: 'thin', color: {argb: T.border}}};
+        if (j === 0) cell.font = {size: 10, bold: true, color: {argb: T.text}, name: 'Calibri'};
+        else if (j === 4) cell.font = {size: 10, bold: true, color: {argb: T.green}, name: 'Calibri'};
+        else cell.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
+        if (j > 0) cell.numFmt = '#,##0.00" ₽"';
+      });
+      wsI.getRow(row).height = 20;
+    });
+    var totI = 2 + incRows.length;
+    var totA = incRows.reduce(function(a,c){return a+c.a;},0);
+    var totB = incRows.reduce(function(a,c){return a+c.b;},0);
+    var totO = incRows.reduce(function(a,c){return a+c.o;},0);
+    var totT = incRows.reduce(function(a,c){return a+c.t;},0);
+    var totIVals = ['ИТОГО', totA, totB, totO, totT];
+    ['A','B','C','D','E'].forEach(function(col, j){
+      var cell = wsI.getCell(col + totI); cell.value = totIVals[j]; cell.font = {size: 11, bold: true, color: {argb: j === 4 ? T.green : T.text}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.panel2}}; cell.alignment = {horizontal: j === 0 ? 'left' : 'right', vertical: 'middle', indent: 1}; cell.border = {top: {style: 'medium', color: {argb: T.border2}}, bottom: {style: 'medium', color: {argb: T.border2}}};
+      if (j > 0) cell.numFmt = '#,##0.00" ₽"';
+    });
+    wsI.getRow(totI).height = 26;
+  }
+  var wsE = wb.addWorksheet('Все траты', { properties: {tabColor: {argb: T.red}}, views: [{showGridLines: false}] });
+  wsE.columns = [{width: 14}, {width: 24}, {width: 22}, {width: 16}];
+  fillDark(wsE, 1500, 4, T.bg);
+  var hE = ['Дата', 'Категория', 'Подкатегория', 'Сумма ₽'];
+  ['A','B','C','D'].forEach(function(col, i){ var cell = wsE.getCell(col + '1'); cell.value = hE[i]; cell.font = {size: 10, bold: true, color: {argb: T.text2}, name: 'Calibri'}; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: T.header}}; cell.alignment = {horizontal: i === 0 ? 'left' : (i === 3 ? 'right' : 'left'), vertical: 'middle', indent: 1}; cell.border = {bottom: {style: 'thin', color: {argb: T.border2}}}; });
+  wsE.getRow(1).height = 26;
+  if (list.length === 0){
+    wsE.mergeCells('A2:D2'); var emptyE = wsE.getCell('A2'); emptyE.value = 'Нет трат за период'; emptyE.font = {size: 11, italic: true, color: {argb: T.text3}, name: 'Calibri'}; emptyE.alignment = {horizontal: 'center', vertical: 'middle'}; wsE.getRow(2).height = 40;
+  } else {
+    var sortedList = list.slice().sort(function(a, b){ return a.date - b.date; });
+    sortedList.forEach(function(it, i){
+      var row = 2 + i; var e = it.e; var vals = [fmtDate(it.date), e.cat || '', e.sub || '—', e.amt || 0];
+      ['A','B','C','D'].forEach(function(col, j){
+        var cell = wsE.getCell(col + row); cell.value = vals[j]; cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: i % 2 === 0 ? T.panel : T.panel2}}; cell.alignment = {horizontal: j === 3 ? 'right' : 'left', vertical: 'middle', indent: 1}; cell.border = {bottom: {style: 'thin', color: {argb: T.border}}}; cell.font = {size: 10, color: {argb: T.text}, name: 'Calibri'};
+        if (j === 3) cell.numFmt = '#,##0.00" ₽"';
+      });
+      wsE.getRow(row).height = 20;
+    });
+  }
+  wb.xlsx.writeBuffer().then(function(buf){
+    var blob = new Blob([buf], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'finance-report-' + reportPeriod + '-' + s.curMonth + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1200);
+  });
+}
+
+applyT(s.theme||'pink');
+initDateInput();
+initPeerInput();
+render();
 
 
 
