@@ -520,6 +520,159 @@ textarea {
 .plan-txt:not(.over) {
   color: #cbf75b;
 }
+ /* ===== PREMIUM: суммы и план vs факт ===== */
+
+/* Поля ввода сумм */
+.exp-amt,
+.pform input[type="number"],
+.add-form input[type="number"],
+.plan-inp,
+.plan-inp.sm {
+  font-family: Inter, "SF Pro Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: #f2f4fb;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,0)),
+    #0a0d16;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 6px 18px rgba(0,0,0,.22);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease, transform .12s ease;
+}
+
+.exp-amt {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  padding: 18px 20px !important;
+  text-align: right;
+  line-height: 1.05;
+}
+
+.pform input[type="number"],
+.add-form input[type="number"] {
+  min-height: 50px;
+  padding: 13px 16px;
+  font-size: 16px;
+  text-align: right;
+}
+
+.plan-inp {
+  min-height: 44px;
+  padding: 9px 14px;
+  font-size: 14px;
+  text-align: right;
+  width: 108px;
+}
+
+.plan-inp.sm {
+  min-height: 40px;
+  padding: 7px 12px;
+  font-size: 13px;
+  width: 92px;
+}
+
+.exp-amt:focus,
+.pform input[type="number"]:focus,
+.add-form input[type="number"]:focus,
+.plan-inp:focus,
+.plan-inp.sm:focus {
+  outline: none;
+  background:
+    linear-gradient(180deg, rgba(203,247,91,.07), rgba(255,255,255,0)),
+    #0d101b;
+  border-color: rgba(203,247,91,.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 0 0 4px rgba(203,247,91,.10),
+    0 10px 26px rgba(0,0,0,.28);
+}
+
+/* Убираем стрелки */
+.pform input[type="number"]::-webkit-outer-spin-button,
+.pform input[type="number"]::-webkit-inner-spin-button,
+.add-form input[type="number"]::-webkit-outer-spin-button,
+.add-form input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* План vs факт */
+#planTotal {
+  font-size: 10.5px;
+  font-weight: 650;
+  padding: 6px 11px;
+  border-radius: 999px;
+  color: #e8ffb0;
+  background: rgba(203,247,91,.10);
+  border: 1px solid rgba(203,247,91,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  white-space: nowrap;
+}
+
+.plan-line {
+  position: relative;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 13px 15px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(121,112,236,.10), rgba(203,247,91,.05)),
+    #10131d;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 24px rgba(0,0,0,.20);
+}
+
+.plan-line .bar-wrap {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.35);
+}
+
+.plan-line .bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #cbf75b, #9fdc55 55%, #7970ec);
+  box-shadow: 0 0 12px rgba(203,247,91,.25);
+}
+
+.plan-txt {
+  flex: 0 0 auto;
+  min-width: 104px;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: right;
+  color: #c8cbd9;
+  white-space: normal;
+}
+
+/* Статусы */
+.plan-txt:not(.over) {
+  color: #d9ff9a;
+}
+
+.plan-txt.over,
+.over {
+  color: #ff9db1 !important;
+}
+
+.plan-line:has(.over) {
+  border-color: rgba(251,128,150,.28);
+  background:
+    linear-gradient(135deg, rgba(251,128,150,.10), rgba(255,255,255,0)),
+    #10131d;
+}
+
+.plan-line:has(.over) .bar {
+  background: linear-gradient(90deg, #fb8096, #ff6f91);
+  box-shadow: 0 0 12px rgba(251,128,150,.25);
+}
 </style>
 <style id="dashboard-mobile">
 :root{--lime:#cbf75b;--purple:#7970ec;--bg:#090b12;--card:#11131e;--soft:#191c2a;--text:#eff1fa;--text2:#8a8d9e;--line:#292b3a;--track:#242638;--warn:#fb8096;--ok:#cbf75b;--accent:#cbf75b;--accent2:#7970ec;--grad:linear-gradient(110deg,#cbf75b,#7970ec)}
