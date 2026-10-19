@@ -273,6 +273,24 @@ button,input,select{font-family:inherit}button:focus-visible{outline:2px solid #
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
  @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
+ /* ===== Переводы между счетами ===== */
+.transfer-card{margin:0 0 14px;padding:18px;border-radius:22px;background:linear-gradient(140deg,#171a27,#10121b);border:1px solid #ffffff1c}
+.transfer-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.transfer-form .full{grid-column:1/-1}
+.transfer-form label{display:block;font-size:10px;font-weight:600;color:#8a8d9e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.transfer-form input,.transfer-form select{width:100%;min-height:46px;padding:11px 12px;border:1.5px solid #303347;border-radius:12px;background:#080b14;color:#eee;font-size:15px;font-weight:600;outline:none}
+.transfer-form input:focus,.transfer-form select:focus{border-color:var(--lime)}
+.transfer-list{margin-top:14px}
+.transfer-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #ffffff0b}
+.transfer-item:last-child{border-bottom:0}
+.transfer-icon{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:#20243a;color:var(--lime)}
+.transfer-body{flex:1;min-width:0}
+.transfer-title{font-size:12px;color:#d5d6e2;overflow-wrap:anywhere}
+.transfer-meta{font-size:10px;color:#60667f;margin-top:3px}
+.transfer-amount{font-size:12px;font-weight:600;color:#d0d1df;white-space:nowrap}
+.transfer-delete{background:none;border:0;color:#60667f;font-size:15px;cursor:pointer;padding:4px}
+@media(max-width:370px){.transfer-form{grid-template-columns:1fr}}
+ 
 /* ===== UI POLISH: типографика, карточки, навигация, ПК ===== */
 body,
 .phone,
@@ -1266,8 +1284,126 @@ function loadScript(src, cb){ var sc=document.createElement('script'); sc.src=sr
     s.theme=b.dataset.t; saveLocal(); applyT(s.theme); buildThemePicker();
   });
 })();
+ /* ================= ПЕРЕВОДЫ МЕЖДУ СЧЕТАМИ ================= */
+if(!Array.isArray(s.transfers)) s.transfers=[];
+
+function accountOptions(selected){
+  let html='<option value="">Выберите счёт</option>';
+  (s.cats||[]).forEach(c=>{
+    html+='<option value="'+c.name+'"'+(selected===c.name?' selected':'')+'>'+c.name+'</option>';
+  });
+  return html;
+}
+
+function addTransfer(){
+  const from=document.getElementById('trFrom').value.trim();
+  const to=document.getElementById('trTo').value.trim();
+  const amount=parseFloat(String(document.getElementById('trAmount').value).replace(',','.'));
+  const date=document.getElementById('trDate').value||new Date().toISOString().slice(0,10);
+  const note=document.getElementById('trNote').value.trim();
+  const person=document.getElementById('trPerson').value.trim();
+
+  if(!from||!to){alert('Выберите счёт списания и счёт зачисления.');return;}
+  if(from===to){alert('Счета должны быть разными.');return;}
+  if(!(amount>0)){alert('Введите сумму перевода.');return;}
+
+  s.transfers.unshift({
+    id:'tr_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+    from,to,amount,date,note,person,
+    created:new Date().toISOString()
+  });
+
+  document.getElementById('trAmount').value='';
+  document.getElementById('trNote').value='';
+  document.getElementById('trPerson').value='';
+  save();
+  renderTransfers();
+}
+
+function deleteTransfer(id){
+  if(!confirm('Удалить перевод?'))return;
+  s.transfers=s.transfers.filter(t=>t.id!==id);
+  save();
+  renderTransfers();
+}
+
+function renderTransfers(){
+  const box=document.getElementById('transferList');
+  if(!box)return;
+
+  document.getElementById('trFrom').innerHTML=accountOptions(document.getElementById('trFrom').value);
+  document.getElementById('trTo').innerHTML=accountOptions(document.getElementById('trTo').value);
+
+  if(!s.transfers.length){
+    box.innerHTML='<div class="empty">Переводов пока нет</div>';
+    return;
+  }
+
+  box.innerHTML=s.transfers.map(t=>`
+    <div class="transfer-item">
+      <div class="transfer-icon">⇄</div>
+      <div class="transfer-body">
+        <div class="transfer-title">${t.from} → ${t.to}</div>
+        <div class="transfer-meta">
+          ${t.date}${t.person?' · '+t.person:''}${t.note?' · '+t.note:''}
+        </div>
+      </div>
+      <div class="transfer-amount">${Number(t.amount).toLocaleString('ru-RU')} ₽</div>
+      <button class="transfer-delete" onclick="deleteTransfer('${t.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function ensureTransferCard(){
+  const track=document.getElementById('p-track');
+  if(!track||document.getElementById('transferCard'))return;
+
+  const card=document.createElement('article');
+  card.className='transfer-card';
+  card.id='transferCard';
+  card.innerHTML=`
+    <h3>Переводы между счетами</h3>
+    <div class="transfer-form">
+      <div>
+        <label>Со счёта</label>
+        <select id="trFrom"></select>
+      </div>
+      <div>
+        <label>На счёт</label>
+        <select id="trTo"></select>
+      </div>
+      <div>
+        <label>Сумма</label>
+        <input id="trAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">
+      </div>
+      <div>
+        <label>Дата</label>
+        <input id="trDate" type="date">
+      </div>
+      <div>
+        <label>Участник</label>
+        <input id="trPerson" type="text" placeholder="Например: Я, Ольга">
+      </div>
+      <div>
+        <label>Комментарий</label>
+        <input id="trNote" type="text" placeholder="Например: перевод на карту">
+      </div>
+      <div class="full">
+        <button class="btn-main" onclick="addTransfer()">Добавить перевод</button>
+      </div>
+    </div>
+    <div class="transfer-list" id="transferList"></div>
+  `;
+
+  track.insertBefore(card,track.firstChild);
+
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('trDate').value=today;
+  renderTransfers();
+}
 /* ================= RENDER ================= */
 function render(){
+ ensureTransferCard();
   document.getElementById('hGreet').textContent = greetingMsg();
   var cur=s.curMonth.split('-'); var cy=+cur[0], cm=+cur[1];
   document.getElementById('hMonth').textContent=SHORT[cm-1]+' '+cy+' ▾';
@@ -1635,7 +1771,7 @@ function requestJSON(url,options){
  return fetch(url,options).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
  .then(function(data){clearTimeout(timeout);return data;},function(err){clearTimeout(timeout);throw err;});
 }
-function stableData(st){return JSON.stringify({cats:st.cats,months:st.months,deleted:st.deleted,templates:st.templates,planned:st.planned});}
+function stableData(st){return JSON.stringify({cats:st.cats,months:st.months,deleted:st.deleted,templates:st.templates,planned:st.planned,transfers:st.transfers||[]});}
 function serverSave(){
  syncState.revision++;
  var code=getRoomCode();if(!code)return Promise.resolve(true);
@@ -1868,7 +2004,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.Fina
 (function(){
 'use strict';
 var M=FinanceMerge,room='',record=null,busy=null,timer=null,blocked=false;
-function shared(st){return M.copy({cats:st.cats,months:st.months,deleted:st.deleted||[],templates:st.templates||[],planned:st.planned||[]});}
+function shared(st){return M.copy({cats:st.cats,months:st.months,deleted:st.deleted||[],templates:st.templates||[],planned:st.planned||[],transfers:st.transfers||[]});}
 function key(code){return 'finance_sync_v2_'+code;}
 function fresh(){return {revision:null,base:null,dirty:false,tx:null,conflict:null};}
 function current(){
