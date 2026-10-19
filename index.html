@@ -271,6 +271,179 @@ button,input,select{font-family:inherit}button:focus-visible{outline:2px solid #
 @media(max-width:370px){.phone{padding-left:10px;padding-right:10px}.dash-grid{gap:8px}.surface{padding:10px;border-radius:18px}.caption{font-size:9px}.figure,.dash-right .figure{font-size:18px}.hero-summary{gap:8px}.hero-summary strong{font-size:15px}.dc{gap:5px}.dc-icon{width:23px;height:27px}.dc-name{font-size:10px}.brand{font-size:18px}.row{flex-wrap:wrap}.row .status{max-width:none;flex-basis:100%}}
 @media(pointer:coarse),(max-width:768px){*{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}.tab-panel.active,.balance{animation:none!important}.surface,.mob-head{box-shadow:none}.fab{box-shadow:0 0 10px #b4e74d22}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+ @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ===== UI POLISH: типографика, карточки, навигация, ПК ===== */
+body,
+.phone,
+button,
+input,
+select,
+textarea {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.card,
+.income-block,
+.cat-block,
+.mini,
+.qa,
+.pp-box,
+.rp-box2 {
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+}
+
+.card h3 {
+  align-items: center;
+  gap: 10px;
+  line-height: 1.25;
+}
+
+.row,
+.subrow,
+.day-item,
+.other-item {
+  align-items: center;
+  min-width: 0;
+}
+
+.row .nm,
+.subrow .nm,
+.day-item .c,
+.other-item .ot {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.row .amt,
+.subrow .amt,
+.day-item .s,
+.mini .v,
+.rep-cell .v,
+.balance {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.balance {
+  font-size: clamp(34px, 9vw, 46px);
+  line-height: 1.05;
+}
+
+.exp-lbl,
+.income-block .lbl,
+.rep-title {
+  letter-spacing: .08em;
+}
+
+.exp-form input,
+.exp-form select,
+.pform input,
+.pform select,
+.add-form input,
+.add-form select,
+.search-inp {
+  min-height: 46px;
+  line-height: 1.3;
+}
+
+.btn-main,
+.btn-sec,
+.pform .btn-add {
+  min-height: 48px;
+  line-height: 1.2;
+}
+
+.bottom-nav {
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+
+.bn {
+  gap: 4px;
+  padding: 8px 4px;
+  font-size: 10.5px;
+}
+
+.bn .bic {
+  font-size: 21px;
+}
+
+/* ПК: широкий удобный экран */
+@media (min-width: 900px) {
+  .phone {
+    max-width: 1180px;
+    padding: 28px 32px 120px;
+  }
+
+  .dash-top,
+  .quick-actions,
+  .strip {
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .card {
+    margin: 16px auto 0;
+    max-width: 1180px;
+    padding: 22px;
+  }
+
+  .exp-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .day-list {
+    max-height: 58vh;
+  }
+
+  .bottom-nav {
+    max-width: 760px;
+    bottom: 18px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .35);
+  }
+
+  #reportPopup .rp-box2 {
+    max-width: 760px;
+    border-radius: 22px;
+    margin-bottom: 40px;
+  }
+
+  #reportPopup .rep-sum {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+</style><style id="day-night-themes">
 </style><style id="day-night-themes">
 /* Original application theme system: all styles embedded, no external resources. */
 html[data-theme="dark"]{--page:#090b12;--surface:#11141e;--surface-2:#171b28;--field:#0b0e17;--ink:#eff1fa;--muted:#9298ad;--border:#2b3042;--progress:#292e42;--theme-accent:#cbf75b;--theme-warning:#fb8096;--hero-text:#eeeefe;--hero-muted:#b0b1ca;--shadow:0 12px 32px #00000017;--theme-grad:linear-gradient(110deg,#cbf75b,#7970ec)}
