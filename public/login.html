@@ -9,20 +9,16 @@
   <style>
     :root {
       --bg: #090b12;
-      --card: rgba(17, 19, 30, .82);
-      --card-solid: #11131e;
-      --line: rgba(255, 255, 255, .08);
+      --card: rgba(17, 19, 30, .78);
+      --line: rgba(255, 255, 255, .09);
       --text: #f4f6fb;
       --muted: #99a1b3;
       --lime: #cbf75b;
       --purple: #7970ec;
       --danger: #ff6b6b;
-      --radius: 26px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -35,110 +31,130 @@
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      perspective: 1200px;
     }
 
     .aurora {
       position: fixed;
-      inset: -30%;
+      inset: -35%;
       z-index: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 18% 22%, rgba(121, 112, 236, .34), transparent 34%),
-        radial-gradient(circle at 82% 18%, rgba(203, 247, 91, .16), transparent 30%),
-        radial-gradient(circle at 70% 85%, rgba(121, 112, 236, .22), transparent 36%),
-        radial-gradient(circle at 25% 80%, rgba(203, 247, 91, .10), transparent 30%);
-      filter: blur(52px);
-      animation: float 18s ease-in-out infinite alternate;
+        radial-gradient(circle at 20% 25%, rgba(121,112,236,.38), transparent 34%),
+        radial-gradient(circle at 80% 20%, rgba(203,247,91,.17), transparent 30%),
+        radial-gradient(circle at 72% 82%, rgba(121,112,236,.25), transparent 36%),
+        radial-gradient(circle at 22% 78%, rgba(203,247,91,.12), transparent 30%);
+      filter: blur(60px);
+      animation: drift 20s ease-in-out infinite alternate;
     }
 
-    @keyframes float {
-      from { transform: translate3d(-2%, -1%, 0) scale(1); }
-      to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+    @keyframes drift {
+      from { transform: translate3d(-2%, -2%, 0) scale(1); }
+      to { transform: translate3d(3%, 2%, 0) scale(1.08); }
     }
 
     .noise {
       position: fixed;
       inset: 0;
       z-index: 1;
-      opacity: .035;
+      opacity: .04;
       pointer-events: none;
       background-image: radial-gradient(#fff 1px, transparent 1px);
-      background-size: 18px 18px;
+      background-size: 20px 20px;
     }
 
     .shell {
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 430px;
+      max-width: 440px;
+      transform-style: preserve-3d;
+      transition: transform .18s ease-out;
     }
 
     .card {
       position: relative;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 34px 28px 28px;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      box-shadow:
-        0 30px 80px rgba(0, 0, 0, .55),
-        inset 0 1px 0 rgba(255, 255, 255, .06);
-      animation: appear .55s cubic-bezier(.2, .8, .2, 1) both;
+      border-radius: 30px;
+      padding: 1.4px;
+      background: linear-gradient(130deg, rgba(203,247,91,.75), rgba(121,112,236,.75), rgba(203,247,91,.25), rgba(121,112,236,.65));
+      background-size: 300% 300%;
+      animation: borderFlow 8s linear infinite;
+      box-shadow: 0 34px 90px rgba(0,0,0,.6);
+      animation-delay: 0s;
+    }
+
+    @keyframes borderFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .inner {
+      position: relative;
+      border-radius: 29px;
+      padding: 36px 30px 28px;
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.05), transparent 40%),
+        #11131e;
       overflow: hidden;
+      animation: appear .6s cubic-bezier(.2,.8,.2,1) both;
     }
 
     @keyframes appear {
-      from { opacity: 0; transform: translateY(22px) scale(.98); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; transform: translateY(26px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .card::before {
+    .inner::after {
       content: "";
       position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(203, 247, 91, .14), transparent 34%, rgba(121, 112, 236, .18));
+      top: -70px;
+      right: -70px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(203,247,91,.20), transparent 65%);
       pointer-events: none;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 13px;
+      gap: 9px;
+      padding: 9px 14px;
       border-radius: 999px;
-      background: rgba(203, 247, 91, .10);
-      border: 1px solid rgba(203, 247, 91, .22);
+      background: rgba(203,247,91,.09);
+      border: 1px solid rgba(203,247,91,.22);
       color: var(--lime);
       font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .04em;
+      font-weight: 800;
+      letter-spacing: .05em;
       text-transform: uppercase;
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
 
     .dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--lime);
-      box-shadow: 0 0 0 4px rgba(203, 247, 91, .14);
+      box-shadow: 0 0 0 5px rgba(203,247,91,.13);
       animation: pulse 2s infinite;
     }
 
     @keyframes pulse {
-      50% { box-shadow: 0 0 0 8px rgba(203, 247, 91, 0); }
+      50% { box-shadow: 0 0 0 10px rgba(203,247,91,0); }
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: clamp(30px, 8vw, 38px);
-      line-height: 1.05;
-      letter-spacing: -.035em;
+      font-size: clamp(32px, 9vw, 42px);
+      line-height: 1;
+      letter-spacing: -.04em;
     }
 
     .gradient {
-      background: linear-gradient(92deg, var(--lime), var(--purple));
+      background: linear-gradient(94deg, var(--lime), var(--purple));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -156,7 +172,7 @@
       margin-bottom: 9px;
       color: var(--muted);
       font-size: 13px;
-      font-weight: 650;
+      font-weight: 700;
     }
 
     .field {
@@ -166,26 +182,23 @@
 
     input {
       width: 100%;
-      height: 60px;
-      padding: 0 56px 0 18px;
+      height: 62px;
+      padding: 0 58px 0 18px;
       border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, .035);
+      border-radius: 19px;
+      background: rgba(255,255,255,.035);
       color: var(--text);
       font-size: 16px;
-      letter-spacing: .02em;
       outline: none;
       transition: border-color .18s, box-shadow .18s, background .18s;
     }
 
-    input::placeholder {
-      color: rgba(153, 161, 179, .65);
-    }
+    input::placeholder { color: rgba(153,161,179,.6); }
 
     input:focus {
-      border-color: rgba(203, 247, 91, .55);
-      background: rgba(255, 255, 255, .055);
-      box-shadow: 0 0 0 4px rgba(203, 247, 91, .10);
+      border-color: rgba(203,247,91,.6);
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 0 0 5px rgba(203,247,91,.09);
     }
 
     .eye {
@@ -193,24 +206,19 @@
       top: 0;
       right: 0;
       width: 58px;
-      height: 60px;
-      display: grid;
-      place-items: center;
+      height: 62px;
       border: 0;
       background: transparent;
       color: var(--muted);
       cursor: pointer;
-      transition: color .15s;
+      display: grid;
+      place-items: center;
+      transition: color .15s, transform .15s;
     }
 
-    .eye:hover {
-      color: var(--lime);
-    }
+    .eye:hover { color: var(--lime); transform: scale(1.06); }
 
-    .eye svg {
-      width: 21px;
-      height: 21px;
-    }
+    .eye svg { width: 21px; height: 21px; }
 
     .error {
       min-height: 22px;
@@ -223,56 +231,140 @@
     .submit {
       position: relative;
       width: 100%;
-      height: 58px;
+      height: 60px;
       border: 0;
-      border-radius: 18px;
-      background: linear-gradient(96deg, var(--lime), #a8f04f 45%, var(--purple));
-      background-size: 180% 100%;
+      border-radius: 19px;
+      background: linear-gradient(96deg, var(--lime), #b8f75f 42%, var(--purple));
+      background-size: 220% 100%;
       color: #08110a;
       font-size: 16px;
-      font-weight: 800;
-      letter-spacing: .01em;
+      font-weight: 850;
       cursor: pointer;
-      transition: transform .12s, filter .18s, background-position .35s;
-      box-shadow: 0 16px 36px rgba(203, 247, 91, .16);
+      overflow: hidden;
+      transition: transform .12s, filter .18s, background-position .4s;
+      box-shadow: 0 18px 42px rgba(203,247,91,.18);
+    }
+
+    .submit::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 55%;
+      height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent);
+      transform: skewX(-18deg);
+      animation: shine 3.4s ease-in-out infinite;
+    }
+
+    @keyframes shine {
+      0% { left: -80%; }
+      55%, 100% { left: 130%; }
     }
 
     .submit:hover {
       background-position: 100% 0;
-      filter: brightness(1.05);
+      filter: brightness(1.06);
     }
 
-    .submit:active {
-      transform: scale(.985);
-    }
+    .submit:active { transform: scale(.98); }
 
     .submit:disabled {
-      opacity: .65;
+      opacity: .7;
       cursor: not-allowed;
       transform: none;
     }
 
     .footer {
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       gap: 8px;
-      margin-top: 24px;
+      margin-top: 26px;
       color: var(--muted);
       font-size: 13px;
     }
 
-    .footer b {
-      color: var(--text);
-      font-weight: 650;
+    .footer b { color: var(--text); }
+
+    .success {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      background: rgba(9,11,18,.86);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+    }
+
+    .success.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .success-box {
+      display: grid;
+      place-items: center;
+      gap: 16px;
+      text-align: center;
+      animation: pop .45s cubic-bezier(.2,.9,.2,1.2) both;
+    }
+
+    @keyframes pop {
+      from { transform: scale(.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .check {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--lime), var(--purple));
+      color: #08110a;
+      box-shadow: 0 20px 60px rgba(203,247,91,.25);
+    }
+
+    .check svg { width: 40px; height: 40px; }
+
+    .success-text {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .piece {
+      position: absolute;
+      width: 9px;
+      height: 14px;
+      border-radius: 3px;
+      opacity: 0;
+      animation: fall 1.5s ease-in forwards;
+    }
+
+    @keyframes fall {
+      0% { opacity: 1; transform: translate3d(0,-10vh,0) rotate(0); }
+      100% { opacity: 0; transform: translate3d(var(--x), 105vh, 0) rotate(var(--r)); }
     }
 
     @media (max-width: 380px) {
-      .card { padding: 28px 20px 24px; }
+      .inner { padding: 30px 20px 24px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .aurora, .dot, .card { animation: none; }
+      .aurora, .dot, .card, .submit::before { animation: none; }
+      .shell { transform: none !important; }
     }
   </style>
 </head>
@@ -280,55 +372,77 @@
   <div class="aurora"></div>
   <div class="noise"></div>
 
-  <main class="shell">
+  <main class="shell" id="shell">
     <section class="card">
-      <div class="badge">
-        <span class="dot"></span>
-        Приватный доступ
-      </div>
-
-      <h1>Наш <span class="gradient">бюджет</span></h1>
-      <p class="subtitle">Введите код доступа, чтобы открыть общие финансы вашей семьи.</p>
-
-      <form id="form" novalidate>
-        <label for="code">Код доступа</label>
-
-        <div class="field">
-          <input
-            id="code"
-            type="password"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            placeholder="Введите код"
-            required
-          >
-
-          <button class="eye" type="button" id="eye" aria-label="Показать код">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+      <div class="inner">
+        <div class="badge">
+          <span class="dot"></span>
+          Приватный доступ
         </div>
 
-        <p class="error" id="error" role="alert"></p>
+        <h1>Наш <span class="gradient">бюджет</span></h1>
+        <p class="subtitle">Введите код доступа, чтобы открыть общие финансы вашей семьи.</p>
 
-        <button class="submit" id="submit" type="submit">Войти</button>
-      </form>
+        <form id="form" novalidate>
+          <label for="code">Код доступа</label>
 
-      <div class="footer">
-        Доступ только для <b>вашей семьи</b>
+          <div class="field">
+            <input id="code" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Введите код" required>
+
+            <button class="eye" type="button" id="eye" aria-label="Показать код">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+
+          <p class="error" id="error" role="alert"></p>
+
+          <button class="submit" id="submit" type="submit">Войти</button>
+        </form>
+
+        <div class="footer">
+          Доступ только для <b>вашей семьи</b>
+        </div>
       </div>
     </section>
   </main>
 
+  <div class="success" id="success">
+    <div class="success-box">
+      <div class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+      </div>
+      <div class="success-text">Добро пожаловать!</div>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+
   <script>
+    const shell = document.getElementById('shell');
     const form = document.getElementById('form');
     const code = document.getElementById('code');
     const error = document.getElementById('error');
     const submit = document.getElementById('submit');
     const eye = document.getElementById('eye');
+    const success = document.getElementById('success');
+    const confetti = document.getElementById('confetti');
+
+    if (matchMedia('(pointer:fine)').matches) {
+      addEventListener('mousemove', e => {
+        const x = (e.clientX / innerWidth - .5) * 10;
+        const y = (e.clientY / innerHeight - .5) * 8;
+        shell.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+      });
+
+      addEventListener('mouseleave', () => {
+        shell.style.transform = 'rotateY(0) rotateX(0)';
+      });
+    }
 
     eye.addEventListener('click', () => {
       const hidden = code.type === 'password';
@@ -336,6 +450,22 @@
       eye.setAttribute('aria-label', hidden ? 'Скрыть код' : 'Показать код');
       code.focus();
     });
+
+    function burst() {
+      const colors = ['#cbf75b', '#7970ec', '#ffffff', '#8ef0ff'];
+
+      for (let i = 0; i < 70; i++) {
+        const p = document.createElement('i');
+        p.className = 'piece';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.top = '-5vh';
+        p.style.background = colors[i % colors.length];
+        p.style.setProperty('--x', (Math.random() * 240 - 120) + 'px');
+        p.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
+        p.style.animationDelay = Math.random() * .25 + 's';
+        confetti.appendChild(p);
+      }
+    }
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
@@ -350,6 +480,7 @@
 
       error.textContent = '';
       submit.disabled = true;
+      submit.textContent = 'Проверяем…';
 
       try {
         const response = await fetch('/api/auth/login', {
@@ -362,21 +493,4 @@
 
         if (!response.ok || !data.ok) {
           error.textContent = data.error === 'too_many_attempts'
-            ? 'Слишком много попыток. Попробуйте позже.'
-            : 'Неверный код доступа.';
-          code.select();
-          return;
-        }
-
-        location.replace('/');
-      } catch {
-        error.textContent = 'Ошибка соединения. Попробуйте ещё раз.';
-      } finally {
-        submit.disabled = false;
-      }
-    });
-
-    code.focus();
-  </script>
-</body>
-</html>
+            ? 'Сли
