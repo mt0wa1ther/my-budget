@@ -2,73 +2,377 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Вход</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090b12">
+  <title>Вход — Наш бюджет</title>
+
   <style>
-    :root { color-scheme: light dark; }
+    :root {
+      --bg: #090b12;
+      --card: rgba(17, 19, 30, .82);
+      --card-solid: #11131e;
+      --line: rgba(255, 255, 255, .08);
+      --text: #f4f6fb;
+      --muted: #99a1b3;
+      --lime: #cbf75b;
+      --purple: #7970ec;
+      --danger: #ff6b6b;
+      --radius: 26px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      margin: 0; min-height: 100vh; display: grid; place-items: center;
-      font-family: system-ui, sans-serif; background: #f6f7fb; color: #17181c; padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
+
+    .aurora {
+      position: fixed;
+      inset: -30%;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(121, 112, 236, .34), transparent 34%),
+        radial-gradient(circle at 82% 18%, rgba(203, 247, 91, .16), transparent 30%),
+        radial-gradient(circle at 70% 85%, rgba(121, 112, 236, .22), transparent 36%),
+        radial-gradient(circle at 25% 80%, rgba(203, 247, 91, .10), transparent 30%);
+      filter: blur(52px);
+      animation: float 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes float {
+      from { transform: translate3d(-2%, -1%, 0) scale(1); }
+      to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: .035;
+      pointer-events: none;
+      background-image: radial-gradient(#fff 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 430px;
+    }
+
     .card {
-      width: 100%; max-width: 400px; background: #fff; padding: 28px;
-      border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.08);
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 34px 28px 28px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, .55),
+        inset 0 1px 0 rgba(255, 255, 255, .06);
+      animation: appear .55s cubic-bezier(.2, .8, .2, 1) both;
+      overflow: hidden;
     }
-    h1 { margin: 0 0 8px; font-size: 24px; }
-    p { margin: 0 0 20px; color: #666; }
-    input, button {
-      width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; box-sizing: border-box;
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(22px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    input { border: 1px solid #ddd; margin-bottom: 12px; }
-    button { border: 0; background: #4f46e5; color: #fff; font-weight: 600; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: not-allowed; }
-    .error { color: #dc2626; min-height: 20px; margin-bottom: 12px; font-size: 14px; }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(203, 247, 91, .14), transparent 34%, rgba(121, 112, 236, .18));
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: rgba(203, 247, 91, .10);
+      border: 1px solid rgba(203, 247, 91, .22);
+      color: var(--lime);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 0 4px rgba(203, 247, 91, .14);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      50% { box-shadow: 0 0 0 8px rgba(203, 247, 91, 0); }
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 8vw, 38px);
+      line-height: 1.05;
+      letter-spacing: -.035em;
+    }
+
+    .gradient {
+      background: linear-gradient(92deg, var(--lime), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      margin: 0 0 30px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .field {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    input {
+      width: 100%;
+      height: 60px;
+      padding: 0 56px 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .035);
+      color: var(--text);
+      font-size: 16px;
+      letter-spacing: .02em;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s, background .18s;
+    }
+
+    input::placeholder {
+      color: rgba(153, 161, 179, .65);
+    }
+
+    input:focus {
+      border-color: rgba(203, 247, 91, .55);
+      background: rgba(255, 255, 255, .055);
+      box-shadow: 0 0 0 4px rgba(203, 247, 91, .10);
+    }
+
+    .eye {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 58px;
+      height: 60px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .15s;
+    }
+
+    .eye:hover {
+      color: var(--lime);
+    }
+
+    .eye svg {
+      width: 21px;
+      height: 21px;
+    }
+
+    .error {
+      min-height: 22px;
+      margin: 0 0 16px;
+      color: var(--danger);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .submit {
+      position: relative;
+      width: 100%;
+      height: 58px;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(96deg, var(--lime), #a8f04f 45%, var(--purple));
+      background-size: 180% 100%;
+      color: #08110a;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .01em;
+      cursor: pointer;
+      transition: transform .12s, filter .18s, background-position .35s;
+      box-shadow: 0 16px 36px rgba(203, 247, 91, .16);
+    }
+
+    .submit:hover {
+      background-position: 100% 0;
+      filter: brightness(1.05);
+    }
+
+    .submit:active {
+      transform: scale(.985);
+    }
+
+    .submit:disabled {
+      opacity: .65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer b {
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    @media (max-width: 380px) {
+      .card { padding: 28px 20px 24px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aurora, .dot, .card { animation: none; }
+    }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Вход по коду</h1>
-    <p>Введите код доступа.</p>
+  <div class="aurora"></div>
+  <div class="noise"></div>
 
-    <form id="form">
-      <input id="code" type="password" autocomplete="off" placeholder="Код доступа" required>
-      <div id="error" class="error" role="alert"></div>
-      <button id="btn" type="submit">Войти</button>
-    </form>
+  <main class="shell">
+    <section class="card">
+      <div class="badge">
+        <span class="dot"></span>
+        Приватный доступ
+      </div>
+
+      <h1>Наш <span class="gradient">бюджет</span></h1>
+      <p class="subtitle">Введите код доступа, чтобы открыть общие финансы вашей семьи.</p>
+
+      <form id="form" novalidate>
+        <label for="code">Код доступа</label>
+
+        <div class="field">
+          <input
+            id="code"
+            type="password"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="Введите код"
+            required
+          >
+
+          <button class="eye" type="button" id="eye" aria-label="Показать код">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
+        <p class="error" id="error" role="alert"></p>
+
+        <button class="submit" id="submit" type="submit">Войти</button>
+      </form>
+
+      <div class="footer">
+        Доступ только для <b>вашей семьи</b>
+      </div>
+    </section>
   </main>
 
   <script>
     const form = document.getElementById('form');
     const code = document.getElementById('code');
     const error = document.getElementById('error');
-    const btn = document.getElementById('btn');
+    const submit = document.getElementById('submit');
+    const eye = document.getElementById('eye');
 
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
+    eye.addEventListener('click', () => {
+      const hidden = code.type === 'password';
+      code.type = hidden ? 'text' : 'password';
+      eye.setAttribute('aria-label', hidden ? 'Скрыть код' : 'Показать код');
+      code.focus();
+    });
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const value = code.value.trim();
+
+      if (!value) {
+        error.textContent = 'Введите код доступа.';
+        code.focus();
+        return;
+      }
+
       error.textContent = '';
-      btn.disabled = true;
+      submit.disabled = true;
 
       try {
-        const r = await fetch('/api/auth/login', {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: code.value })
+          body: JSON.stringify({ code: value })
         });
 
-        const data = await r.json();
+        const data = await response.json().catch(() => ({}));
 
-        if (!r.ok || !data.ok) {
+        if (!response.ok || !data.ok) {
           error.textContent = data.error === 'too_many_attempts'
             ? 'Слишком много попыток. Попробуйте позже.'
             : 'Неверный код доступа.';
+          code.select();
           return;
         }
 
         location.replace('/');
       } catch {
-        error.textContent = 'Ошибка соединения.';
+        error.textContent = 'Ошибка соединения. Попробуйте ещё раз.';
       } finally {
-        btn.disabled = false;
+        submit.disabled = false;
       }
     });
 
