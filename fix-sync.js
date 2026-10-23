@@ -13,12 +13,12 @@ if (!fs.existsSync(file)) {
 let html = fs.readFileSync(file, 'utf8');
 const original = html;
 
-// 1. Добавляем генератор requestId перед функцией сохранения.
+// 1. Добавляем генератор requestId перед внутренней функцией write().
 if (!html.includes('function makeRequestId()')) {
-  const anchor = 'function saveNow(';
+  const anchor = 'function write(){';
 
   if (!html.includes(anchor)) {
-    console.error('Не найдена функция saveNow(). Обновите репозиторий или пришлите точный фрагмент кода.');
+    console.error('Не найдена функция write(). Проверьте, что index.html соответствует репозиторию.');
     process.exit(1);
   }
 
@@ -38,7 +38,7 @@ if (!html.includes('function makeRequestId()')) {
     .join('');
 }
 
-function saveNow(`
+function write(){`
   );
 }
 
@@ -49,26 +49,26 @@ const newSaveBody = 'body:JSON.stringify({code:code,revision:Number(syncState.re
 if (html.includes(oldSaveBody)) {
   html = html.replace(oldSaveBody, newSaveBody);
 } else if (!html.includes(newSaveBody)) {
-  console.error('Не найден старый запрос /api/save. Возможно, файл уже исправлен или изменён.');
+  console.error('Не найден старый запрос /api/save. Возможно, файл уже исправлен.');
   process.exit(1);
 }
 
-// 3. После успешного сохранения запоминаем новую revision от сервера.
+// 3. После успешного сохранения обновляем revision.
 const oldSaveResult = "if(res&&res.ok===false)throw new Error('Сервер отклонил сохранение');";
 const newSaveResult = `if(res&&res.ok===true&&res.protocol===2){
-   syncState.revision=res.revision;
-  }else if(res&&res.error==='revision_conflict'){
-   syncState.revision=res.revision;
-   syncNotice('Данные изменены на другом устройстве. Загружаю актуальную версию…',true);
-   setTimeout(function(){location.reload();},1200);
-   return;
-  }else if(res&&res.ok===false){
-   throw new Error('Сервер отклонил сохранение');
-  }`;
+    syncState.revision=res.revision;
+   }else if(res&&res.error==='revision_conflict'){
+    syncState.revision=res.revision;
+    syncNotice('Данные изменены на другом устройстве. Загружаю актуальную версию…',true);
+    setTimeout(function(){location.reload();},1200);
+    return;
+   }else if(res&&res.ok===false){
+    throw new Error('Сервер отклонил сохранение');
+   }`;
 
 if (html.includes(oldSaveResult)) {
   html = html.replace(oldSaveResult, newSaveResult);
-} else if (!html.includes("syncState.revision=res.revision")) {
+} else if (!html.includes('syncState.revision=res.revision')) {
   console.error('Не найден обработчик ответа /api/save.');
   process.exit(1);
 }
